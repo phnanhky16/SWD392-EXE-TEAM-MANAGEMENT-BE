@@ -1,8 +1,5 @@
 # EXE Team Management
 
-<p align="center">
-  <img src="https://www.google.com/imgres?q=logo%20pass%20m%C3%B4n%20fpt&imgurl=https%3A%2F%2Flookaside.fbsbx.com%2Flookaside%2Fcrawler%2Fmedia%2F%3Fmedia_id%3D2035427806580201&imgrefurl=https%3A%2F%2Fwww.facebook.com%2Fphoto.php%3Ffbid%3D2035427806580201%26id%3D399887626800902%26set%3Da.732623576860637&docid=EerJhmY3GUqmEM&tbnid=6wk1TaW8VbAvSM&vet=12ahUKEwiX8v6AoO-PAxWkwjgGHacaHjMQM3oECB4QAA..i&w=490&h=490&hcb=2&ved=2ahUKEwiX8v6AoO-PAxWkwjgGHacaHjMQM3oECB4QAA" alt="Project Logo" width="150"/>
-
 ---
 
 Backend project for **EXE course at FPT University**.  
