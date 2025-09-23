@@ -1,16 +1,15 @@
 # EXE Team Management
 
 <p align="center">
-  <img src="https://your-image-link/logo.png" alt="Project Logo" width="200"/>
-</p>
+  <img src="https://your-image-link/logo.png" alt="Project Logo" width="150"/>
 
-<p align="center">
   <!-- Badges -->
-  ![Java](https://img.shields.io/badge/Java-17-red)
-  ![Spring Boot](https://img.shields.io/badge/SpringBoot-3.5.6-brightgreen)
-  ![MySQL](https://img.shields.io/badge/MySQL-8-blue)
-  ![Build](https://img.shields.io/github/actions/workflow/status/<your-username>/team-management/ci.yml?branch=main)
-  ![License](https://img.shields.io/badge/license-MIT-blue)
+  <br/>
+  <img src="https://img.shields.io/badge/Java-17-red" />
+  <img src="https://img.shields.io/badge/SpringBoot-3.5.6-brightgreen" />
+  <img src="https://img.shields.io/badge/MySQL-8-blue" />
+  <img src="https://img.shields.io/github/actions/workflow/status/<your-username>/team-management/ci.yml?branch=main" />
+  <img src="https://img.shields.io/badge/license-MIT-blue" />
 </p>
 
 ---
