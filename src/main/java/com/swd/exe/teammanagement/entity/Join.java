@@ -8,7 +8,7 @@ import lombok.experimental.FieldDefaults;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "join")
+@Table(name = "`join`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
 @Setter

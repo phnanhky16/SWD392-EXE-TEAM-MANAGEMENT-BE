@@ -9,7 +9,7 @@ import lombok.experimental.FieldDefaults;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "groups")
+@Table(name = "`groups`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
 @Setter
@@ -41,7 +41,10 @@ public class Group {
     @JoinColumn(name = "checkpoint_teacher_id")
     User checkpointTeacher;
 
+    @Column(name = "created_at")
     LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
     LocalDateTime updatedAt;
 }
 
