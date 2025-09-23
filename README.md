@@ -1,5 +1,20 @@
 # EXE Team Management
 
+<p align="center">
+  <img src="https://your-image-link/logo.png" alt="Project Logo" width="200"/>
+</p>
+
+<p align="center">
+  <!-- Badges -->
+  ![Java](https://img.shields.io/badge/Java-17-red)
+  ![Spring Boot](https://img.shields.io/badge/SpringBoot-3.5.6-brightgreen)
+  ![MySQL](https://img.shields.io/badge/MySQL-8-blue)
+  ![Build](https://img.shields.io/github/actions/workflow/status/<your-username>/team-management/ci.yml?branch=main)
+  ![License](https://img.shields.io/badge/license-MIT-blue)
+</p>
+
+---
+
 Backend project for **EXE course at FPT University**.  
 This system helps students create, join, and manage interdisciplinary project teams (e.g., SE + IB), 
 supporting features like posts, join requests, voting, notifications, and more.
