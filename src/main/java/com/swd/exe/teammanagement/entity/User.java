@@ -5,8 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "users")
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -21,17 +19,15 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(unique = true, nullable = false)
     String studentCode;
 
     String fullName;
 
-    @Column(unique = true, nullable = false)
     String email;
 
-    String password;
-
     String cvUrl;
+
+    String avatarUrl;
 
     @ManyToOne
     @JoinColumn(name = "major_code")
@@ -40,7 +36,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     UserRole role;
 
-    LocalDateTime createdAt;
-    LocalDateTime updatedAt;
+    Boolean isActive;
+
 }
 

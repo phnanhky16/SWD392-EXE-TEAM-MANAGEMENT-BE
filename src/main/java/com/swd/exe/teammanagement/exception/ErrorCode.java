@@ -8,9 +8,10 @@ import org.springframework.http.HttpStatusCode;
 public enum ErrorCode {
     UNCATEGORIZED_EXCEPTION("Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
     KEY_INVALID("Key is invalid", HttpStatus.BAD_REQUEST),
-    UNAUTHENTICATION("Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED("You do not have permission", HttpStatus.FORBIDDEN),
-    PASSWORD_WRONG("Password is wrong", HttpStatus.BAD_REQUEST),
+    USER_UNEXISTED("User does not exist", HttpStatus.BAD_REQUEST),
+    MAJOR_EXISTED("Major already exists", HttpStatus.BAD_REQUEST),
+    MAJOR_UNEXISTED("Major does not exist", HttpStatus.BAD_REQUEST),
     ;
 
     private final String message;

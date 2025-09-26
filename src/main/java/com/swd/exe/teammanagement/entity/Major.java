@@ -18,7 +18,6 @@ public class Major {
     @Id
     @Column(length = 20)
     String code;
-
     String name;
 }
 
