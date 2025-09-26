@@ -16,3 +16,8 @@ spring:
 
 server:
   port: ${SERVER_PORT}
+
+fcm:
+  credentials:
+    file:
+      path: serviceAccountKey.json
