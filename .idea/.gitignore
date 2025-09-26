@@ -41,3 +41,4 @@ Thumbs.db
 ### IDE khác ###
 .vscode/
 *.swp
+*.env
