@@ -1,0 +1,56 @@
+# === Build outputs ===
+/target/
+build/
+out/
+
+# === Logs ===
+*.log
+logs/
+spring.log
+
+# === Env & Secrets (TUYỆT ĐỐI không commit) ===
+.env
+.env.*
+!.env.example
+**/serviceAccountKey.json
+**/*service*account*key*.json
+**/*firebase*key*.json
+creds.txt
+*.pem
+*.p12
+
+# Local overrides (tùy chọn)
+application-local.yml
+application-local.yaml
+application-local.properties
+
+# === IDE ===
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.vscode/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/build/
+
+# === OS trash ===
+.DS_Store
+Thumbs.db
+
+# === JVM crash dumps ===
+hs_err_pid*
+replay_pid*
+heapdump.hprof
