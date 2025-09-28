@@ -77,7 +77,7 @@ public class AuthServiceImpl implements AuthService {
         // Set student code only for students
         if (role == UserRole.STUDENT) {
             String studentCode = extractStudentCode(emailParts.localPart());
-            newUser.setStudentCode(studentCode);
+            newUser.setStudentCode(studentCode.toUpperCase());
         }
 
         User savedUser = userRepository.save(newUser);

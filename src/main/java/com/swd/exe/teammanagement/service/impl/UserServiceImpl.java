@@ -51,17 +51,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse getMyInfo() {
-        var context = SecurityContextHolder.getContext();
-        String name = context.getAuthentication().getName();
-        User user = userRepository.findByStudentCode(name).orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
+        User user = getCurrentUser();
         return userMapper.toUserResponse(user);
     }
 
     @Override
     public UserResponse updateMyInfo(UserUpdateRequest request) {
-        var context = SecurityContextHolder.getContext();
-        String name = context.getAuthentication().getName();
-        User user = userRepository.findByStudentCode(name).orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
+        User user = getCurrentUser();
         userMapper.toUserUpdate(user, request);
         return userMapper.toUserResponse(userRepository.save(user));
     }
@@ -72,5 +68,10 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
         user.setIsActive(!user.getIsActive());
         return userMapper.toUserResponse(userRepository.save(user));
+    }
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
     }
 }

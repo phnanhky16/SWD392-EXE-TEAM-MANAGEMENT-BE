@@ -9,6 +9,7 @@ import com.swd.exe.teammanagement.enums.idea_join_post.PostType;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
 import com.swd.exe.teammanagement.mapper.PostMapper;
+import com.swd.exe.teammanagement.repository.CommentRepository;
 import com.swd.exe.teammanagement.repository.GroupRepository;
 import com.swd.exe.teammanagement.repository.PostRepository;
 import com.swd.exe.teammanagement.repository.UserRepository;
@@ -29,13 +30,12 @@ public class PostServiceImpl implements PostService {
     PostMapper postMapper;
     UserRepository userRepository;
     GroupRepository groupRepository;
+    CommentRepository commentRepository;
     @Override
     // Create post to find member, only group leader can create this type of post
     public PostResponse createPostToFindMember(PostRequest request) {
         Post post = postMapper.toPost(request);
-        var context = SecurityContextHolder.getContext();
-        String name = context.getAuthentication().getName();
-        User user = userRepository.findByStudentCode(name).orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
+        User user = getCurrentUser();
         Group group = groupRepository.findByLeader(user).orElseThrow(() -> new AppException(ErrorCode.GROUP_UNEXISTED));
         post.setUser(user);
         post.setGroup(group);
@@ -47,9 +47,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostResponse createPostToFindGroup(PostRequest request) {
         Post post = postMapper.toPost(request);
-        var context = SecurityContextHolder.getContext();
-        String name = context.getAuthentication().getName();
-        User user = userRepository.findByStudentCode(name).orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
+        User user = getCurrentUser();
         post.setUser(user);
         post.setType(PostType.FIND_GROUP);
         post.setCreatedAt(LocalDateTime.now());
@@ -69,19 +67,35 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public Void deletePost(Long id) {
-        var context = SecurityContextHolder.getContext();
-        String name = context.getAuthentication().getName();
-        User user = userRepository.findByStudentCode(name).orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
+        User user = getCurrentUser();
         Post post = postRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.POST_UNEXISTED));
         if (!post.getUser().getId().equals(user.getId())) {
             throw new AppException(ErrorCode.DOES_NOT_DELETE_OTHER_USER_POST);
         }
         postRepository.delete(post);
+        commentRepository.deleteByPost(post);
         return null;
     }
 
     @Override
     public List<PostResponse> getPostsByType(PostType type) {
         return postMapper.toPostResponseList(postRepository.findByType(type));
+    }
+
+    @Override
+    public PostResponse updatePost(Long id, PostRequest request) {
+        User user = getCurrentUser();
+        Post post = postRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.POST_UNEXISTED));
+        if (!post.getUser().getId().equals(user.getId())) {
+            throw new AppException(ErrorCode.DOES_NOT_DELETE_OTHER_USER_POST);
+        }
+        post.setCreatedAt(LocalDateTime.now());
+        postMapper.toUpdatePost(post, request);
+        return postMapper.toPostResponse(postRepository.save(post));
+    }
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
     }
 }

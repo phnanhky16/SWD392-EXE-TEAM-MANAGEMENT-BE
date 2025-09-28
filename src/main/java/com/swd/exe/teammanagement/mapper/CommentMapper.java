@@ -4,6 +4,8 @@ import com.swd.exe.teammanagement.dto.request.CommentRequest;
 import com.swd.exe.teammanagement.dto.response.CommentResponse;
 import com.swd.exe.teammanagement.entity.Comment;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
+
 import java.util.List;
 
 @Mapper(componentModel = "spring")
@@ -11,4 +13,5 @@ public interface CommentMapper {
     CommentResponse toCommentResponse(Comment comment);
     Comment toComment(CommentRequest request);
     List<CommentResponse> toCommentResponseList(List<Comment> comments);
+    void toUpdateComment(@MappingTarget Comment comment, CommentRequest request);
 }
