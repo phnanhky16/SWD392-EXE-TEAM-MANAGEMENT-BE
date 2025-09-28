@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class Auth {
+public class AuthController {
     AuthService authService;
     @PostMapping("/google-login")
     public ApiResponse<AuthResponse> googleLogin(@Valid @RequestBody TokenRequest request) {
