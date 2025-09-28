@@ -25,6 +25,10 @@ public class Idea {
     @JoinColumn(name = "group_id")
     Group group;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    User user;
+
     String title;
 
     @Column(columnDefinition = "TEXT")

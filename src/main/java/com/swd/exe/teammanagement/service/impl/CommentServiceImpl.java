@@ -30,9 +30,7 @@ public class CommentServiceImpl implements CommentService {
     CommentMapper commentMapper;
     @Override
     public CommentResponse createComment(CommentRequest request) {
-        var context = SecurityContextHolder.getContext();
-        String name = context.getAuthentication().getName();
-        User user = userRepository.findByStudentCode(name).orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
+        User user = getCurrentUser();
         Comment comment = commentMapper.toComment(request);
         comment.setUser(user);
         Post post = postRepository.findById(request.getPostId()).orElseThrow(() -> new AppException(ErrorCode.POST_UNEXISTED));
@@ -43,14 +41,13 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public CommentResponse getCommentById(Long id) {
-        return null;
+        Comment comment = commentRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.COMMENT_UNEXISTED));
+        return commentMapper.toCommentResponse(comment);
     }
 
     @Override
     public Void deleteComment(Long id) {
-        var context = SecurityContextHolder.getContext();
-        String name = context.getAuthentication().getName();
-        User user = userRepository.findByStudentCode(name).orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
+        User user = getCurrentUser();
         Comment comment = commentRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.COMMENT_UNEXISTED));
         if(!comment.getUser().getId().equals(user.getId())){
             throw new AppException(ErrorCode.DOES_NOT_DELETE_OTHER_USER_POST);}
@@ -60,11 +57,26 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public List<CommentResponse> getAllCommentsByPost(Long postId) {
-        return List.of();
+        return commentMapper.toCommentResponseList(commentRepository.findAllByPostId(postId));
     }
 
     @Override
     public CommentResponse updateComment(Long id, CommentRequest request) {
-        return null;
+        User user = getCurrentUser();
+        Comment comment = commentRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.COMMENT_UNEXISTED));
+        if(!comment.getUser().getId().equals(user.getId())){
+            throw new AppException(ErrorCode.DOES_NOT_DELETE_OTHER_USER_POST);}
+        comment.setCreatedAt(LocalDateTime.now());
+        commentMapper.toUpdateComment(comment, request);
+        return commentMapper.toCommentResponse(commentRepository.save(comment));
+    }
+    @Override
+    public List<CommentResponse> getAllComments() {
+        return commentMapper.toCommentResponseList(commentRepository.findAll());
+    }
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
     }
 }

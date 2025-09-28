@@ -4,6 +4,7 @@ import com.swd.exe.teammanagement.dto.request.PostRequest;
 import com.swd.exe.teammanagement.dto.response.PostResponse;
 import com.swd.exe.teammanagement.entity.Post;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
 
 import java.util.List;
 
@@ -12,4 +13,5 @@ public interface PostMapper {
     PostResponse toPostResponse(Post post);
     Post toPost(PostRequest request);
     List<PostResponse> toPostResponseList(List<Post> posts);
+    void toUpdatePost(@MappingTarget Post post, PostRequest request);
 }
