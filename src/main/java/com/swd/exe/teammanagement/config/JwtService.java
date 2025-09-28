@@ -17,7 +17,7 @@ public class JwtService {
     // Tạo JWT
     public String generateToken(String uid, String email, Map<String, Object> extraClaims) {
         return Jwts.builder()
-                .setSubject(uid)
+                .setSubject(email)
                 .addClaims(extraClaims)
                 .claim("email", email)
                 .setIssuedAt(new Date())
