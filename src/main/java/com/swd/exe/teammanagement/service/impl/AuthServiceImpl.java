@@ -5,17 +5,19 @@ import com.swd.exe.teammanagement.config.JwtService;
 import com.swd.exe.teammanagement.dto.response.AuthResponse;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.user.UserRole;
+import com.swd.exe.teammanagement.exception.AppException;
+import com.swd.exe.teammanagement.exception.ErrorCode;
 import com.swd.exe.teammanagement.repository.UserRepository;
 import com.swd.exe.teammanagement.service.AuthService;
 import com.swd.exe.teammanagement.service.FirebaseAuthService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -28,51 +30,96 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse loginWithGoogle(String idToken) {
         try {
-
-            var info  = firebaseAuthService.verify(idToken); // uid, email, name
+            FirebaseAuthService.FirebaseUserInfo info = firebaseAuthService.verify(idToken);
             String email = info.email();
 
-            // Lấy phần trước @
-            String localPart = email.substring(0, email.indexOf('@'));
-            // Lấy 8 ký tự cuối của localPart (ngay trước @). Nếu < 8 thì lấy hết
-            String studentCode = localPart.length() <= 8
-                    ? localPart
-                    : localPart.substring(localPart.length() - 8);
+            validateEmail(email);
 
-            // Tên hiển thị: ưu tiên name từ token, fallback localPart
-            String fullName = (info.name() != null && !info.name().isBlank())
-                    ? info.name()
-                    : localPart;
+            // Get existing user or create new one
+            User user = userRepository.findByEmail(email)
+                    .orElseGet(() -> createNewUser(info));
 
-            String pictureUrl = info.pictureUrl();
-            // Tìm user theo email, nếu không có thì tạo mới
-            if (!userRepository.existsByEmail(email)) {
-                        User u = new User();
-                        u.setEmail(email);
-                        u.setFullName(fullName);
-                        u.setStudentCode(studentCode);
-                        u.setAvatarUrl(pictureUrl);
-                        u.setRole(UserRole.STUDENT);
-                        u.setIsActive(true);
-                        userRepository.save(u);
-                    }
+            // Generate token
+            String jwt = generateJwtToken(info, user);
 
-            // 3) Payload tuỳ bạn muốn nhét gì thêm
-            Map<String, Object> claims = Map.of(
-                    "role", /* user.getRole() != null ? user.getRole().name() : */ "USER",
-                    "uid", info.uid()
-            );
-
-            // 4) Sinh JWT và trả về
-            String jwt = jwtService.generateToken(info.uid(), info.email(), claims);
+            log.info("User authenticated successfully: {} with role: {}", email, user.getRole());
 
             return AuthResponse.builder()
-                    .email(info.email())
+                    .email(email)
                     .token(jwt)
                     .build();
 
         } catch (FirebaseAuthException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid Google token", e);
+            log.error("Firebase authentication failed", e);
+            throw new AppException(ErrorCode.INVALID_GG_TOKEN);
         }
     }
+
+    private void validateEmail(String email) {
+        if (email == null || !email.contains("@")) {
+            throw new AppException(ErrorCode.EMAIL_INVALID_FORMAT);
+        }
+    }
+
+    private User createNewUser(FirebaseAuthService.FirebaseUserInfo firebaseInfo) {
+        String email = firebaseInfo.email();
+        EmailParts emailParts = parseEmail(email);
+        UserRole role = determineRole(emailParts.domain());
+        String fullName = getDisplayName(firebaseInfo.name(), emailParts.localPart());
+
+        User newUser = new User();
+        newUser.setEmail(email);
+        newUser.setFullName(fullName);
+        newUser.setAvatarUrl(firebaseInfo.pictureUrl());
+        newUser.setRole(role);
+        newUser.setIsActive(true);
+
+        // Set student code only for students
+        if (role == UserRole.STUDENT) {
+            String studentCode = extractStudentCode(emailParts.localPart());
+            newUser.setStudentCode(studentCode);
+        }
+
+        User savedUser = userRepository.save(newUser);
+        log.info("Created new {} user: {}", role, email);
+
+        return savedUser;
+    }
+
+    private EmailParts parseEmail(String email) {
+        int atIndex = email.indexOf('@');
+        String localPart = email.substring(0, atIndex);
+        String domain = email.substring(atIndex + 1).toLowerCase();
+        return new EmailParts(localPart, domain);
+    }
+
+    private UserRole determineRole(String domain) {
+        return "fe.edu.vn".equals(domain) ? UserRole.TEACHER : UserRole.STUDENT;
+    }
+
+    private String getDisplayName(String firebaseName, String localPart) {
+        return (firebaseName != null && !firebaseName.isBlank())
+                ? firebaseName
+                : localPart;
+    }
+
+    private String extractStudentCode(String localPart) {
+        return localPart.length() <= 8
+                ? localPart
+                : localPart.substring(localPart.length() - 8);
+    }
+
+    private String generateJwtToken(FirebaseAuthService.FirebaseUserInfo firebaseInfo, User user) {
+        Map<String, Object> claims = Map.of(
+                "role", user.getRole().name(),
+                "uid", firebaseInfo.uid()
+        );
+
+        return jwtService.generateToken(firebaseInfo.uid(), firebaseInfo.email(), claims);
+    }
+
+    /**
+     * Record to hold email components
+     */
+    private record EmailParts(String localPart, String domain) {}
 }
