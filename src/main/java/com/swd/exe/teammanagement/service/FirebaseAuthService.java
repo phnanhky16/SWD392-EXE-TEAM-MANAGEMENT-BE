@@ -9,7 +9,7 @@ public interface FirebaseAuthService {
     record FirebaseUserInfo(
             String uid,
             String email,
-            String name,         // <-- thêm name
-            String pictureUrl    // <-- tuỳ chọn: thêm avatar
+            String name,
+            String pictureUrl
     ) {}
 }

@@ -4,6 +4,7 @@ import com.swd.exe.teammanagement.dto.ApiResponse;
 import com.swd.exe.teammanagement.dto.request.UserUpdateRequest;
 import com.swd.exe.teammanagement.dto.response.UserResponse;
 import com.swd.exe.teammanagement.service.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -15,6 +16,7 @@ import java.util.List;
 @RequestMapping("/users")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@SecurityRequirement(name = "bearerAuth")
 public class UserController {
       UserService userService;
       @GetMapping("/{id}")

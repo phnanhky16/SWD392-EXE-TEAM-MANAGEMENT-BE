@@ -11,6 +11,7 @@ import com.swd.exe.teammanagement.repository.UserRepository;
 import com.swd.exe.teammanagement.service.AuthService;
 import com.swd.exe.teammanagement.service.FirebaseAuthService;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,11 +21,12 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(makeFinal = true, level = lombok.AccessLevel.PRIVATE)
 public class AuthServiceImpl implements AuthService {
 
-    private final FirebaseAuthService firebaseAuthService;
-    private final JwtService jwtService;
-    private final UserRepository userRepository;
+    FirebaseAuthService firebaseAuthService;
+    UserRepository userRepository;
+    JwtService jwtService;
 
     @Transactional
     @Override
@@ -81,7 +83,6 @@ public class AuthServiceImpl implements AuthService {
         }
 
         User savedUser = userRepository.save(newUser);
-        log.info("Created new {} user: {}", role, email);
 
         return savedUser;
     }
@@ -114,8 +115,12 @@ public class AuthServiceImpl implements AuthService {
                 "role", user.getRole().name(),
                 "uid", firebaseInfo.uid()
         );
-
-        return jwtService.generateToken(firebaseInfo.uid(), firebaseInfo.email(), claims);
+        return jwtService.generateToken(
+            firebaseInfo.uid(),
+            firebaseInfo.email(),
+            user.getRole().name(),
+            claims
+        );
     }
 
     /**
