@@ -17,7 +17,20 @@ public enum ErrorCode {
     GROUP_UNEXISTED("Group does not exist", HttpStatus.BAD_REQUEST),
     POST_UNEXISTED("Post does not exist", HttpStatus.BAD_REQUEST),
     DOES_NOT_DELETE_OTHER_USER_POST("You can not delete other user's post", HttpStatus.FORBIDDEN),
-    COMMENT_UNEXISTED("Comment does not exist", HttpStatus.BAD_REQUEST)
+    IDEA_UNEXISTED("Idea does not exist", HttpStatus.NOT_FOUND),
+    COMMENT_UNEXISTED("Comment does not exist", HttpStatus.BAD_REQUEST),
+    ONLY_GROUP_LEADER("Only group leader can perform this action", HttpStatus.FORBIDDEN),
+    ONLY_LEADER_CAN_MODIFY_IDEA("Only idea leader can modify this idea", HttpStatus.FORBIDDEN),
+    ONLY_LEADER_CAN_SUBMIT("Only leader can submit the idea", HttpStatus.FORBIDDEN),
+    ONLY_TEACHER_OR_ADMIN("Only teacher or admin can perform this action", HttpStatus.FORBIDDEN),
+    GROUP_LOCKED("Group is locked", HttpStatus.BAD_REQUEST),
+    GROUP_NOT_ACTIVE("Group is not active", HttpStatus.BAD_REQUEST),
+    // Trạng thái hợp lệ theo vòng đời
+    ONLY_DRAFT_OR_REJECTED_CAN_BE_DELETED("Only DRAFT or REJECT idea can be updated", HttpStatus.BAD_REQUEST),
+    ONLY_DRAFT_OR_REJECTED_CAN_BE_UPDATED("Only DRAFT or REJECT idea can be deleted", HttpStatus.BAD_REQUEST),
+    ONLY_DRAFT_OR_REJECTED_CAN_BE_SUBMITTED("Only DRAFT or REJECT idea can be submitted", HttpStatus.BAD_REQUEST),
+    ONLY_PROPOSED_CAN_BE_APPROVED("Only PROPOSED idea can be approved", HttpStatus.BAD_REQUEST),
+    ONLY_PROPOSED_CAN_BE_REJECTED("Only PROPOSED idea can be rejected", HttpStatus.BAD_REQUEST);
     ;
 
     private final String message;

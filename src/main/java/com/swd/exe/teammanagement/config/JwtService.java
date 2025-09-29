@@ -15,11 +15,12 @@ public class JwtService {
     private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
 
     // Tạo JWT
-    public String generateToken(String uid, String email, Map<String, Object> extraClaims) {
+    public String generateToken(String uid, String email, String role, Map<String, Object> extraClaims) {
         return Jwts.builder()
                 .setSubject(email)
                 .addClaims(extraClaims)
                 .claim("email", email)
+                .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // 24h
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -29,6 +30,10 @@ public class JwtService {
     // Lấy email từ JWT
     public String extractEmail(String token) {
         return extractAllClaims(token).get("email", String.class);
+    }
+
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
     }
 
     // Kiểm tra token còn hạn hay không
