@@ -3,7 +3,7 @@ package com.swd.exe.teammanagement.controller;
 import com.swd.exe.teammanagement.dto.ApiResponse;
 import com.swd.exe.teammanagement.dto.request.PostRequest;
 import com.swd.exe.teammanagement.dto.response.PostResponse;
-import com.swd.exe.teammanagement.enums.idea_join_post.PostType;
+import com.swd.exe.teammanagement.enums.idea_join_post_score.PostType;
 import com.swd.exe.teammanagement.service.PostService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

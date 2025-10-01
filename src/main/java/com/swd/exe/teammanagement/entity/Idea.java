@@ -1,9 +1,8 @@
     package com.swd.exe.teammanagement.entity;
 
-    import com.swd.exe.teammanagement.enums.idea_join_post.IdeaStatus;
+    import com.swd.exe.teammanagement.enums.idea_join_post_score.IdeaStatus;
     import jakarta.persistence.*;
     import lombok.*;
-    import lombok.experimental.FieldDefaults;
 
     import java.time.LocalDateTime;
 

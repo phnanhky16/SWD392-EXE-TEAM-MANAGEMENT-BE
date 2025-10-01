@@ -6,7 +6,7 @@ import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.Idea;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.group.GroupStatus;
-import com.swd.exe.teammanagement.enums.idea_join_post.IdeaStatus;
+import com.swd.exe.teammanagement.enums.idea_join_post_score.IdeaStatus;
 import com.swd.exe.teammanagement.enums.user.MembershipRole;
 import com.swd.exe.teammanagement.enums.user.UserRole;
 import com.swd.exe.teammanagement.exception.AppException;

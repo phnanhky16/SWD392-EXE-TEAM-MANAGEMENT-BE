@@ -31,6 +31,4 @@ public class VoteChoice {
 
     @Enumerated(EnumType.STRING)
     ChoiceValue choiceValue;
-
-    LocalDateTime createdAt;
 }

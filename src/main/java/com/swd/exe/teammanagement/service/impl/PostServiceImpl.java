@@ -5,7 +5,7 @@ import com.swd.exe.teammanagement.dto.response.PostResponse;
 import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.Post;
 import com.swd.exe.teammanagement.entity.User;
-import com.swd.exe.teammanagement.enums.idea_join_post.PostType;
+import com.swd.exe.teammanagement.enums.idea_join_post_score.PostType;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
 import com.swd.exe.teammanagement.mapper.PostMapper;
@@ -37,6 +37,9 @@ public class PostServiceImpl implements PostService {
         Post post = postMapper.toPost(request);
         User user = getCurrentUser();
         Group group = groupRepository.findByLeader(user).orElseThrow(() -> new AppException(ErrorCode.GROUP_UNEXISTED));
+        if(postRepository.countPostByGroup(group)==1){
+            throw new AppException(ErrorCode.JUST_ONE_POST_ONE_GROUP);
+        }
         post.setUser(user);
         post.setGroup(group);
         post.setType(PostType.FIND_MEMBER);
