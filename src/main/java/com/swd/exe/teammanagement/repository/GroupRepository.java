@@ -8,4 +8,6 @@ import java.util.Optional;
 
 public interface GroupRepository extends JpaRepository<Group, Long> {
     Optional<Group> findByLeader(User leader);
+
+    void deleteGroupByLeader(User leader);
 }

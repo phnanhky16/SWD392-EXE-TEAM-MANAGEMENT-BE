@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "`groups`")
@@ -41,10 +40,5 @@ public class Group {
     @JoinColumn(name = "checkpoint_teacher_id")
     User checkpointTeacher;
 
-    @Column(name = "created_at")
-    LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    LocalDateTime updatedAt;
 }
 

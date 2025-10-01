@@ -5,8 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "group_members")
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -32,7 +30,5 @@ public class GroupMember {
     @Enumerated(EnumType.STRING)
     MembershipRole role;
 
-
-    LocalDateTime joinedAt;
 }
 

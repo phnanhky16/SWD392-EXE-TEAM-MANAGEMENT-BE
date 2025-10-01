@@ -1,28 +1,38 @@
 package com.swd.exe.teammanagement.config;
 
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseOptions;
+import java.io.IOException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
-
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
 
 @Configuration
 public class FirebaseConfig {
-    @Value("${fcm.credentials.file.path}")
-    private String credentialsFilePath;
+
+    @Value("${fcm.project-id}")
+    private String projectId;
+
+    @Value("${fcm.private-key}")
+    private String privateKey;
+
+    @Value("${fcm.client-email}")
+    private String clientEmail;
+
+    @Value("${fcm.private-key-id}")
+    private String privateKeyId;
+
+    @Value("${fcm.client-id}")
+    private String clientId;
 
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
-        if (!FirebaseApp.getApps().isEmpty()) return FirebaseApp.getInstance();
         FirebaseOptions options = FirebaseOptions.builder()
-                .setCredentials(
-                        GoogleCredentials.fromStream(new ClassPathResource(credentialsFilePath).getInputStream()))
+                .setCredentials(GoogleCredentials.fromStream(credentialsStream))
+                .setProjectId(projectId)
                 .build();
+
         return FirebaseApp.initializeApp(options);
     }
 }

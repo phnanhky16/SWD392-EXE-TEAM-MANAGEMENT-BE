@@ -1,0 +1,72 @@
+services:services:
+
+  - type: web  - type: web
+
+    name: exe-team-management    name: exe-team-management
+
+    env: docker    env: java
+
+    region: oregon    region: oregon
+
+    plan: free    plan: free
+
+    dockerfilePath: ./Dockerfile    buildCommand: mvn clean package -DskipTests
+
+    envVars:    startCommand: java -Dserver.port=$PORT -jar target/team-management-0.0.1-SNAPSHOT.jar
+
+      - key: DB_HOST    envVars:
+
+        value: sjc1.clusters.zeabur.com      - key: DB_HOST
+
+      - key: DB_PORT        value: sjc1.clusters.zeabur.com
+
+        value: 31933      - key: DB_PORT
+
+      - key: DB_NAME        value: 31933
+
+        value: zeabur      - key: DB_NAME
+
+      - key: DB_USERNAME        value: zeabur
+
+        value: root      - key: DB_USERNAME
+
+      - key: DB_PASSWORD        value: root
+
+        value: Jw1sKV7jm8ZqTyU05DfG6eS42Wu3xvl9      - key: DB_PASSWORD
+
+      - key: FCM_PROJECT_ID        value: Jw1sKV7jm8ZqTyU05DfG6eS42Wu3xvl9
+
+        value: exe-platform      - key: FCM_PROJECT_ID
+
+      - key: FCM_PRIVATE_KEY_ID        value: exe-platform
+
+        value: 42a34b4db374a1ac1f096d8f70edd219877c9712      - key: FCM_PRIVATE_KEY_ID
+
+      - key: FCM_PRIVATE_KEY        value: 42a34b4db374a1ac1f096d8f70edd219877c9712
+
+        value: "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCPrmyyhXWsvc9c\nn46YL65UkV8o/aMIqT7fG1jSVExnyyxLeBKRnrA8nU/lAkyvKJzGNUlI7kdk9y2H\nq5IanloJpfr2Of0Szlt01phNVZ4vFMEo9DCj1P8cv3+PQRAzp1hJ8TK0k9y+u0In\n7hi6F7RSoHLVbpJIlsAtlusGBDetMI0sWYWblFR6cjlsvNzJXwbPBKbQ5wf9qtxx\ncuCUnwu8fxTVxdyZNkiUZaLeOC11zI/dE1eYu3qYLtZIi88UKYo8GUHSI8a394vo\nj/VBUeEuMyETxNj6Tec/XBiH+O5b0JNGjh5SN7M41PTGe73Qt50oWjTZ+yh80015\nEzlC8y05AgMBAAECggEAFjYhbRaXGqlsGzY6SboDQeUIODK/h5j8VGqqmDc6aYg9\n1HvfKP5GYdRy06T/nEtTswttRRY62LeiZPkHuNA2fIvZaEOOJSBcAIulFz1vWvlj\nI/Td6RHGD1hmPIvTGJ0b17BvBX3fL+gMYdZbobcE5AoUPnzdpdWSJ2oPcopn3gCq\nXqQFUaQC2IxSs7HyqrMWpXVAR70DcM4Yjic9pbSn7PrMQZLAY8Ff5lC5BzVp+sv0\n5XBp8Agt+KQTmz2jnmIKIqybvspB0zTXiNaIDw/B9imHFdFBsLGjV5ZifOkGphq/\nFjrWEkMjcmzJluz6EWHfw+5nu5DH7BkfJ7Zt5kPelQKBgQDEArti4r3lPQgf5mFG\nq6EioS7suSuTSAOj/6MVAbii3kiYkxttNcselHnTV13VU/inpMlr4wpXwuxJzX69\n1nZ9AEdxyLy93R5WGn72NLiHmEj8zGCA7ro5+/NavLlswaEPb5vhoVAvRirsHZEb\n5xJJSMQTzL+QB9Yl8c0xllJ09QKBgQC7p7weGAWA5Qi8AzR0nOky6GGOVAPe11w6\nQFQrI9z8z5Btrw978+8sthPdbRSlb3KLE7lTYX6s0l2SxVI3vjxL2XzpuxvB26i+\n5nE+/QnRnL/+gbCndwQTauXZcvKMzJeg36JZkf1SssLL4+93F7r907GA02fkKf3F\n/Y119Z8MtQKBgF1B43/n22uO/yeWR+AE1pSQVbAhZb8cO0cy4JelCwDKe4XEL/9k\n4bA5+kB4R9ewrRSuDXs8OXaJ8jwm/k86E4PjtxpG5K3832seDhv793PkG43Te3K8\nonPmEOGx+xLoiUW711Ghm3Hyk4dlhd3dsdCWQ1wcRWQ0pknFYthd6ftlAoGAYkdX\no18rSrUo3ObEyyn+i/XeWd8wY73ghHV6X1mZ/CFs37TmZCF+Kql1P+tH+9ihYatD\nzSJraHGIJj0HcUBFbegKnpKq192Fw+0GdFmrkccJWm5rqVkQnmbG2Bp2Yz0nUE6v\nRT/LL0uF76iBmpqoCRWcif6uE3XWfaHsO1IXKV0CgYEAtQ9HXrIT/ArhjfMYBKFa\nKpw+L6LoTwFkJmehc3Pk4f/q5FEYKcYttBX7zNEbAIRvCadF8wdbLp/WmiNZRl8A\n5USgXO5yttwqK1+2TSnIIeIEvCDu5Pm1cPvNrpsGrsuE+HQOlTzjvC7XdDh6tei4\nPQ+rMGh6AIMpZCzYZYyFgbc=\n-----END PRIVATE KEY-----\n"      - key: FCM_PRIVATE_KEY
+
+      - key: FCM_CLIENT_EMAIL        value: "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCPrmyyhXWsvc9c\nn46YL65UkV8o/aMIqT7fG1jSVExnyyxLeBKRnrA8nU/lAkyvKJzGNUlI7kdk9y2H\nq5IanloJpfr2Of0Szlt01phNVZ4vFMEo9DCj1P8cv3+PQRAzp1hJ8TK0k9y+u0In\n7hi6F7RSoHLVbpJIlsAtlusGBDetMI0sWYWblFR6cjlsvNzJXwbPBKbQ5wf9qtxx\ncuCUnwu8fxTVxdyZNkiUZaLeOC11zI/dE1eYu3qYLtZIi88UKYo8GUHSI8a394vo\nj/VBUeEuMyETxNj6Tec/XBiH+O5b0JNGjh5SN7M41PTGe73Qt50oWjTZ+yh80015\nEzlC8y05AgMBAAECggEAFjYhbRaXGqlsGzY6SboDQeUIODK/h5j8VGqqmDc6aYg9\n1HvfKP5GYdRy06T/nEtTswttRRY62LeiZPkHuNA2fIvZaEOOJSBcAIulFz1vWvlj\nI/Td6RHGD1hmPIvTGJ0b17BvBX3fL+gMYdZbobcE5AoUPnzdpdWSJ2oPcopn3gCq\nXqQFUaQC2IxSs7HyqrMWpXVAR70DcM4Yjic9pbSn7PrMQZLAY8Ff5lC5BzVp+sv0\n5XBp8Agt+KQTmz2jnmIKIqybvspB0zTXiNaIDw/B9imHFdFBsLGjV5ZifOkGphq/\nFjrWEkMjcmzJluz6EWHfw+5nu5DH7BkfJ7Zt5kPelQKBgQDEArti4r3lPQgf5mFG\nq6EioS7suSuTSAOj/6MVAbii3kiYkxttNcselHnTV13VU/inpMlr4wpXwuxJzX69\n1nZ9AEdxyLy93R5WGn72NLiHmEj8zGCA7ro5+/NavLlswaEPb5vhoVAvRirsHZEb\n5xJJSMQTzL+QB9Yl8c0xllJ09QKBgQC7p7weGAWA5Qi8AzR0nOky6GGOVAPe11w6\nQFQrI9z8z5Btrw978+8sthPdbRSlb3KLE7lTYX6s0l2SxVI3vjxL2XzpuxvB26i+\n5nE+/QnRnL/+gbCndwQTauXZcvKMzJeg36JZkf1SssLL4+93F7r907GA02fkKf3F\n/Y119Z8MtQKBgF1B43/n22uO/yeWR+AE1pSQVbAhZb8cO0cy4JelCwDKe4XEL/9k\n4bA5+kB4R9ewrRSuDXs8OXaJ8jwm/k86E4PjtxpG5K3832seDhv793PkG43Te3K8\nonPmEOGx+xLoiUW711Ghm3Hyk4dlhd3dsdCWQ1wcRWQ0pknFYthd6ftlAoGAYkdX\no18rSrUo3ObEyyn+i/XeWd8wY73ghHV6X1mZ/CFs37TmZCF+Kql1P+tH+9ihYatD\nzSJraHGIJj0HcUBFbegKnpKq192Fw+0GdFmrkccJWm5rqVkQnmbG2Bp2Yz0nUE6v\nRT/LL0uF76iBmpqoCRWcif6uE3XWfaHsO1IXKV0CgYEAtQ9HXrIT/ArhjfMYBKFa\nKpw+L6LoTwFkJmehc3Pk4f/q5FEYKcYttBX7zNEbAIRvCadF8wdbLp/WmiNZRl8A\n5USgXO5yttwqK1+2TSnIIeIEvCDu5Pm1cPvNrpsGrsuE+HQOlTzjvC7XdDh6tei4\nPQ+rMGh6AIMpZCzYZYyFgbc=\n-----END PRIVATE KEY-----\n"
+
+        value: firebase-adminsdk-fbsvc@exe-platform.iam.gserviceaccount.com      - key: FCM_CLIENT_EMAIL
+
+      - key: FCM_CLIENT_ID        value: firebase-adminsdk-fbsvc@exe-platform.iam.gserviceaccount.com
+
+        value: 100691038453426225172      - key: FCM_CLIENT_ID
+
+      - key: FCM_AUTH_URI        value: 100691038453426225172
+
+        value: https://accounts.google.com/o/oauth2/auth      - key: FCM_AUTH_URI
+
+      - key: FCM_TOKEN_URI        value: https://accounts.google.com/o/oauth2/auth
+
+        value: https://oauth2.googleapis.com/token      - key: FCM_TOKEN_URI
+
+      - key: FCM_AUTH_PROVIDER_CERT_URL        value: https://oauth2.googleapis.com/token
+
+        value: https://www.googleapis.com/oauth2/v1/certs      - key: FCM_AUTH_PROVIDER_CERT_URL
+
+      - key: FCM_CLIENT_CERT_URL        value: https://www.googleapis.com/oauth2/v1/certs
+
+        value: https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40exe-platform.iam.gserviceaccount.com      - key: FCM_CLIENT_CERT_URL
+        value: https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40exe-platform.iam.gserviceaccount.com

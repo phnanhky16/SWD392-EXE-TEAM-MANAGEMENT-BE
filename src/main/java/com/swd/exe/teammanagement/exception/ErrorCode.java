@@ -30,7 +30,16 @@ public enum ErrorCode {
     ONLY_DRAFT_OR_REJECTED_CAN_BE_UPDATED("Only DRAFT or REJECT idea can be deleted", HttpStatus.BAD_REQUEST),
     ONLY_DRAFT_OR_REJECTED_CAN_BE_SUBMITTED("Only DRAFT or REJECT idea can be submitted", HttpStatus.BAD_REQUEST),
     ONLY_PROPOSED_CAN_BE_APPROVED("Only PROPOSED idea can be approved", HttpStatus.BAD_REQUEST),
-    ONLY_PROPOSED_CAN_BE_REJECTED("Only PROPOSED idea can be rejected", HttpStatus.BAD_REQUEST);
+    ONLY_PROPOSED_CAN_BE_REJECTED("Only PROPOSED idea can be rejected", HttpStatus.BAD_REQUEST),
+    CREATE_GROUP_NEED_INVITE_2_MEMBERS("Creating a group requires inviting at least 2 members", HttpStatus.BAD_REQUEST),
+    INVITEE_MUST_BE_DISTINCT("The invitees must be different", HttpStatus.BAD_REQUEST),
+    CANNOT_INVITE_CREATOR_AS_INVITEE("Cannot invite the creator as an invitee", HttpStatus.BAD_REQUEST),
+    USER_ALREADY_IN_GROUP("User is already in a group", HttpStatus.BAD_REQUEST),
+    USER_NOT_IN_GROUP("User is not in the group", HttpStatus.BAD_REQUEST),
+    GROUP_SHOULD_ENOUGH_MEMBERS("Group should have enough members", HttpStatus.BAD_REQUEST),
+    USER_NOT_LEADER_OF_ANY_GROUP("User is not a leader of any group", HttpStatus.BAD_REQUEST),
+    JUST_ONE_POST_ONE_GROUP("Just one post is allowed for each group", HttpStatus.BAD_REQUEST),
+    GROUP_LEADER_CANNOT_LEAVE("Group leader cannot leave the group", HttpStatus.BAD_REQUEST),
     ;
 
     private final String message;

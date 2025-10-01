@@ -1,6 +1,6 @@
 package com.swd.exe.teammanagement.entity;
 
-import com.swd.exe.teammanagement.enums.idea_join_post.JoinStatus;
+import com.swd.exe.teammanagement.enums.idea_join_post_score.JoinStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

@@ -34,7 +34,6 @@ public class Vote {
     @Enumerated(EnumType.STRING)
     VoteStatus status;
 
-    LocalDateTime createdAt;
     LocalDateTime closedAt;
 }
 
