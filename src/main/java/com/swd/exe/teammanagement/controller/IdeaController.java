@@ -32,11 +32,7 @@ public class IdeaController {
     )
     @PostMapping("/")
     ApiResponse<IdeaResponse> createIdea(@Valid @RequestBody IdeaRequest request) {
-        return ApiResponse.<IdeaResponse>builder()
-                .message("Create idea successfully")
-                .result(ideaService.createIdea(request))
-                .success(true)
-                .build();
+        return ApiResponse.created("Create idea successfully", ideaService.createIdea(request));
     }
 
     @Operation(
@@ -46,11 +42,7 @@ public class IdeaController {
     @PutMapping("/{id}")
     ApiResponse<IdeaResponse> updateIdea(@PathVariable Long id,
                                          @Valid @RequestBody IdeaRequest request) {
-        return ApiResponse.<IdeaResponse>builder()
-                .message("Update idea successfully")
-                .result(ideaService.updateIdea(id, request))
-                .success(true)
-                .build();
+        return ApiResponse.success("Update idea successfully", ideaService.updateIdea(id, request));
     }
 
     @Operation(
@@ -59,11 +51,8 @@ public class IdeaController {
     )
     @DeleteMapping("/{id}")
     ApiResponse<Void> deleteIdea(@PathVariable Long id) {
-        return ApiResponse.<Void>builder()
-                .message("Delete idea successfully")
-                .result(ideaService.deleteIdea(id))
-                .success(true)
-                .build();
+        ideaService.deleteIdea(id);
+        return ApiResponse.success("Delete idea successfully", null);
     }
 
     @Operation(
@@ -72,11 +61,7 @@ public class IdeaController {
     )
     @GetMapping("/{id}")
     ApiResponse<IdeaResponse> getIdeaById(@PathVariable Long id) {
-        return ApiResponse.<IdeaResponse>builder()
-                .message("Get idea successfully")
-                .result(ideaService.getIdeaById(id))
-                .success(true)
-                .build();
+        return ApiResponse.success("Get idea successfully", ideaService.getIdeaById(id));
     }
 
     @Operation(
@@ -85,11 +70,7 @@ public class IdeaController {
     )
     @GetMapping("/group/{groupId}")
     ApiResponse<List<IdeaResponse>> getAllIdeasByGroup(@PathVariable Long groupId) {
-        return ApiResponse.<List<IdeaResponse>>builder()
-                .message("Get all ideas by group successfully")
-                .result(ideaService.getAllIdeasByGroup(groupId))
-                .success(true)
-                .build();
+        return ApiResponse.success("Get all ideas by group successfully", ideaService.getAllIdeasByGroup(groupId));
     }
 
     @Operation(
@@ -98,11 +79,7 @@ public class IdeaController {
     )
     @GetMapping("/")
     ApiResponse<List<IdeaResponse>> getAllIdeas() {
-        return ApiResponse.<List<IdeaResponse>>builder()
-                .message("Get all ideas successfully")
-                .result(ideaService.getAllIdeas())
-                .success(true)
-                .build();
+        return ApiResponse.success("Get all ideas successfully", ideaService.getAllIdeas());
     }
 
     // ====== các action theo vòng đời Idea ======
@@ -113,11 +90,7 @@ public class IdeaController {
     )
     @PatchMapping("/{id}/submit")
     ApiResponse<IdeaResponse> submitIdea(@PathVariable Long id) {
-        return ApiResponse.<IdeaResponse>builder()
-                .message("Submit idea successfully")
-                .result(ideaService.submitIdea(id))
-                .success(true)
-                .build();
+        return ApiResponse.success("Submit idea successfully", ideaService.submitIdea(id));
     }
 
     @Operation(
@@ -126,11 +99,7 @@ public class IdeaController {
     )
     @PatchMapping("/{id}/approve")
     ApiResponse<IdeaResponse> approveIdea(@PathVariable Long id) {
-        return ApiResponse.<IdeaResponse>builder()
-                .message("Approve idea successfully")
-                .result(ideaService.approveIdea(id))
-                .success(true)
-                .build();
+        return ApiResponse.success("Approve idea successfully", ideaService.approveIdea(id));
     }
 
     @Operation(
@@ -140,10 +109,6 @@ public class IdeaController {
     @PatchMapping("/{id}/reject")
     ApiResponse<IdeaResponse> rejectIdea(@PathVariable Long id,
                                          @RequestParam String reason) {
-        return ApiResponse.<IdeaResponse>builder()
-                .message("Reject idea successfully")
-                .result(ideaService.rejectIdea(id, reason))
-                .success(true)
-                .build();
+        return ApiResponse.success("Reject idea successfully", ideaService.rejectIdea(id, reason));
     }
 }

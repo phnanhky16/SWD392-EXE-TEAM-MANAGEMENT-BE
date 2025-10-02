@@ -21,46 +21,26 @@ public class UserController {
       UserService userService;
       @GetMapping("/{id}")
       public ApiResponse<UserResponse> getUserById(@PathVariable Long id) {
-          return ApiResponse.<UserResponse>builder()
-                  .message("Get user successfully")
-                  .result(userService.getUserById(id))
-                  .success(true).build();
+          return ApiResponse.success("Get user successfully", userService.getUserById(id));
       }
       @GetMapping("/")
       public ApiResponse<List<UserResponse>> getAllUsers() {
-          return ApiResponse.<List<UserResponse>>builder()
-                  .message("Get all users successfully")
-                  .result(userService.getAllUsers())
-                  .success(true).build();
+          return ApiResponse.success("Get all users successfully", userService.getAllUsers());
       }
       @GetMapping("/myInfo")
       public ApiResponse<UserResponse> getMyInfo() {
-          return ApiResponse.<UserResponse>builder()
-                  .message("Get my info successfully")
-                  .result(userService.getMyInfo())
-                  .success(true)
-                  .build();
+          return ApiResponse.success("Get my info successfully", userService.getMyInfo());
       }
       @PutMapping("/{id}")
       public ApiResponse<UserResponse> updateUser(@PathVariable Long id, @RequestBody UserUpdateRequest request){
-          return ApiResponse.<UserResponse>builder()
-                  .message("Update user successfully")
-                  .result(userService.updateUser(id, request))
-                  .success(true).build();
+          return ApiResponse.success("Update user successfully", userService.updateUser(id, request));
       }
       @PutMapping("/myInfo")
       public ApiResponse<UserResponse> updateMyInfo(@RequestBody UserUpdateRequest request){
-          return ApiResponse.<UserResponse>builder()
-                  .message("Update my info successfully")
-                  .result(userService.updateMyInfo(request))
-                  .success(true).build();
+          return ApiResponse.success("Update my info successfully", userService.updateMyInfo(request));
       }
       @PatchMapping("/{id}")
       public ApiResponse<UserResponse> changeStatus(@PathVariable Long id) {
-      return ApiResponse.<UserResponse>builder()
-              .result(userService.changeStatus(id))
-              .success(true)
-              .message("change status successfully")
-              .build();
+          return ApiResponse.success("Change status successfully", userService.changeStatus(id));
       }
 }

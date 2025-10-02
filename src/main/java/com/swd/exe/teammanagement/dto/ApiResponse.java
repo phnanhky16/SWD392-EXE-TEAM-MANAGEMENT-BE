@@ -13,13 +13,37 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
+    int status;
     String message;
-    T result;
-    boolean success;
+    T data;
 
-    public ApiResponse(String message, T result, boolean success) {
+    public ApiResponse(int status, String message, T data) {
+        this.status = status;
         this.message = message;
-        this.result = result;
-        this.success = true;
+        this.data = data;
+    }
+    
+    // Convenience methods for common HTTP status codes
+    public static <T> ApiResponse<T> success(String message, T data) {
+        return ApiResponse.<T>builder()
+                .status(200)
+                .message(message)
+                .data(data)
+                .build();
+    }
+    
+    public static <T> ApiResponse<T> created(String message, T data) {
+        return ApiResponse.<T>builder()
+                .status(201)
+                .message(message)
+                .data(data)
+                .build();
+    }
+    
+    public static <T> ApiResponse<T> error(int status, String message) {
+        return ApiResponse.<T>builder()
+                .status(status)
+                .message(message)
+                .build();
     }
 }

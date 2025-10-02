@@ -19,38 +19,23 @@ public class MajorController {
     MajorService majorService;
     @GetMapping("/{code}")
     public ApiResponse<MajorResponse> getMajorByCode(@PathVariable String code) {
-        return ApiResponse.<MajorResponse>builder()
-                .message("get major successfully")
-                .result(majorService.getMajorByCode(code))
-                .success(true)
-                .build();
+        return ApiResponse.success("Get major successfully", majorService.getMajorByCode(code));
     }
     @GetMapping("/")
     public ApiResponse<List<MajorResponse>> getAllMajors() {
-        return ApiResponse.<List<MajorResponse>>builder()
-                .message("get all majors successfully")
-                .result(majorService.getAllMajors())
-                .success(true)
-                .build();
+        return ApiResponse.success("Get all majors successfully", majorService.getAllMajors());
     }
     @PostMapping("/")
     public ApiResponse<MajorResponse> createMajor(@RequestBody MajorRequest request) {
-        return ApiResponse.<MajorResponse>builder()
-                .message("create major successfully")
-                .result(majorService.createMajor(request))
-                .success(true)
-                .build();
+        return ApiResponse.created("Create major successfully", majorService.createMajor(request));
     }
     @PutMapping("/{code}")
     public ApiResponse<MajorResponse> updateMajor(@PathVariable String code, @RequestBody MajorRequest request) {
-        return ApiResponse.<MajorResponse>builder()
-                .message("update major successfully")
-                .result(majorService.updateMajor(code, request))
-                .success(true)
-                .build();
+        return ApiResponse.success("Update major successfully", majorService.updateMajor(code, request));
     }
     @DeleteMapping("/{code}")
     public ApiResponse<Void> deleteMajor(@PathVariable String code) {
-        return ApiResponse.<Void>builder().success(true).result(majorService.deleteMajor(code)).message("Delete major successfully").build();
+        majorService.deleteMajor(code);
+        return ApiResponse.success("Delete major successfully", null);
     }
 }

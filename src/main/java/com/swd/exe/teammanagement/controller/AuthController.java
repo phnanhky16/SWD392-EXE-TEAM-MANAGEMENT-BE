@@ -26,10 +26,6 @@ public class AuthController {
     @PostMapping("/google-login")
     public ApiResponse<AuthResponse> googleLogin(@Valid @RequestBody TokenRequest request) {
         var data = authService.loginWithGoogle(request.getIdToken());
-        return ApiResponse.<AuthResponse>builder()
-                .message("Google login success")
-                .result(data)
-                .success(true)
-                .build();
+        return ApiResponse.success("Google login success", data);
     }
 }

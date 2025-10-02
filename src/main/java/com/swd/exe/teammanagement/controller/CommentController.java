@@ -25,59 +25,48 @@ public class CommentController {
             description = "Create a new comment on a post. Requires authentication."
     )
     @PostMapping("/")
-   ApiResponse<CommentResponse> createComment(@RequestBody CommentRequest request){return ApiResponse.<CommentResponse>builder()
-            .message("Create comment successfully")
-            .result(commentService.createComment(request))
-            .success(true)
-            .build();}
+   ApiResponse<CommentResponse> createComment(@RequestBody CommentRequest request){
+        return ApiResponse.created("Create comment successfully", commentService.createComment(request));
+    }
     @Operation(
             summary = "Update comment",
             description = "Update an existing comment. Only comment author or admin can update."
     )
     @PutMapping("/{id}")
-    ApiResponse<CommentResponse> updateComment(@PathVariable Long id,@RequestBody CommentRequest request){return ApiResponse.<CommentResponse>builder()
-            .message("Update comment successfully")
-            .result(commentService.updateComment(id,request))
-            .success(true)
-            .build();}
+    ApiResponse<CommentResponse> updateComment(@PathVariable Long id,@RequestBody CommentRequest request){
+        return ApiResponse.success("Update comment successfully", commentService.updateComment(id,request));
+    }
     @Operation(
             summary = "Delete comment",
             description = "Delete a comment. Only comment author or admin can delete."
     )
     @DeleteMapping("/{id}")
-    ApiResponse<Void> deleteComment(@PathVariable Long id){return ApiResponse.<Void>builder()
-            .message("Delete comment successfully")
-            .result(commentService.deleteComment(id))
-            .success(true)
-            .build();}
+    ApiResponse<Void> deleteComment(@PathVariable Long id){
+        commentService.deleteComment(id);
+        return ApiResponse.success("Delete comment successfully", null);
+    }
     @Operation(
             summary = "Get comment by ID",
             description = "Retrieve a specific comment by its unique identifier"
     )
     @GetMapping("/{id}")
-    ApiResponse<CommentResponse> getCommentById(@PathVariable Long id){return ApiResponse.<CommentResponse>builder()
-            .message("Get comment successfully")
-            .result(commentService.getCommentById(id))
-            .success(true)
-            .build();}
+    ApiResponse<CommentResponse> getCommentById(@PathVariable Long id){
+        return ApiResponse.success("Get comment successfully", commentService.getCommentById(id));
+    }
     @Operation(
             summary = "Get all comments by post",
             description = "Retrieve all comments for a specific post"
     )
     @GetMapping("/post/{postId}")
-    ApiResponse<List<CommentResponse>> getAllCommentsByPosts(@PathVariable Long postId){return ApiResponse.<List<CommentResponse>>builder()
-            .message("Get all comments by post successfully")
-            .result(commentService.getAllCommentsByPost(postId))
-            .success(true)
-            .build();}
+    ApiResponse<List<CommentResponse>> getAllCommentsByPosts(@PathVariable Long postId){
+        return ApiResponse.success("Get all comments by post successfully", commentService.getAllCommentsByPost(postId));
+    }
     @Operation(
             summary = "Get all comments",
             description = "Retrieve all comments from all posts"
     )
     @GetMapping("/")
-    ApiResponse<List<CommentResponse>> getAllComments(){return ApiResponse.<List<CommentResponse>>builder()
-            .message("Get all comments by post successfully")
-            .result(commentService.getAllComments())
-            .success(true)
-            .build();}
+    ApiResponse<List<CommentResponse>> getAllComments(){
+        return ApiResponse.success("Get all comments successfully", commentService.getAllComments());
+    }
 }
