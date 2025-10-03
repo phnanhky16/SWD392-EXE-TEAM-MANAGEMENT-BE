@@ -5,23 +5,18 @@ import com.swd.exe.teammanagement.dto.request.IdeaRequest;
 import com.swd.exe.teammanagement.dto.response.IdeaResponse;
 import com.swd.exe.teammanagement.service.IdeaService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-
 @RestController
-@RequestMapping("/ideas")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
+@RequestMapping("/ideas")
 @Tag(name = "Idea Management", description = "APIs for managing group ideas")
+
 public class IdeaController {
 
     IdeaService ideaService;
@@ -37,7 +32,7 @@ public class IdeaController {
 
     @Operation(
             summary = "Update idea",
-            description = "Leader cập nhật nội dung ý tưởng (chỉ khi chưa submit/locked)"
+            description = "Leader cập nhật nội dung ý tưởng (chỉ DRAFT/REJECTED mới được sửa)"
     )
     @PutMapping("/{id}")
     ApiResponse<IdeaResponse> updateIdea(@PathVariable Long id,

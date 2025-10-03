@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Authentication")
 public class AuthController {
     AuthService authService;
+
     @Operation(
             summary = "Login with Google",
             description = "Get ID token from Google and return JWT token"
@@ -28,4 +29,5 @@ public class AuthController {
         var data = authService.loginWithGoogle(request.getIdToken());
         return ApiResponse.success("Google login success", data);
     }
+
 }

@@ -51,8 +51,7 @@ public class DataInit implements CommandLineRunner {
 
         List<User> defaultUsers = Arrays.asList(
             // Admin user
-            createUser("admin@fe.edu.vn", "System Administrator", UserRole.ADMIN),
-            
+            createUser("quanlydaotaofpt@gmail.com", "System Administrator", UserRole.ADMIN),
             // Teacher users
             createUser("teacher1@fe.edu.vn", "Nguyễn Văn An", UserRole.TEACHER),
             createUser("teacher2@fe.edu.vn", "Trần Thị Bình", UserRole.TEACHER),
