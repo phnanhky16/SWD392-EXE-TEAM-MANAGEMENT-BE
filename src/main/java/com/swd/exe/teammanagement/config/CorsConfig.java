@@ -14,7 +14,7 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",             // FE dev
-                "https://https://swd392-exe-team-management-be.onrender.com"          // FE deploy production
+                "https://swd392-exe-team-management-be.onrender.com"          // FE deploy production
         ));
         config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
