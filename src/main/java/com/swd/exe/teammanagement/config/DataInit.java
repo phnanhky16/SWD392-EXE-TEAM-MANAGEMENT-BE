@@ -28,7 +28,7 @@ public class DataInit implements CommandLineRunner {
 
         // Danh sách email cần kiểm tra
         List<String> requiredEmails = Arrays.asList(
-            "admin@fe.edu.vn",
+            "quanlydaotaofpt@gmail.com",
             "teacher1@fe.edu.vn",
             "teacher2@fe.edu.vn", 
             "teacher3@fe.edu.vn",
