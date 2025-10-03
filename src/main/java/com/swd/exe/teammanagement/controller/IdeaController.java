@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping("/ideas")
+@RequestMapping("/api/ideas")
 @Tag(name = "Idea Management", description = "APIs for managing group ideas")
 
 public class IdeaController {
