@@ -1,7 +1,10 @@
 package com.swd.exe.teammanagement.dto.request;
 
+import com.swd.exe.teammanagement.enums.user.UserRole;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import javax.management.relation.Role;
 
 @Data
 @NoArgsConstructor
@@ -11,5 +14,6 @@ import lombok.experimental.FieldDefaults;
 public class UserUpdateRequest {
     String cvUrl;
     String avatarUrl;
-    String code;
+    String majorCode;
+    UserRole role;
 }

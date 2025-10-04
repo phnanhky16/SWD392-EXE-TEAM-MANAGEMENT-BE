@@ -40,10 +40,11 @@ public enum ErrorCode {
     USER_NOT_LEADER_OF_ANY_GROUP("User is not a leader of any group", HttpStatus.BAD_REQUEST),
     JUST_ONE_POST_ONE_GROUP("Just one post is allowed for each group", HttpStatus.BAD_REQUEST),
     GROUP_LEADER_CANNOT_LEAVE("Group leader cannot leave the group", HttpStatus.BAD_REQUEST),
-    ;
+    ROLE_UPDATE_NOT_SWITCHABLE("Role update is only switchable between TEACHER and MODERATOR", HttpStatus.BAD_REQUEST); // <— dấu ; và message
 
     private final String message;
     private final HttpStatusCode httpStatusCode;
+
 
     ErrorCode(String message, HttpStatusCode httpStatusCode) {
         this.message = message;

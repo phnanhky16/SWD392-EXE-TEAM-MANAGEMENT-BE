@@ -4,6 +4,7 @@ import com.swd.exe.teammanagement.dto.request.UserUpdateRequest;
 import com.swd.exe.teammanagement.dto.response.UserResponse;
 import com.swd.exe.teammanagement.entity.Major;
 import com.swd.exe.teammanagement.entity.User;
+import com.swd.exe.teammanagement.enums.user.UserRole;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
 import com.swd.exe.teammanagement.mapper.UserMapper;
@@ -42,7 +43,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse updateUser(Long id,UserUpdateRequest request) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
-        Major major = majorRepository.findById(request.getCode())
+        Major major = majorRepository.findById(request.getMajorCode())
                 .orElseThrow(() -> new AppException(ErrorCode.MAJOR_UNEXISTED));
         user.setMajor(major);
         userMapper.toUserUpdate(user, request);
@@ -73,5 +74,22 @@ public class UserServiceImpl implements UserService {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
+    }
+
+    @Override
+    public UserResponse updateRole(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
+
+        UserRole target = switch (user.getRole()) {
+            case TEACHER   -> UserRole.MODERATOR;
+            case MODERATOR -> UserRole.TEACHER;
+            default -> throw new AppException(ErrorCode.ROLE_UPDATE_NOT_SWITCHABLE);
+        };
+
+        user.setRole(target);
+        User saved = userRepository.save(user);
+
+        return userMapper.toUserResponse(saved);
     }
 }

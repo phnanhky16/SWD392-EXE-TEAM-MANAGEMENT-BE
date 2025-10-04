@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -76,5 +77,15 @@ public class UserController {
       @PatchMapping("/{id}")
       public ApiResponse<UserResponse> changeStatus(@PathVariable Long id) {
           return ApiResponse.success("Change status successfully", userService.changeStatus(id));
+      }
+
+      @Operation(
+              summary = "Update role for teacher",
+              description = "Chuyển đổi vai trò TEACHER <-> MODERATOR (chỉ admin có quyền thực hiện)"
+      )
+      @PatchMapping("/role/{id}")
+      @PreAuthorize("hasRole('ADMIN')")
+      public ApiResponse<UserResponse> updateRoleForTeacher(@PathVariable Long id) {
+          return ApiResponse.success("Update role for teacher successfully", userService.updateRole(id));
       }
 }

@@ -1,6 +1,5 @@
 package com.swd.exe.teammanagement.config;
 
-import com.swd.exe.teammanagement.repository.UserRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -19,34 +18,35 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
 
-        // 1) Bỏ qua preflight CORS
+        // 1) Preflight CORS
         if (HttpMethod.OPTIONS.matches(request.getMethod())) {
             chain.doFilter(request, response);
             return;
         }
 
-        // 2) Bỏ qua các endpoint public (đúng path bạn đang dùng)
-        final String path = request.getServletPath(); // KHÔNG gồm context-path
-        if (path.startsWith("/api/auth/") || path.startsWith("/swagger-ui")
+        // 2) Public endpoints
+        final String path = request.getServletPath();
+        if (path.startsWith("/api/auth/")
+                || path.startsWith("/swagger-ui")
                 || path.startsWith("/v3/api-docs")) {
             chain.doFilter(request, response);
             return;
         }
 
-        // 3) Nếu đã có authentication thì bỏ qua (tránh set lại)
+        // 3) Nếu đã có Authentication thì bỏ qua
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
             chain.doFilter(request, response);
             return;
@@ -61,21 +61,26 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
 
         try {
-            // 5) Validate token
+            // 5) Validate + lấy claims
             if (!jwtService.isTokenValid(token)) {
-                unauthorized(response, "Invalid or expired token");
+                returnUnauthorized(response, "Invalid or expired token");
                 return;
             }
 
-            String email = jwtService.extractEmail(token);
-            String role  = jwtService.extractRole(token);
+            var claims = jwtService.parse(token);
+            String email = Optional.ofNullable(claims.get("email", String.class)).orElse(null);
+            String role  = Optional.ofNullable(claims.get("role", String.class)).orElse("").toUpperCase();
 
-            // (tuỳ chọn) kiểm tra user còn active không
-            List<GrantedAuthority> authorities = List.of(
-                    new SimpleGrantedAuthority("ROLE_" + role) // ví dụ ROLE_ADMIN / ROLE_STUDENT
-            );
+            if (email == null || role.isEmpty()) {
+                returnUnauthorized(response, "Invalid token payload");
+                return;
+            }
 
-            UsernamePasswordAuthenticationToken authentication =
+            // 6) Map role => ROLE_*
+            if (!role.startsWith("ROLE_")) role = "ROLE_" + role;
+            List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
+
+            var authentication =
                     new UsernamePasswordAuthenticationToken(email, null, authorities);
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
@@ -83,14 +88,13 @@ public class JwtFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
 
         } catch (ExpiredJwtException e) {
-            unauthorized(response, "Token expired");
+            returnUnauthorized(response, "Token expired");
         } catch (JwtException e) {
-            unauthorized(response, "Invalid token");
+            returnUnauthorized(response, "Invalid token");
         }
     }
 
-    private void unauthorized(HttpServletResponse response, String message) throws IOException {
-        // trả 401 rõ ràng để FE biết refresh/đăng nhập lại
+    private void returnUnauthorized(HttpServletResponse response, String message) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
         response.getWriter().write("{\"error\":\"" + message + "\"}");

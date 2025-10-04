@@ -12,4 +12,5 @@ public interface UserService {
     UserResponse getMyInfo();
     UserResponse updateMyInfo(UserUpdateRequest request);
     UserResponse changeStatus(Long id);
+    UserResponse updateRole(Long id);
 }
