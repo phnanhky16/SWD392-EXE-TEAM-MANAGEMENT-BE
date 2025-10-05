@@ -2,7 +2,7 @@ package com.swd.exe.teammanagement.dto.response;
 
 import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.User;
-import com.swd.exe.teammanagement.enums.idea_join_post_score.PostType;
+import com.swd.exe.teammanagement.enums.idea_join_post.PostType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

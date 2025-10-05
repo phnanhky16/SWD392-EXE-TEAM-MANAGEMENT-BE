@@ -5,7 +5,7 @@ import com.swd.exe.teammanagement.dto.response.PostResponse;
 import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.Post;
 import com.swd.exe.teammanagement.entity.User;
-import com.swd.exe.teammanagement.enums.idea_join_post_score.PostType;
+import com.swd.exe.teammanagement.enums.idea_join_post.PostType;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
 import com.swd.exe.teammanagement.mapper.PostMapper;
