@@ -1,7 +1,6 @@
 package com.swd.exe.teammanagement.service.impl;
 
 import com.swd.exe.teammanagement.dto.response.GroupResponse;
-import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.Major;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.exception.AppException;
