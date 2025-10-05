@@ -1,7 +1,7 @@
 package com.swd.exe.teammanagement.controller;
 
 import com.swd.exe.teammanagement.dto.ApiResponse;
-import com.swd.exe.teammanagement.dto.request.GroupCreateFirstRequest;
+import com.swd.exe.teammanagement.dto.request.GroupCreateRequest;
 import com.swd.exe.teammanagement.service.JoinService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -28,7 +28,7 @@ public class JoinController {
     @PostMapping("/first/{groupId}")
     public ApiResponse<Void> joinGroupFirst(
             @PathVariable("groupId") Long groupId,
-            @Valid @RequestBody GroupCreateFirstRequest request
+            @Valid @RequestBody GroupCreateRequest request
     ) {
         joinService.joinGroupFirst(groupId, request);
         return ApiResponse.created("Joined group and created successfully", null);

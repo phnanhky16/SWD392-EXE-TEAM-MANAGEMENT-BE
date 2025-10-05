@@ -1,13 +1,11 @@
 package com.swd.exe.teammanagement.controller;
 
 import com.swd.exe.teammanagement.dto.ApiResponse;
-import com.swd.exe.teammanagement.dto.request.GroupCreateRequest;
 import com.swd.exe.teammanagement.dto.response.GroupResponse;
 import com.swd.exe.teammanagement.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -23,15 +21,6 @@ import java.util.List;
 @Tag(name = "Group Management", description = "APIs for managing student groups and team formation")
 public class GroupController {
     GroupService groupService;
-
-    @Operation(
-            summary = "Create new group",
-            description = "Create a new group with leader and invite 2 members. Requires authentication."
-    )
-    @PostMapping("/")
-    public ApiResponse<GroupResponse> createGroup(@Valid @RequestBody GroupCreateRequest request) {
-        return ApiResponse.created("Create group successfully", groupService.createGroup(request));
-    }
 
     @Operation(
             summary = "Get group by ID",
@@ -111,9 +100,9 @@ public class GroupController {
             summary = "Create empty groups",
             description = "Create N empty groups. Title formatted like 'Group EXE FALL 2025 #1'. Requires authentication."
     )
-    @PostMapping("/empty")
-    public ApiResponse<Void> createEmptyGroups(@RequestParam(name = "size", defaultValue = "1") int size) {
-        groupService.createGroupEmpty(size);
+    @PostMapping("/")
+    public ApiResponse<Void> createGroups(@RequestParam(name = "size", defaultValue = "1") int size) {
+        groupService.createGroup(size);
         return ApiResponse.created("Created empty groups successfully", null);
     }
 }

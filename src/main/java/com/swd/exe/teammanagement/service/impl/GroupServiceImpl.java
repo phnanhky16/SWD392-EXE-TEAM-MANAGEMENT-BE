@@ -1,9 +1,9 @@
 package com.swd.exe.teammanagement.service.impl;
 
-import com.swd.exe.teammanagement.dto.request.GroupCreateRequest;
 import com.swd.exe.teammanagement.dto.response.GroupResponse;
 import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.GroupMember;
+import com.swd.exe.teammanagement.entity.Major;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.group.GroupStatus;
 import com.swd.exe.teammanagement.enums.group.GroupType;
@@ -19,9 +19,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 
 @Service
 @RequiredArgsConstructor
@@ -36,55 +38,6 @@ public class GroupServiceImpl implements GroupService {
     private final VoteRepository voteRepository;
     private final JoinRepository joinRepository;
 
-    @Override
-    public GroupResponse createGroup(GroupCreateRequest request) {
-        if(groupMemberRepository.existsByUser(getCurrentUser())){
-            throw new AppException(ErrorCode.USER_ALREADY_IN_GROUP);
-        }
-        if (request.getInviteeEmails() == null || request.getInviteeEmails().size() != 2) {
-            throw new AppException(ErrorCode.CREATE_GROUP_NEED_INVITE_2_MEMBERS);
-        }
-        List<String> inviteeEmails = request.getInviteeEmails();
-        Set<String> uniq = new HashSet<>(inviteeEmails);
-        if (uniq.size() != 2) throw new AppException(ErrorCode.INVITEE_MUST_BE_DISTINCT);
-        if (inviteeEmails.contains(getCurrentUser().getEmail())) throw new AppException(ErrorCode.CANNOT_INVITE_CREATOR_AS_INVITEE);
-        Group group = Group.builder()
-                .title(request.getTitle())
-                .description(request.getDescription())
-                .leader(getCurrentUser())
-                .type(GroupType.PUBLIC)
-                .status(GroupStatus.ACTIVE)
-                .build();
-        group = groupRepository.save(group);
-        groupMemberRepository.save(
-                GroupMember.builder()
-                        .group(group)
-                        .user(getCurrentUser())
-                        .role(MembershipRole.LEADER)
-                        .build()
-        );
-        for (String inviteeEmail : inviteeEmails) {
-            User invitee = userRepository.findByEmail(inviteeEmail)
-                    .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
-            if(groupMemberRepository.existsByUser(invitee)){
-                throw new AppException(ErrorCode.USER_ALREADY_IN_GROUP);
-            }
-            groupMemberRepository.save(
-                    GroupMember.builder()
-                            .group(group)
-                            .user(invitee)
-                            .role(MembershipRole.MEMBER)
-                            .build()
-            );
-        }
-        return GroupResponse.builder()
-                .title(group.getTitle())
-                .description(group.getDescription())
-                .leader(getCurrentUser())
-                .type(group.getType())
-                .status(group.getStatus())
-                .build();
-    }
 
     @Override
     public GroupResponse getGroupById(Long groupId) {
@@ -172,9 +125,53 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public List<GroupResponse> getAvailableGroups() {
         User user = getCurrentUser();
-        List<Group> gs = groupRepository.findAll();
-        //th 5ng: 1 chuyên ngành check chueen ngành
-        return List.of();
+
+        LocalDateTime now = LocalDateTime.now();
+        int month = now.getMonthValue();
+        int year = now.getYear();
+        int startMonth;
+        int endMonth;
+        if (month >= 1 && month <= 4) {
+            startMonth = 1;
+            endMonth = 4;
+        } else if (month >= 5 && month <= 8) {
+            startMonth = 5;
+            endMonth = 8;
+        } else {
+            startMonth = 9;
+            endMonth = 12;
+        }
+
+        java.time.YearMonth endYearMonth = java.time.YearMonth.of(year, endMonth);
+        LocalDateTime startDate = LocalDateTime.of(year, startMonth, 1, 0, 0);
+        LocalDateTime endDate = endYearMonth.atEndOfMonth().atTime(23, 59, 59);
+
+        // fetch groups created within this semester window with ACTIVE status and PUBLIC type
+        List<Group> groups = groupRepository.findGroupsByStatusAndTypeAndCreatedAtBetween(
+                GroupStatus.ACTIVE, GroupType.PUBLIC, startDate, endDate
+        );
+        List<Group> groupListAvaiable = new ArrayList<>();
+        Set<Major> majors = new HashSet<>();
+        for( Group g : groups){
+            if(groupMemberRepository.countByGroup(g) ==5) {
+                for (User member : groupMemberRepository.findUsersByGroup(g)) {
+                    majors.add(member.getMajor());
+                }
+                majors.add(user.getMajor());
+                if (majors.size() > 1) {
+                    groupListAvaiable.add(g);
+                }
+                majors.clear();
+            }else{ groupListAvaiable.add(g); }
+        }
+        return groupListAvaiable.stream().map(group -> GroupResponse.builder()
+                .title(group.getTitle())
+                .description(group.getDescription())
+                .leader(group.getLeader())
+                .type(group.getType()).status(group.getStatus())
+                .checkpointTeacher(group.getCheckpointLecture())
+                .build()
+        ).toList();
     }
 
     @Override
@@ -196,7 +193,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public Void createGroupEmpty(int size) {
+    public Void createGroup(int size) {
         if (size <= 0) size = 1;
 
         int month = LocalDateTime.now().getMonthValue();
@@ -216,6 +213,7 @@ public class GroupServiceImpl implements GroupService {
                     .description("Empty group created in " + semester + " semester")
                     .type(GroupType.PUBLIC)
                     .status(GroupStatus.FORMING)
+                    .createdAt(LocalDateTime.now())
                     .build();
             groupRepository.save(group);
         }

@@ -1,6 +1,6 @@
 package com.swd.exe.teammanagement.service.impl;
 
-import com.swd.exe.teammanagement.dto.request.GroupCreateFirstRequest;
+import com.swd.exe.teammanagement.dto.request.GroupCreateRequest;
 import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.GroupMember;
 import com.swd.exe.teammanagement.entity.Join;
@@ -30,7 +30,7 @@ public class JoinServiceImpl implements JoinService
     JoinRepository joinRepository;
     GroupMemberRepository groupMemberRepository;
     @Override
-    public Void joinGroupFirst(Long groupId, GroupCreateFirstRequest request) {
+    public Void joinGroupFirst(Long groupId, GroupCreateRequest request) {
         User user = getCurrentUser();
         if(groupMemberRepository.existsByUser(user)){
             throw new AppException(ErrorCode.USER_ALREADY_IN_GROUP);
@@ -47,6 +47,19 @@ public class JoinServiceImpl implements JoinService
                 .build());
         groupRepository.save(g);
         joinRepository.save(Join.builder().toGroup(g).fromUser(user).status(JoinStatus.ACCEPTED).build());
+        return null;
+    }
+
+    @Override
+    public Void joinGroup(Long groupId) {
+        User user = getCurrentUser();
+        if(groupMemberRepository.existsByUser(user)){
+            throw new AppException(ErrorCode.USER_ALREADY_IN_GROUP);
+        }
+        Group g = groupRepository.findById(groupId).orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+        if(g.getStatus() != GroupStatus.ACTIVE){
+            throw new AppException(ErrorCode.GROUP_NOT_ACTIVE);
+        }
         return null;
     }
 
