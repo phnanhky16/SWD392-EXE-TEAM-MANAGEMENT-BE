@@ -95,7 +95,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private UserRole determineRole(String domain) {
-        return "fe.edu.vn".equals(domain) ? UserRole.TEACHER : UserRole.STUDENT;
+        return "fe.edu.vn".equals(domain) ? UserRole.LECTURER : UserRole.STUDENT;
     }
 
     private boolean isEducationalDomain(String domain) {

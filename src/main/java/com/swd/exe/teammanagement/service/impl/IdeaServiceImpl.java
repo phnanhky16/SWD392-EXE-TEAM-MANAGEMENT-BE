@@ -202,7 +202,7 @@ public class IdeaServiceImpl implements IdeaService {
 
     private void ensureTeacherOrAdmin(User user) {
         UserRole role = user.getRole();
-        if (!(role == UserRole.TEACHER || role == UserRole.ADMIN)) {
+        if (!(role == UserRole.LECTURER || role == UserRole.ADMIN)) {
             throw new AppException(ErrorCode.ONLY_TEACHER_OR_ADMIN);
         }
     }

@@ -1,6 +1,7 @@
 package com.swd.exe.teammanagement.service.impl;
 
 import com.swd.exe.teammanagement.dto.request.UserUpdateRequest;
+import com.swd.exe.teammanagement.dto.response.PagingResponse;
 import com.swd.exe.teammanagement.dto.response.UserResponse;
 import com.swd.exe.teammanagement.entity.Major;
 import com.swd.exe.teammanagement.entity.User;
@@ -11,10 +12,17 @@ import com.swd.exe.teammanagement.mapper.UserMapper;
 import com.swd.exe.teammanagement.repository.MajorRepository;
 import com.swd.exe.teammanagement.repository.UserRepository;
 import com.swd.exe.teammanagement.service.UserService;
+import com.swd.exe.teammanagement.spec.UserSpecs;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -82,8 +90,8 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
 
         UserRole target = switch (user.getRole()) {
-            case TEACHER   -> UserRole.MODERATOR;
-            case MODERATOR -> UserRole.TEACHER;
+            case LECTURER   -> UserRole.MODERATOR;
+            case MODERATOR -> UserRole.LECTURER;
             default -> throw new AppException(ErrorCode.ROLE_UPDATE_NOT_SWITCHABLE);
         };
 
@@ -91,5 +99,44 @@ public class UserServiceImpl implements UserService {
         User saved = userRepository.save(user);
 
         return userMapper.toUserResponse(saved);
+    }
+    @Transactional(readOnly = true)
+    @Override
+    public PagingResponse<UserResponse> searchUsers(
+            String q, UserRole role, Boolean active, String majorCode,
+            int page, int size, String sort, String dir) {
+
+        page = Math.max(page, 0);
+        size = Math.min(Math.max(size, 1), 100);
+
+        Sort s = (sort == null || sort.isBlank())
+                ? Sort.by("id").descending()
+                : ("desc".equalsIgnoreCase(dir) ? Sort.by(sort).descending() : Sort.by(sort).ascending());
+
+        Pageable pageable = PageRequest.of(page, size, s);
+
+        Specification<User> spec = Specification.allOf(
+                UserSpecs.keyword(q),
+                UserSpecs.role(role),
+                UserSpecs.active(active),
+                UserSpecs.majorCode(majorCode)
+        );
+
+        Page<User> p = userRepository.findAll(spec, pageable);
+
+        var items = p.getContent().stream().map(userMapper::toUserResponse).toList();
+        String sortStr = s.stream().findFirst()
+                .map(o -> o.getProperty()+","+o.getDirection().name().toLowerCase()).orElse(null);
+
+        return PagingResponse.<UserResponse>builder()
+                .content(items)
+                .page(p.getNumber())
+                .size(p.getSize())
+                .totalElements(p.getTotalElements())
+                .totalPages(p.getTotalPages())
+                .first(p.isFirst())
+                .last(p.isLast())
+                .sort(sortStr)
+                .build();
     }
 }

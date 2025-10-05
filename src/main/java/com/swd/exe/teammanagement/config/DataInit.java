@@ -28,7 +28,6 @@ public class DataInit implements CommandLineRunner {
 
         // Danh sách email cần kiểm tra
         List<String> requiredEmails = Arrays.asList(
-            "quanlydaotaofpt@gmail.com",
             "teacher1@fe.edu.vn",
             "teacher2@fe.edu.vn", 
             "teacher3@fe.edu.vn",
@@ -50,14 +49,12 @@ public class DataInit implements CommandLineRunner {
         log.info("Creating missing default users: {}", missingEmails);
 
         List<User> defaultUsers = Arrays.asList(
-            // Admin user
-            createUser("quanlydaotaofpt@gmail.com", "System Administrator", UserRole.ADMIN),
             // Teacher users
-            createUser("teacher1@fe.edu.vn", "Nguyễn Văn An", UserRole.TEACHER),
-            createUser("teacher2@fe.edu.vn", "Trần Thị Bình", UserRole.TEACHER),
-            createUser("teacher3@fe.edu.vn", "Lê Văn Cường", UserRole.TEACHER),
-            createUser("teacher4@fe.edu.vn", "Phạm Thị Dung", UserRole.TEACHER),
-            createUser("teacher5@fe.edu.vn", "Hoàng Văn Em", UserRole.TEACHER)
+            createUser("teacher1@fe.edu.vn", "Nguyễn Văn An", UserRole.LECTURER),
+            createUser("teacher2@fe.edu.vn", "Trần Thị Bình", UserRole.LECTURER),
+            createUser("teacher3@fe.edu.vn", "Lê Văn Cường", UserRole.LECTURER),
+            createUser("teacher4@fe.edu.vn", "Phạm Thị Dung", UserRole.LECTURER),
+            createUser("teacher5@fe.edu.vn", "Hoàng Văn Em", UserRole.LECTURER)
         );
 
         userRepository.saveAll(defaultUsers);

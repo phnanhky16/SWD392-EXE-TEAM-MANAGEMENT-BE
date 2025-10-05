@@ -4,7 +4,6 @@ import com.swd.exe.teammanagement.dto.request.GroupCreateRequest;
 import com.swd.exe.teammanagement.dto.response.GroupResponse;
 import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.GroupMember;
-import com.swd.exe.teammanagement.entity.Post;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.group.GroupStatus;
 import com.swd.exe.teammanagement.enums.group.GroupType;
@@ -96,7 +95,7 @@ public class GroupServiceImpl implements GroupService {
                 .description(group.getDescription())
                 .leader(group.getLeader())
                 .type(group.getType()).status(group.getStatus())
-                .checkpointTeacher(group.getCheckpointTeacher())
+                .checkpointTeacher(group.getCheckpointLecture())
                 .build();
     }
 
@@ -109,7 +108,7 @@ public class GroupServiceImpl implements GroupService {
                 .description(group.getDescription())
                 .leader(group.getLeader())
                 .type(group.getType()).status(group.getStatus())
-                .checkpointTeacher(group.getCheckpointTeacher())
+                .checkpointTeacher(group.getCheckpointLecture())
                 .build()
         ).toList();
     }
@@ -154,7 +153,7 @@ public class GroupServiceImpl implements GroupService {
                 .description(group.getDescription())
                 .leader(group.getLeader())
                 .type(group.getType()).status(group.getStatus())
-                .checkpointTeacher(group.getCheckpointTeacher())
+                .checkpointTeacher(group.getCheckpointLecture())
                 .build();
     }
 

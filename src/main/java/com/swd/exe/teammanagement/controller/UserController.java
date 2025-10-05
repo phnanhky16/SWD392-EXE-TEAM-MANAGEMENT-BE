@@ -2,7 +2,9 @@ package com.swd.exe.teammanagement.controller;
 
 import com.swd.exe.teammanagement.dto.ApiResponse;
 import com.swd.exe.teammanagement.dto.request.UserUpdateRequest;
+import com.swd.exe.teammanagement.dto.response.PagingResponse;
 import com.swd.exe.teammanagement.dto.response.UserResponse;
+import com.swd.exe.teammanagement.enums.user.UserRole;
 import com.swd.exe.teammanagement.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -13,8 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -38,12 +38,23 @@ public class UserController {
               summary = "Get all users",
               description = "Retrieve all users in the system. Typically used by admin or teachers."
       )
-      @GetMapping("/")
-      public ApiResponse<List<UserResponse>> getAllUsers() {
-          return ApiResponse.success("Get all users successfully", userService.getAllUsers());
+      // ví dụ trong UserController
+      @GetMapping
+      public ApiResponse<PagingResponse<UserResponse>> getAllUsers(
+              @RequestParam(required = false) String q,
+              @RequestParam(required = false) UserRole role,
+              @RequestParam(required = false) Boolean active,
+              @RequestParam(required = false) String majorCode,
+              @RequestParam(defaultValue = "0")  int page,
+              @RequestParam(defaultValue = "10") int size,
+              @RequestParam(defaultValue = "id") String sort,
+              @RequestParam(defaultValue = "desc") String dir
+      ) {
+          var data = userService.searchUsers(q, role, active, majorCode, page, size, sort, dir);
+          return ApiResponse.success("List users successfully", data);
       }
-      
-      @Operation(
+
+    @Operation(
               summary = "Get my profile",
               description = "Retrieve the authenticated user's own profile information"
       )
@@ -80,12 +91,12 @@ public class UserController {
       }
 
       @Operation(
-              summary = "Update role for teacher",
-              description = "Chuyển đổi vai trò TEACHER <-> MODERATOR (chỉ admin có quyền thực hiện)"
+              summary = "Update role for lecturer/moderator",
+              description = "Chuyển đổi vai trò LECTURER <-> MODERATOR (chỉ admin có quyền thực hiện)"
       )
       @PatchMapping("/role/{id}")
       @PreAuthorize("hasRole('ADMIN')")
-      public ApiResponse<UserResponse> updateRoleForTeacher(@PathVariable Long id) {
-          return ApiResponse.success("Update role for teacher successfully", userService.updateRole(id));
+      public ApiResponse<UserResponse> updateRoleForLecturer(@PathVariable Long id) {
+          return ApiResponse.success("Update role successfully", userService.updateRole(id));
       }
 }
