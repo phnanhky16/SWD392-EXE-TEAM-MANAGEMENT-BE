@@ -107,4 +107,13 @@ public class GroupController {
         groupService.deleteGroup();
         return ApiResponse.success("Delete group successfully", null);
     }
+    @Operation(
+            summary = "Create empty groups",
+            description = "Create N empty groups. Title formatted like 'Group EXE FALL 2025 #1'. Requires authentication."
+    )
+    @PostMapping("/empty")
+    public ApiResponse<Void> createEmptyGroups(@RequestParam(name = "size", defaultValue = "1") int size) {
+        groupService.createGroupEmpty(size);
+        return ApiResponse.created("Created empty groups successfully", null);
+    }
 }

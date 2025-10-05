@@ -10,7 +10,6 @@ public interface GroupMemberService {
     List<User> getMembersByGroupId(Long groupId);
     int getGroupMemberCount(Long groupId);
     List<Major> getMajorDistribution(Long groupId);
-    User getGroupLeader(Long groupId);
     GroupResponse getGroupInfo();
-    void removeMember(Long userId, Long groupId, Long leaderId);
+    void removeMemberByLeader(Long userId, Long groupId, Long leaderId);
 }
