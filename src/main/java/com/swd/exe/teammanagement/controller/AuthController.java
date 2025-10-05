@@ -13,12 +13,13 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Tag(name = "Authentication")
 public class AuthController {
     AuthService authService;
+
     @Operation(
             summary = "Login with Google",
             description = "Get ID token from Google and return JWT token"
@@ -26,10 +27,7 @@ public class AuthController {
     @PostMapping("/google-login")
     public ApiResponse<AuthResponse> googleLogin(@Valid @RequestBody TokenRequest request) {
         var data = authService.loginWithGoogle(request.getIdToken());
-        return ApiResponse.<AuthResponse>builder()
-                .message("Google login success")
-                .result(data)
-                .success(true)
-                .build();
+        return ApiResponse.success("Google login success", data);
     }
+
 }

@@ -15,4 +15,5 @@ public interface GroupService {
     Void leaveGroup();
     List<GroupResponse> getAvailableGroups();
     Void doneTeam();
+    Void createGroupEmpty(int size);
 }

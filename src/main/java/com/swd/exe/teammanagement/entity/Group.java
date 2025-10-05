@@ -37,8 +37,8 @@ public class Group {
     GroupStatus status;
 
     @ManyToOne
-    @JoinColumn(name = "checkpoint_teacher_id")
-    User checkpointTeacher;
+    @JoinColumn(name = "checkpoint_lecture_id")
+    User checkpointLecture;
 
 }
 

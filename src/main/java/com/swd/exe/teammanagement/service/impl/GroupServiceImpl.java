@@ -4,10 +4,10 @@ import com.swd.exe.teammanagement.dto.request.GroupCreateRequest;
 import com.swd.exe.teammanagement.dto.response.GroupResponse;
 import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.GroupMember;
-import com.swd.exe.teammanagement.entity.Post;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.group.GroupStatus;
 import com.swd.exe.teammanagement.enums.group.GroupType;
+import com.swd.exe.teammanagement.enums.group.Semester;
 import com.swd.exe.teammanagement.enums.user.MembershipRole;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
@@ -33,6 +33,8 @@ public class GroupServiceImpl implements GroupService {
     int MAX_SIZE = 6;
     private final PostRepository postRepository;
     private final IdeaRepository ideaRepository;
+    private final VoteRepository voteRepository;
+    private final JoinRepository joinRepository;
 
     @Override
     public GroupResponse createGroup(GroupCreateRequest request) {
@@ -93,7 +95,7 @@ public class GroupServiceImpl implements GroupService {
                 .description(group.getDescription())
                 .leader(group.getLeader())
                 .type(group.getType()).status(group.getStatus())
-                .checkpointTeacher(group.getCheckpointTeacher())
+                .checkpointTeacher(group.getCheckpointLecture())
                 .build();
     }
 
@@ -106,7 +108,7 @@ public class GroupServiceImpl implements GroupService {
                 .description(group.getDescription())
                 .leader(group.getLeader())
                 .type(group.getType()).status(group.getStatus())
-                .checkpointTeacher(group.getCheckpointTeacher())
+                .checkpointTeacher(group.getCheckpointLecture())
                 .build()
         ).toList();
     }
@@ -126,6 +128,8 @@ public class GroupServiceImpl implements GroupService {
         }
         postRepository.deletePostByGroup(g);
         ideaRepository.deleteIdeaByGroup(g);
+        voteRepository.deleteVotesByGroup(g);
+        joinRepository.deleteJoinsByToGroup(g);
         return null;
     }
 
@@ -149,7 +153,7 @@ public class GroupServiceImpl implements GroupService {
                 .description(group.getDescription())
                 .leader(group.getLeader())
                 .type(group.getType()).status(group.getStatus())
-                .checkpointTeacher(group.getCheckpointTeacher())
+                .checkpointTeacher(group.getCheckpointLecture())
                 .build();
     }
 
@@ -188,6 +192,33 @@ public class GroupServiceImpl implements GroupService {
             }
             group.setStatus(GroupStatus.LOCKED);
             groupRepository.save(group);
+        return null;
+    }
+
+    @Override
+    public Void createGroupEmpty(int size) {
+        if (size <= 0) size = 1;
+
+        int month = LocalDateTime.now().getMonthValue();
+        Semester semester;
+        if (month >= 1 && month <= 4) {
+            semester = Semester.SPRING;
+        } else if (month >= 5 && month <= 8) {
+            semester = Semester.SUMMER;
+        } else {
+            semester = Semester.FALL;
+        }
+        int year = LocalDateTime.now().getYear();
+        for (int i = 0; i < size; i++) {
+            String title = "Group EXE " + semester + " " + year + (size > 1 ? " #" + (i + 1) : "");
+            Group group = Group.builder()
+                    .title(title)
+                    .description("Empty group created in " + semester + " semester")
+                    .type(GroupType.PUBLIC)
+                    .status(GroupStatus.FORMING)
+                    .build();
+            groupRepository.save(group);
+        }
         return null;
     }
 

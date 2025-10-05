@@ -5,6 +5,10 @@ import com.swd.exe.teammanagement.dto.request.PostRequest;
 import com.swd.exe.teammanagement.dto.response.PostResponse;
 import com.swd.exe.teammanagement.enums.idea_join_post.PostType;
 import com.swd.exe.teammanagement.service.PostService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -13,65 +17,75 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/posts")
+@RequestMapping("/api/posts")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@SecurityRequirement(name = "bearerAuth")
+@Tag(name = "Post Management", description = "APIs for managing recruitment posts (find member/group)")
 public class PostController {
     PostService postService;
+    
+    @Operation(
+            summary = "Create post to find member",
+            description = "Group leader creates a post to recruit members for their group. Only group leaders can create this type of post."
+    )
     @PostMapping("/findMember")
-    public ApiResponse<PostResponse> createPostToFindMember(@RequestBody PostRequest request) {
-        return ApiResponse.<PostResponse>builder()
-                .message("Create post to find member successfully")
-                .result(postService.createPostToFindMember(request))
-                .success(true)
-                .build();
+    public ApiResponse<PostResponse> createPostToFindMember(@Valid @RequestBody PostRequest request) {
+        return ApiResponse.created("Create post to find member successfully", postService.createPostToFindMember(request));
     }
+    
+    @Operation(
+            summary = "Create post to find group",
+            description = "Individual student creates a post to find and join a group. Students without group can create this type of post."
+    )
     @PostMapping("/findGroup")
-    public ApiResponse<PostResponse> createPostToFindGroup(@RequestBody PostRequest request) {
-        return ApiResponse.<PostResponse>builder()
-                .message("Create post to find group successfully")
-                .result(postService.createPostToFindGroup(request))
-                .success(true)
-                .build();
+    public ApiResponse<PostResponse> createPostToFindGroup(@Valid @RequestBody PostRequest request) {
+        return ApiResponse.created("Create post to find group successfully", postService.createPostToFindGroup(request));
     }
+    
+    @Operation(
+            summary = "Get post by ID",
+            description = "Retrieve a specific post by its unique identifier"
+    )
     @GetMapping("/{id}")
     public ApiResponse<PostResponse> getPostById(@PathVariable Long id) {
-        return ApiResponse.<PostResponse>builder()
-                .message("Get post successfully")
-                .result(postService.getPostById(id))
-                .success(true)
-                .build();
+        return ApiResponse.success("Get post successfully", postService.getPostById(id));
     }
+    
+    @Operation(
+            summary = "Get all posts",
+            description = "Retrieve all recruitment posts from all users"
+    )
     @GetMapping("/")
     public ApiResponse<List<PostResponse>> getAllPosts() {
-        return ApiResponse.<List<PostResponse>>builder()
-                .message("Get all posts successfully")
-                .result(postService.getAllPosts())
-                .success(true)
-                .build();
+        return ApiResponse.success("Get all posts successfully", postService.getAllPosts());
     }
-    @GetMapping("/{type}")
+    
+    @Operation(
+            summary = "Get posts by type",
+            description = "Filter posts by type: FIND_MEMBER (groups looking for members) or FIND_GROUP (individuals looking for groups)"
+    )
+    @GetMapping("/type/{type}")
     public ApiResponse<List<PostResponse>> getPostsByType(@PathVariable PostType type) {
-        return ApiResponse.<List<PostResponse>>builder()
-                .message("Get posts by type successfully")
-                .result(postService.getPostsByType(type))
-                .success(true)
-                .build();
+        return ApiResponse.success("Get posts by type successfully", postService.getPostsByType(type));
     }
+    
+    @Operation(
+            summary = "Delete post",
+            description = "Delete a recruitment post. Only the post author can delete their own post."
+    )
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deletePost(@PathVariable Long id) {
-        return ApiResponse.<Void>builder()
-                .message("Delete post successfully")
-                .result(postService.deletePost(id))
-                .success(true)
-                .build();
+        postService.deletePost(id);
+        return ApiResponse.success("Delete post successfully", null);
     }
+    
+    @Operation(
+            summary = "Update post",
+            description = "Update a recruitment post. Only the post author can update their own post."
+    )
     @PutMapping("/{id}")
-    public ApiResponse<PostResponse> updatePost(@PathVariable Long id, @RequestBody PostRequest request) {
-        return ApiResponse.<PostResponse>builder()
-                .message("Update post successfully")
-                .result(postService.updatePost(id, request))
-                .success(true)
-                .build();
+    public ApiResponse<PostResponse> updatePost(@PathVariable Long id, @Valid @RequestBody PostRequest request) {
+        return ApiResponse.success("Update post successfully", postService.updatePost(id, request));
     }
 }

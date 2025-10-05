@@ -9,8 +9,21 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
+
+    @Mapping(target = "majorCode", expression = "java(mapMajorCode(user.getMajor()))")
+    @Mapping(target = "majorName", expression = "java(mapMajorName(user.getMajor()))")
     UserResponse toUserResponse(User user);
-    void toUserUpdate(@MappingTarget User user, UserUpdateRequest userUpdateRequest);
+
+    default String mapMajorCode(com.swd.exe.teammanagement.entity.Major m) {
+        return m == null ? null : m.getCode();
+    }
+    default String mapMajorName(com.swd.exe.teammanagement.entity.Major m) {
+        return m == null ? null : m.getName();
+    }
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void toUserUpdate(@MappingTarget User user, UserUpdateRequest req);
 
     List<UserResponse> toUserResponseList(List<User> users);
 }
+

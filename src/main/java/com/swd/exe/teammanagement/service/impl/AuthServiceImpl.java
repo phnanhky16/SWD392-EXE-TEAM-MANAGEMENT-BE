@@ -76,8 +76,8 @@ public class AuthServiceImpl implements AuthService {
         newUser.setRole(role);
         newUser.setIsActive(true);
 
-        // Set student code only for students
-        if (role == UserRole.STUDENT) {
+        // Set student code only for students from FPT or FE domain
+        if (role == UserRole.STUDENT && isEducationalDomain(emailParts.domain())) {
             String studentCode = extractStudentCode(emailParts.localPart());
             newUser.setStudentCode(studentCode.toUpperCase());
         }
@@ -95,7 +95,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private UserRole determineRole(String domain) {
-        return "fe.edu.vn".equals(domain) ? UserRole.TEACHER : UserRole.STUDENT;
+        return "fe.edu.vn".equals(domain) ? UserRole.LECTURER : UserRole.STUDENT;
+    }
+
+    private boolean isEducationalDomain(String domain) {
+        return "fpt.edu.vn".equals(domain) || "fe.edu.vn".equals(domain);
     }
 
     private String getDisplayName(String firebaseName, String localPart) {
