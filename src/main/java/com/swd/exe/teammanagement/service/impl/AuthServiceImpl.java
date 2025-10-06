@@ -82,9 +82,8 @@ public class AuthServiceImpl implements AuthService {
             newUser.setStudentCode(studentCode.toUpperCase());
         }
 
-        User savedUser = userRepository.save(newUser);
+        return userRepository.save(newUser);
 
-        return savedUser;
     }
 
     private EmailParts parseEmail(String email) {
@@ -121,6 +120,7 @@ public class AuthServiceImpl implements AuthService {
         );
         return jwtService.generateToken(
             firebaseInfo.uid(),
+            user.getId(),
             firebaseInfo.email(),
             user.getRole().name(),
             claims

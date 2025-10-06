@@ -56,7 +56,7 @@ public class PostController {
             summary = "Get all posts",
             description = "Retrieve all recruitment posts from all users"
     )
-    @GetMapping("/")
+    @GetMapping
     public ApiResponse<List<PostResponse>> getAllPosts() {
         return ApiResponse.success("Get all posts successfully", postService.getAllPosts());
     }

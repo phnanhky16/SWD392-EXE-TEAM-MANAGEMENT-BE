@@ -28,11 +28,11 @@ public class JwtService {
         this.key = Keys.hmacShaKeyFor(bytes);
     }
 
-    public String generateToken(String uid, String email, String role, Map<String, Object> extraClaims) {
+    public String generateToken(String uid, Long id, String email, String role, Map<String, Object> extraClaims) {
         Date now = new Date();
         Date exp = new Date(now.getTime() + 24 * 60 * 60 * 1000L); // 24h
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(String.valueOf(id))
                 .addClaims(extraClaims == null ? Map.of() : extraClaims)
                 .claim("uid", uid)
                 .claim("email", email)
@@ -50,8 +50,5 @@ public class JwtService {
                 .parseClaimsJws(token)
                 .getBody();
     }
-
-    public String extractEmail(String token) { return parse(token).get("email", String.class); }
-    public String extractRole(String token)   { return parse(token).get("role", String.class); }
     public boolean isTokenValid(String token) { return parse(token).getExpiration().after(new Date()); }
 }

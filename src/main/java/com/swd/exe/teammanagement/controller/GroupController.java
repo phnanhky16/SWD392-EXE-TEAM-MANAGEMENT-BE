@@ -2,7 +2,10 @@ package com.swd.exe.teammanagement.controller;
 
 import com.swd.exe.teammanagement.dto.ApiResponse;
 import com.swd.exe.teammanagement.dto.response.GroupResponse;
+import com.swd.exe.teammanagement.enums.group.GroupStatus;
+import com.swd.exe.teammanagement.enums.group.GroupType;
 import com.swd.exe.teammanagement.service.GroupService;
+import com.swd.exe.teammanagement.dto.response.PagingResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,9 +38,18 @@ public class GroupController {
             summary = "Get all groups",
             description = "Retrieve all groups in the system (admin/teacher access)"
     )
-    @GetMapping("/")
-    public ApiResponse<List<GroupResponse>> getAllGroups() {
-        return ApiResponse.success("Get all groups successfully", groupService.getAllGroups());
+    @GetMapping
+    public ApiResponse<PagingResponse<GroupResponse>> searchGroups(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) GroupStatus status,
+            @RequestParam(required = false) GroupType type,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sort,
+            @RequestParam(defaultValue = "desc") String dir
+    ) {
+        var data = groupService.searchGroups(q, status, type, page, size, sort, dir);
+        return ApiResponse.success("List groups successfully", data);
     }
 
     @Operation(
@@ -91,7 +103,7 @@ public class GroupController {
             summary = "Delete group",
             description = "Delete the entire group including all members, posts, and ideas. Only group leader can perform this action."
     )
-    @DeleteMapping("/")
+    @DeleteMapping
     public ApiResponse<Void> deleteGroup() {
         groupService.deleteGroup();
         return ApiResponse.success("Delete group successfully", null);
@@ -100,7 +112,7 @@ public class GroupController {
             summary = "Create empty groups",
             description = "Create N empty groups. Title formatted like 'Group EXE FALL 2025 #1'. Requires authentication."
     )
-    @PostMapping("/")
+    @PostMapping
     public ApiResponse<Void> createGroups(@RequestParam(name = "size", defaultValue = "1") int size) {
         groupService.createGroup(size);
         return ApiResponse.created("Created empty groups successfully", null);

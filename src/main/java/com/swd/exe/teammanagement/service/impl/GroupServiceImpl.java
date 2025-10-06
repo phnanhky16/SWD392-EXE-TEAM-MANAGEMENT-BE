@@ -1,6 +1,7 @@
 package com.swd.exe.teammanagement.service.impl;
 
 import com.swd.exe.teammanagement.dto.response.GroupResponse;
+import com.swd.exe.teammanagement.dto.response.PagingResponse;
 import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.GroupMember;
 import com.swd.exe.teammanagement.entity.Major;
@@ -13,10 +14,17 @@ import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
 import com.swd.exe.teammanagement.repository.*;
 import com.swd.exe.teammanagement.service.GroupService;
+import com.swd.exe.teammanagement.spec.GroupSpecs;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,7 +40,6 @@ public class GroupServiceImpl implements GroupService {
     GroupRepository groupRepository;
     UserRepository userRepository;
     GroupMemberRepository groupMemberRepository;
-    int MAX_SIZE = 6;
     private final PostRepository postRepository;
     private final IdeaRepository ideaRepository;
     private final VoteRepository voteRepository;
@@ -184,7 +191,8 @@ public class GroupServiceImpl implements GroupService {
                 throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
             }
             int memberCount = groupMemberRepository.countByGroup(group);
-            if (memberCount != MAX_SIZE) {
+        int MAX_SIZE = 6;
+        if (memberCount != MAX_SIZE) {
                 throw new AppException(ErrorCode.GROUP_SHOULD_ENOUGH_MEMBERS);
             }
             group.setStatus(GroupStatus.LOCKED);
@@ -219,6 +227,63 @@ public class GroupServiceImpl implements GroupService {
         }
         return null;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PagingResponse<GroupResponse> searchGroups(
+            String q,
+            GroupStatus status,
+            GroupType type,
+            int page,
+            int size,
+            String sort,
+            String dir
+    ) {
+        // Chuẩn hoá page/size
+        page = (page <= 0) ? 1 : page;
+        size = Math.min(Math.max(size, 1), 100);
+
+        // Sort whitelist
+        Set<String> allowed = Set.of("id", "title", "status", "type",
+                "leader.fullName", "checkpointLecture.fullName");
+        String sortField = allowed.contains(sort) ? sort : "id";
+        Sort.Direction direction = "asc".equalsIgnoreCase(dir) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(direction, sortField));
+
+        // Specification
+        Specification<Group> spec = Specification.allOf(
+                GroupSpecs.keyword(q),
+                GroupSpecs.status(status),
+                GroupSpecs.type(type)
+        );
+
+        Page<Group> groups = groupRepository.findAll(spec, pageable);
+
+        // Map entity -> response
+        List<GroupResponse> items = groups.getContent().stream()
+                .map(group -> GroupResponse.builder()
+                        .id(group.getId())
+                        .title(group.getTitle())
+                        .description(group.getDescription())
+                        .leader(group.getLeader())
+                        .type(group.getType())
+                        .status(group.getStatus())
+                        .checkpointTeacher(group.getCheckpointLecture())
+                        .build())
+                .toList();
+
+        return PagingResponse.<GroupResponse>builder()
+                .content(items)
+                .page(groups.getNumber() + 1)
+                .size(groups.getSize())
+                .totalElements(groups.getTotalElements())
+                .totalPages(groups.getTotalPages())
+                .first(groups.isFirst())
+                .last(groups.isLast())
+                .sort(sortField + "," + direction.name().toLowerCase())
+                .build();
+    }
+
 
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
