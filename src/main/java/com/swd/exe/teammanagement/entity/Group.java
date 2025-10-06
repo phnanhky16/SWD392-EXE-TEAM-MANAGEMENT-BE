@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
+
 
 @Entity
 @Table(name = "`groups`")
@@ -39,6 +41,6 @@ public class Group {
     @ManyToOne
     @JoinColumn(name = "checkpoint_lecture_id")
     User checkpointLecture;
-
+    LocalDateTime createdAt;
 }
 

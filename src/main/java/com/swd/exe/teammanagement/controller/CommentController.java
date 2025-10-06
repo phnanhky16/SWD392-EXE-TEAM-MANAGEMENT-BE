@@ -24,7 +24,7 @@ public class CommentController {
             summary = "Create new comment",
             description = "Create a new comment on a post. Requires authentication."
     )
-    @PostMapping("/")
+    @PostMapping
    ApiResponse<CommentResponse> createComment(@RequestBody CommentRequest request){
         return ApiResponse.created("Create comment successfully", commentService.createComment(request));
     }
@@ -65,7 +65,7 @@ public class CommentController {
             summary = "Get all comments",
             description = "Retrieve all comments from all posts"
     )
-    @GetMapping("/")
+    @GetMapping
     ApiResponse<List<CommentResponse>> getAllComments(){
         return ApiResponse.success("Get all comments successfully", commentService.getAllComments());
     }

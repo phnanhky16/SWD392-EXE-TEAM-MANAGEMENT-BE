@@ -1,12 +1,13 @@
 package com.swd.exe.teammanagement.service;
 
-import com.swd.exe.teammanagement.dto.request.GroupCreateRequest;
 import com.swd.exe.teammanagement.dto.response.GroupResponse;
+import com.swd.exe.teammanagement.dto.response.PagingResponse;
+import com.swd.exe.teammanagement.enums.group.GroupStatus;
+import com.swd.exe.teammanagement.enums.group.GroupType;
 
 import java.util.List;
 
 public interface GroupService {
-    GroupResponse createGroup(GroupCreateRequest groupCreateRequest);
     GroupResponse getGroupById(Long groupId);
     List<GroupResponse> getAllGroups();
     Void deleteGroup();
@@ -15,5 +16,14 @@ public interface GroupService {
     Void leaveGroup();
     List<GroupResponse> getAvailableGroups();
     Void doneTeam();
-    Void createGroupEmpty(int size);
+    Void createGroup(int size);
+    PagingResponse<GroupResponse> searchGroups(
+            String q,
+            GroupStatus status,
+            GroupType type,
+            int page,
+            int size,
+            String sort,
+            String dir
+    );
 }

@@ -106,14 +106,17 @@ public class UserServiceImpl implements UserService {
             String q, UserRole role, Boolean active, String majorCode,
             int page, int size, String sort, String dir) {
 
-        page = Math.max(page, 0);
+        // 1) Chuẩn hóa page 1-based
+        page = (page <= 0) ? 1 : page;
         size = Math.min(Math.max(size, 1), 100);
 
         Sort s = (sort == null || sort.isBlank())
                 ? Sort.by("id").descending()
                 : ("desc".equalsIgnoreCase(dir) ? Sort.by(sort).descending() : Sort.by(sort).ascending());
 
-        Pageable pageable = PageRequest.of(page, size, s);
+        // 2) Chuyển sang 0-based khi tạo Pageable
+        int zeroBased = page - 1;
+        Pageable pageable = PageRequest.of(zeroBased, size, s);
 
         Specification<User> spec = Specification.allOf(
                 UserSpecs.keyword(q),
@@ -126,11 +129,13 @@ public class UserServiceImpl implements UserService {
 
         var items = p.getContent().stream().map(userMapper::toUserResponse).toList();
         String sortStr = s.stream().findFirst()
-                .map(o -> o.getProperty()+","+o.getDirection().name().toLowerCase()).orElse(null);
+                .map(o -> o.getProperty()+","+o.getDirection().name().toLowerCase())
+                .orElse(null);
 
+        // 3) Trả về lại 1-based
         return PagingResponse.<UserResponse>builder()
                 .content(items)
-                .page(p.getNumber())
+                .page(p.getNumber() + 1)
                 .size(p.getSize())
                 .totalElements(p.getTotalElements())
                 .totalPages(p.getTotalPages())

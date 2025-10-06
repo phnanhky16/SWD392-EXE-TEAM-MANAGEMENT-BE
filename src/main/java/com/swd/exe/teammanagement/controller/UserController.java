@@ -7,6 +7,7 @@ import com.swd.exe.teammanagement.dto.response.UserResponse;
 import com.swd.exe.teammanagement.enums.user.UserRole;
 import com.swd.exe.teammanagement.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -41,11 +42,12 @@ public class UserController {
       // ví dụ trong UserController
       @GetMapping
       public ApiResponse<PagingResponse<UserResponse>> getAllUsers(
+              @Parameter(description = "Tìm kiếm theo tên, email, mã số sinh viên")
               @RequestParam(required = false) String q,
               @RequestParam(required = false) UserRole role,
               @RequestParam(required = false) Boolean active,
               @RequestParam(required = false) String majorCode,
-              @RequestParam(defaultValue = "0")  int page,
+              @RequestParam(defaultValue = "1")  int page,
               @RequestParam(defaultValue = "10") int size,
               @RequestParam(defaultValue = "id") String sort,
               @RequestParam(defaultValue = "desc") String dir

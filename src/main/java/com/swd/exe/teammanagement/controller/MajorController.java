@@ -37,7 +37,7 @@ public class MajorController {
             summary = "Get all majors",
             description = "Retrieve all available majors in the system"
     )
-    @GetMapping("/")
+    @GetMapping
     public ApiResponse<List<MajorResponse>> getAllMajors() {
         return ApiResponse.success("Get all majors successfully", majorService.getAllMajors());
     }
@@ -46,7 +46,7 @@ public class MajorController {
             summary = "Create new major",
             description = "Create a new academic major. Requires admin privileges."
     )
-    @PostMapping("/")
+    @PostMapping
     public ApiResponse<MajorResponse> createMajor(@Valid @RequestBody MajorRequest request) {
         return ApiResponse.created("Create major successfully", majorService.createMajor(request));
     }

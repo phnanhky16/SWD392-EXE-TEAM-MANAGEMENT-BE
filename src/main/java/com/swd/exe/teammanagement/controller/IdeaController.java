@@ -25,7 +25,7 @@ public class IdeaController {
             summary = "Create new idea",
             description = "Leader tạo ý tưởng cho group"
     )
-    @PostMapping("/")
+    @PostMapping
     ApiResponse<IdeaResponse> createIdea(@Valid @RequestBody IdeaRequest request) {
         return ApiResponse.created("Create idea successfully", ideaService.createIdea(request));
     }
@@ -72,7 +72,7 @@ public class IdeaController {
             summary = "Get all ideas",
             description = "Lấy tất cả ý tưởng (admin/teacher)"
     )
-    @GetMapping("/")
+    @GetMapping
     ApiResponse<List<IdeaResponse>> getAllIdeas() {
         return ApiResponse.success("Get all ideas successfully", ideaService.getAllIdeas());
     }

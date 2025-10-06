@@ -5,8 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "`join`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -30,6 +28,4 @@ public class Join {
 
     @Enumerated(EnumType.STRING)
     JoinStatus status;
-
-    LocalDateTime createdAt;
 }
