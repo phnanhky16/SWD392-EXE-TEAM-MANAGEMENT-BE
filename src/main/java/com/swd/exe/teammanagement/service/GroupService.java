@@ -10,9 +10,9 @@ import java.util.List;
 public interface GroupService {
     GroupResponse getGroupById(Long groupId);
     List<GroupResponse> getAllGroups();
-    Void deleteGroup();
-    GroupResponse changeGroupType();
-    GroupResponse getGroup(Long userId);
+
+    Void changeGroupType();
+    GroupResponse getGroupByUserId(Long userId);
     Void leaveGroup();
     List<GroupResponse> getAvailableGroups();
     Void doneTeam();
@@ -26,4 +26,5 @@ public interface GroupService {
             String sort,
             String dir
     );
+    List<GroupResponse> getCurrentGroupList();
 }

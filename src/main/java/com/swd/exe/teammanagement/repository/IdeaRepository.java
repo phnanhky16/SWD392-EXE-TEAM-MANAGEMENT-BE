@@ -12,4 +12,5 @@ public interface IdeaRepository extends JpaRepository<Idea, Long> {
     List<Idea> findAllByUser_Id(Long userId);
     void deleteIdeaByGroup(Group group);
 
+    void deleteIdeasByGroup(Group group);
 }

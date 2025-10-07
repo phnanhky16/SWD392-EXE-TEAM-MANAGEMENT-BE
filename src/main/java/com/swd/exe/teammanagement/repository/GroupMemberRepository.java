@@ -28,4 +28,6 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
     int countByGroupId(Long groupId);
 
     Set<Major> findMajorsByGroupId(Long groupId);
+
+    List<GroupMember> findByGroup(Group group);
 }
