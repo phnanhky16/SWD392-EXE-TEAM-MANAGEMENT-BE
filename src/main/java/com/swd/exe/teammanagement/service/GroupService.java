@@ -9,15 +9,22 @@ import java.util.List;
 
 public interface GroupService {
     GroupResponse getGroupById(Long groupId);
-    Void deleteGroup();
-    GroupResponse changeGroupType();
-    GroupResponse getGroup(Long userId);
+    List<GroupResponse> getAllGroups();
+
+    Void changeGroupType();
+    GroupResponse getGroupByUserId(Long userId);
     Void leaveGroup();
     List<GroupResponse> getAvailableGroups();
     Void doneTeam();
     Void createGroup(int size);
     PagingResponse<GroupResponse> searchGroups(
-            String q, GroupStatus status, GroupType type,
-            int page, int size, String sort, String dir
+            String q,
+            GroupStatus status,
+            GroupType type,
+            int page,
+            int size,
+            String sort,
+            String dir
     );
+    List<GroupResponse> getCurrentGroupList();
 }

@@ -21,6 +21,7 @@ import com.swd.exe.teammanagement.util.SortUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -29,10 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 @Service
@@ -54,11 +52,13 @@ public class GroupServiceImpl implements GroupService {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_UNEXISTED));
         return GroupResponse.builder()
+                .id(group.getId())
                 .title(group.getTitle())
                 .description(group.getDescription())
                 .leader(group.getLeader())
                 .type(group.getType()).status(group.getStatus())
                 .checkpointTeacher(group.getCheckpointLecture())
+                .createdAt(group.getCreatedAt())
                 .build();
     }
 
@@ -72,6 +72,15 @@ public class GroupServiceImpl implements GroupService {
                 Set.of("id", "title", "status", "type"),
                 "id", Sort.Direction.DESC);
 
+        return groups.stream().map(group -> GroupResponse.builder()
+                .id(group.getId())
+                .title(group.getTitle())
+                .description(group.getDescription())
+                .leader(group.getLeader())
+                .type(group.getType()).status(group.getStatus())
+                .checkpointTeacher(group.getCheckpointLecture())
+                .build()
+        ).toList();
         Pageable pageable = SortUtil.pageable1Based(page, size, s);
 
         Specification<Group> spec = Specification.allOf(
@@ -84,21 +93,16 @@ public class GroupServiceImpl implements GroupService {
 
         return PageUtil.toResponse(p, groupMapper::toGroupResponse);
     }
-
-
-    @Override
-    public Void deleteGroup() {
-        User u = getCurrentUser();
-        Group g = groupRepository.findByLeader(u)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_LEADER_OF_ANY_GROUP));
-        if(!groupMemberRepository.existsByGroupIdAndUserIdAndRole(g.getId(), u.getId(), MembershipRole.LEADER)){
-            throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
-        }
-        groupRepository.deleteGroupByLeader(u);
-        List<User> members = groupMemberRepository.findUsersByGroup(g);
-        for (User member : members) {
-            groupMemberRepository.deleteGroupMemberByUser(member);
-        }
+    public Void deleteGroup(Long groupId) {
+        Group g = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_UNEXISTED));
+        int size = getCurrentGroupList().size();
+        g.setLeader(null);
+        g.setTitle("Group exe #"+ size+1);
+        g.setDescription(null);
+        g.setType(GroupType.PUBLIC);
+        g.setStatus(GroupStatus.FORMING);
+        groupRepository.save(g);
         postRepository.deletePostByGroup(g);
         ideaRepository.deleteIdeaByGroup(g);
         voteRepository.deleteVotesByGroup(g);
@@ -107,21 +111,23 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public GroupResponse changeGroupType() {
+    public Void changeGroupType() {
         Group g = groupRepository.findByLeader(getCurrentUser())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_LEADER_OF_ANY_GROUP));
         g.setType(!g.getType().equals(GroupType.PUBLIC) ? GroupType.PUBLIC : GroupType.PRIVATE);
+        groupRepository.save(g);
         return null;
     }
 
     @Override
-    public GroupResponse getGroup(Long userId) {
+    public GroupResponse getGroupByUserId(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
         GroupMember groupMember = groupMemberRepository.findByUser(user)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
         Group group = groupMember.getGroup();
         return GroupResponse.builder()
+                .id(group.getId())
                 .title(group.getTitle())
                 .description(group.getDescription())
                 .leader(group.getLeader())
@@ -135,10 +141,20 @@ public class GroupServiceImpl implements GroupService {
         User user = getCurrentUser();
         GroupMember groupMember = groupMemberRepository.findByUser(user)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
-        if (groupMember.getRole().equals(MembershipRole.LEADER)) {
-            throw new AppException(ErrorCode.GROUP_LEADER_CANNOT_LEAVE);
+        Group  group = groupMember.getGroup();
+        List<GroupMember> gMS  = groupMemberRepository.findByGroup(group);
+        if(gMS.size()==1){
+            deleteGroup(group.getId());
+        }else{
+            if (groupMember.getRole().equals(MembershipRole.LEADER)) {
+                gMS.get(2).setRole(MembershipRole.LEADER);
+                User member = gMS.get(2).getUser();
+                group.setLeader(member);
+                groupRepository.save(group);
+                groupMemberRepository.delete(groupMember);
+                joinRepository.deleteJoinByFromUser(user);
+            }
         }
-        groupMemberRepository.delete(groupMember);
         return null;
     }
 
@@ -167,10 +183,10 @@ public class GroupServiceImpl implements GroupService {
         LocalDateTime endDate = endYearMonth.atEndOfMonth().atTime(23, 59, 59);
 
         // fetch groups created within this semester window with ACTIVE status and PUBLIC type
-        List<Group> groups = groupRepository.findGroupsByStatusAndTypeAndCreatedAtBetween(
-                GroupStatus.ACTIVE, GroupType.PUBLIC, startDate, endDate
+        List<Group> groups = groupRepository.findGroupsByStatusInAndCreatedAtBetween(
+                Arrays.asList(GroupStatus.ACTIVE, GroupStatus.FORMING), startDate, endDate
         );
-        List<Group> groupListAvaiable = new ArrayList<>();
+        List<Group> groupListAvailable = new ArrayList<>();
         Set<Major> majors = new HashSet<>();
         for( Group g : groups){
             if(groupMemberRepository.countByGroup(g) ==5) {
@@ -179,12 +195,13 @@ public class GroupServiceImpl implements GroupService {
                 }
                 majors.add(user.getMajor());
                 if (majors.size() > 1) {
-                    groupListAvaiable.add(g);
+                    groupListAvailable.add(g);
                 }
                 majors.clear();
-            }else{ groupListAvaiable.add(g); }
+            }else{ groupListAvailable.add(g); }
         }
-        return groupListAvaiable.stream().map(group -> GroupResponse.builder()
+        return groupListAvailable.stream().map(group -> GroupResponse.builder()
+                .id(group.getId())
                 .title(group.getTitle())
                 .description(group.getDescription())
                 .leader(group.getLeader())
@@ -227,8 +244,9 @@ public class GroupServiceImpl implements GroupService {
             semester = Semester.FALL;
         }
         int year = LocalDateTime.now().getYear();
-        for (int i = 0; i < size; i++) {
-            String title = "Group EXE " + semester + " " + year + (size > 1 ? " #" + (i + 1) : "");
+        int count = getCurrentGroupList().size();
+        for (int i = count+1; i < size+count; i++) {
+            String title = "Group EXE " + semester + " " + year + " #" + i;
             Group group = Group.builder()
                     .title(title)
                     .description("Empty group created in " + semester + " semester")

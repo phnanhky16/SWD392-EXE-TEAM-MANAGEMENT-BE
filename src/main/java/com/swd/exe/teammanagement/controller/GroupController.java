@@ -58,7 +58,7 @@ public class GroupController {
     )
     @GetMapping("/user/{userId}")
     public ApiResponse<GroupResponse> getGroupByUserId(@PathVariable Long userId) {
-        return ApiResponse.success("Get user's group successfully", groupService.getGroup(userId));
+        return ApiResponse.success("Get user's group successfully", groupService.getGroupByUserId(userId));
     }
 
     @Operation(
@@ -75,7 +75,7 @@ public class GroupController {
             description = "Toggle group type between PUBLIC and PRIVATE. Only group leader can perform this action."
     )
     @PatchMapping("/change-type")
-    public ApiResponse<GroupResponse> changeGroupType() {
+    public ApiResponse<Void> changeGroupType() {
         return ApiResponse.success("Change group type successfully", groupService.changeGroupType());
     }
 
@@ -99,15 +99,7 @@ public class GroupController {
         return ApiResponse.success("Left group successfully", null);
     }
 
-    @Operation(
-            summary = "Delete group",
-            description = "Delete the entire group including all members, posts, and ideas. Only group leader can perform this action."
-    )
-    @DeleteMapping
-    public ApiResponse<Void> deleteGroup() {
-        groupService.deleteGroup();
-        return ApiResponse.success("Delete group successfully", null);
-    }
+
     @Operation(
             summary = "Create empty groups",
             description = "Create N empty groups. Title formatted like 'Group EXE FALL 2025 #1'. Requires authentication."

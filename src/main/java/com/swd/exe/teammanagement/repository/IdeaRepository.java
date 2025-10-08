@@ -11,4 +11,5 @@ public interface IdeaRepository extends JpaRepository<Idea, Long> {
     List<Idea> findAllByGroupIdOrderByCreatedAtDesc(Long groupId);
     void deleteIdeaByGroup(Group group);
 
+    void deleteIdeasByGroup(Group group);
 }
