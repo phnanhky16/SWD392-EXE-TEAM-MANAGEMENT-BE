@@ -36,4 +36,5 @@ public interface GroupService {
     GroupResponse getMyGroup();
     Void removeMemberByLeader(Long userId);
     GroupResponse updateGroupInfo(GroupCreateRequest request);
+    Void changeLeader(Long newLeaderId);
 }

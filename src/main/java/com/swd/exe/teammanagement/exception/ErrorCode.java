@@ -46,6 +46,7 @@ public enum ErrorCode {
     VOTE_NOT_FOUND("Vote not found", HttpStatus.NOT_FOUND),
     JOIN_REQUEST_NOT_FOUND("Join request not found", HttpStatus.NOT_FOUND),
     JOIN_REQUEST_ALREADY_PROCESSED("Join request has already been processed", HttpStatus.BAD_REQUEST),
+    CANNOT_TRANSFER_TO_SELF("Cannot transfer leadership to yourself", HttpStatus.BAD_REQUEST),
     ;
 
     private final String message;
