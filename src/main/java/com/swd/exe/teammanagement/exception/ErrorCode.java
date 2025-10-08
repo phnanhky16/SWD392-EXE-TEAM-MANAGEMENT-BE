@@ -43,6 +43,9 @@ public enum ErrorCode {
     ROLE_UPDATE_NOT_SWITCHABLE("Role update is only switchable between TEACHER and MODERATOR", HttpStatus.BAD_REQUEST),
     GROUP_NOT_FOUND("Group not found", HttpStatus.NOT_FOUND),
     JUST_ONE_POST_ONE_MEMBER("Just one post is allowed for each member", HttpStatus.BAD_REQUEST),
+    VOTE_NOT_FOUND("Vote not found", HttpStatus.NOT_FOUND),
+    JOIN_REQUEST_NOT_FOUND("Join request not found", HttpStatus.NOT_FOUND),
+    JOIN_REQUEST_ALREADY_PROCESSED("Join request has already been processed", HttpStatus.BAD_REQUEST),
     ;
 
     private final String message;

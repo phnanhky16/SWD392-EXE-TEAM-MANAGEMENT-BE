@@ -26,8 +26,8 @@ public class Vote {
     Group group;
 
     @ManyToOne
-    @JoinColumn(name = "created_by")
-    User createdBy;
+    @JoinColumn(name = "target_user_id")
+    User targetUser;
 
     String topic;
 
