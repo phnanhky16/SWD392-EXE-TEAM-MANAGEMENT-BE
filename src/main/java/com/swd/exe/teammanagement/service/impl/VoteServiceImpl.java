@@ -43,13 +43,20 @@ public class VoteServiceImpl implements VoteService {
     }
 
     @Override
-    @Scheduled(fixedRate = 60000)
     public void voteDone(Long voteId) {
         Vote v = voteRepository.findById(voteId)
                 .orElseThrow(() -> new AppException(ErrorCode.VOTE_NOT_FOUND));
+        processVoteResult(v);
+    }
+
+    /**
+     * Process vote result and update group membership
+     */
+    private void processVoteResult(Vote v) {
         Group g = v.getGroup();
         List<User> members = groupMemberRepository.findUsersByGroup(g);
         List<VoteChoice> voteChoices = voteChoiceRepository.findByVote(v);
+        
         if (members.size() == voteChoices.size()) {
             v.setStatus(VoteStatus.CLOSED);
             voteRepository.save(v);
@@ -68,13 +75,13 @@ public class VoteServiceImpl implements VoteService {
                         .role(MembershipRole.MEMBER)
                         .build());
                 joinRepository.save(Join.builder().toGroup(g).fromUser(v.getTargetUser()).status(JoinStatus.ACCEPTED).build());
-            }else{
+            } else {
                 joinRepository.save(Join.builder().toGroup(g).fromUser(v.getTargetUser()).status(JoinStatus.REJECTED).build());
             }
-        } else if (v.getStatus()==VoteStatus.CLOSED) {
+        } else if (v.getStatus() == VoteStatus.CLOSED) {
             int total = 0;
-            int yes =members.size()-voteChoices.size();
-            total+=yes;
+            int yes = members.size() - voteChoices.size();
+            total += yes;
             for (VoteChoice vc : voteChoices) {
                 if (vc.getChoiceValue() == ChoiceValue.YES) {
                     total++;
@@ -89,7 +96,7 @@ public class VoteServiceImpl implements VoteService {
                         .role(MembershipRole.MEMBER)
                         .build());
                 joinRepository.save(Join.builder().toGroup(g).fromUser(v.getTargetUser()).status(JoinStatus.ACCEPTED).build());
-            }else{
+            } else {
                 joinRepository.save(Join.builder().toGroup(g).fromUser(v.getTargetUser()).status(JoinStatus.REJECTED).build());
             }
         }
@@ -130,9 +137,18 @@ public class VoteServiceImpl implements VoteService {
                 v.setStatus(VoteStatus.CLOSED);
                 voteRepository.save(v);
                 System.out.println("Vote ID " + v.getId() + " đã tự động đóng!");
+                
+                // Tự động xử lý kết quả vote sau khi đóng
+                try {
+                    processVoteResult(v);
+                    System.out.println("Vote ID " + v.getId() + " đã xử lý kết quả thành công!");
+                } catch (Exception e) {
+                    System.err.println("Lỗi khi xử lý kết quả vote ID " + v.getId() + ": " + e.getMessage());
+                }
             }
         }
     }
+
     private User getCurrentUser() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return userRepository.findByEmail(email)
