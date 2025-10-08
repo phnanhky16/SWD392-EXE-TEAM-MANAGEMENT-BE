@@ -128,6 +128,16 @@ public class GroupController {
     }
 
     @Operation(
+            summary = "Change group leader",
+            description = "Transfer leadership to another member in the group. Only current group leader can perform this action."
+    )
+    @PatchMapping("/change-leader/{newLeaderId}")
+    public ApiResponse<Void> changeLeader(@PathVariable Long newLeaderId) {
+        groupService.changeLeader(newLeaderId);
+        return ApiResponse.success("Leadership transferred successfully", null);
+    }
+
+    @Operation(
             summary = "Leave group",
             description = "Leave the current group. If leader leaves and group has other members, leadership transfers to another member."
     )

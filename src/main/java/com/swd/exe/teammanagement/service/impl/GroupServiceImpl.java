@@ -214,6 +214,53 @@ public class GroupServiceImpl implements GroupService {
                 .build();
     }
 
+    @Override
+    public Void changeLeader(Long newLeaderId) {
+        User currentLeader = getCurrentUser();
+        
+        // Kiểm tra user hiện tại có phải là leader không
+        GroupMember currentLeaderMember = groupMemberRepository.findByUser(currentLeader)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
+        
+        if (!currentLeaderMember.getRole().equals(MembershipRole.LEADER)) {
+            throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
+        }
+        
+        Group group = currentLeaderMember.getGroup();
+        
+        // Tìm user mới sẽ là leader
+        User newLeader = userRepository.findById(newLeaderId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
+        
+        // Kiểm tra user mới có trong nhóm không
+        GroupMember newLeaderMember = groupMemberRepository.findByUser(newLeader)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
+        
+        // Kiểm tra user mới có cùng group với leader hiện tại không
+        if (!newLeaderMember.getGroup().getId().equals(group.getId())) {
+            throw new AppException(ErrorCode.USER_NOT_IN_GROUP);
+        }
+        
+        // Không thể chuyển quyền cho chính mình
+        if (currentLeader.getId().equals(newLeaderId)) {
+            throw new AppException(ErrorCode.CANNOT_TRANSFER_TO_SELF);
+        }
+        
+        // Chuyển role: leader hiện tại -> member, member mới -> leader
+        currentLeaderMember.setRole(MembershipRole.MEMBER);
+        newLeaderMember.setRole(MembershipRole.LEADER);
+        
+        // Cập nhật leader trong group
+        group.setLeader(newLeader);
+        
+        // Save changes
+        groupMemberRepository.save(currentLeaderMember);
+        groupMemberRepository.save(newLeaderMember);
+        groupRepository.save(group);
+        
+        return null;
+    }
+
     public Void deleteGroup(Long groupId) {
         Group g = groupRepository.findById(groupId)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_UNEXISTED));
