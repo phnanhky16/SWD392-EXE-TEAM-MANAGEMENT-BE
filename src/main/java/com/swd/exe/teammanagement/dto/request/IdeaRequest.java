@@ -1,7 +1,6 @@
 package com.swd.exe.teammanagement.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -12,8 +11,6 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class IdeaRequest {
-    @NotNull
-    Long groupId;
     @NotBlank
     @Size(min = 5, max = 100)
     String title;

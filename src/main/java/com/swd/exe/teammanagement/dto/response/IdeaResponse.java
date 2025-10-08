@@ -1,5 +1,6 @@
 package com.swd.exe.teammanagement.dto.response;
 
+import com.swd.exe.teammanagement.enums.idea_join_post_score.IdeaStatus;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -12,15 +13,11 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class IdeaResponse {
     Long id;
-    Long leaderId;
-    String leaderName;
-    Long groupId;
-    String groupName;
+    String title;
     String description;
-    String status;
+    UserSummaryResponse author;
+    GroupSummaryResponse group;
+    IdeaStatus status;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
-    Long approvedById;
-    String rejectionReason;
-    LocalDateTime approvedAt;
 }

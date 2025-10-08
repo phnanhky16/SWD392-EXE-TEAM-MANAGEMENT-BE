@@ -1,54 +1,80 @@
-    package com.swd.exe.teammanagement.entity;
+package com.swd.exe.teammanagement.entity;
 
-    import com.swd.exe.teammanagement.enums.idea_join_post_score.IdeaStatus;
-    import jakarta.persistence.*;
-    import lombok.*;
+import com.swd.exe.teammanagement.enums.idea_join_post_score.IdeaSource;
+import com.swd.exe.teammanagement.enums.idea_join_post_score.IdeaStatus;
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
-    import java.time.LocalDateTime;
+import java.time.LocalDateTime;
 
-    @Entity
-    @Table(name = "ideas",
-            indexes = {
-                    @Index(name = "idx_idea_group", columnList = "group_id"),
-                    @Index(name = "idx_idea_user",  columnList = "user_id"),
-                    @Index(name = "idx_idea_status", columnList = "status")
-            })
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-    public class Idea {
+@Entity
+@Table(
+        name = "ideas",
+        indexes = {
+                @Index(name = "idx_ideas_group", columnList = "group_id"),
+                @Index(name = "idx_ideas_author", columnList = "author_id"),
+                @Index(name = "idx_ideas_source", columnList = "source"),
+                @Index(name = "idx_ideas_status", columnList = "status"),
+                @Index(name = "idx_ideas_combined_key", columnList = "combined_key")
+        }
+)
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor @Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class Idea {
 
-        @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-        Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
 
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "group_id", nullable = false)
-        Group group;
+    @Column(nullable = false, length = 255)
+    String title;
 
-        // Leader của ý tưởng
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "user_id", nullable = false)
-        User user;
+    @Column(columnDefinition = "TEXT")
+    String description;
 
-        String title;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    IdeaSource source;
 
-        @Column(columnDefinition = "TEXT")
-        String description;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    IdeaStatus status;
 
-        @Enumerated(EnumType.STRING)
-        @Column(nullable = false, length = 20)
-        IdeaStatus status;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "author_id", nullable = false)
+    User author;
 
-        // --- Thông tin duyệt ---
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "approved_by_id")
-        User approvedBy;                 // giáo viên/ admin duyệt hoặc từ chối
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id")
+    Group group; // nullable
 
-        LocalDateTime approvedAt;        // thời điểm duyệt/ từ chối
-        @Column(length = 500)
-        String rejectionReason;          // lý do reject (nếu có)
+    @Column(name = "combined_key", length = 64)
+    String combinedKey; // nullable
 
-        LocalDateTime createdAt;
-        LocalDateTime updatedAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reviewer_id")
+    User reviewer; // nullable
 
-        @PrePersist void prePersist() { createdAt = LocalDateTime.now(); }
-        @PreUpdate  void preUpdate()  { updatedAt = LocalDateTime.now(); }
+    @Column(name = "review_note", length = 2000)
+    String reviewNote; // nullable
+
+    @Column(name = "created_at", nullable = false)
+    LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    LocalDateTime updatedAt;
+
+    @PrePersist
+    void prePersist() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = this.createdAt;
+        if (this.status == null) this.status = IdeaStatus.DRAFT;
     }
+
+    @PreUpdate
+    void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+}

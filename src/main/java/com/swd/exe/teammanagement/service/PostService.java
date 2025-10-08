@@ -2,7 +2,7 @@ package com.swd.exe.teammanagement.service;
 
 import com.swd.exe.teammanagement.dto.request.PostRequest;
 import com.swd.exe.teammanagement.dto.response.PostResponse;
-import com.swd.exe.teammanagement.enums.idea_join_post.PostType;
+import com.swd.exe.teammanagement.enums.idea_join_post_score.PostType;
 
 import java.util.List;
 

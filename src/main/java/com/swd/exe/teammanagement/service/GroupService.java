@@ -9,7 +9,6 @@ import java.util.List;
 
 public interface GroupService {
     GroupResponse getGroupById(Long groupId);
-    List<GroupResponse> getAllGroups();
     Void deleteGroup();
     GroupResponse changeGroupType();
     GroupResponse getGroup(Long userId);
@@ -18,12 +17,7 @@ public interface GroupService {
     Void doneTeam();
     Void createGroup(int size);
     PagingResponse<GroupResponse> searchGroups(
-            String q,
-            GroupStatus status,
-            GroupType type,
-            int page,
-            int size,
-            String sort,
-            String dir
+            String q, GroupStatus status, GroupType type,
+            int page, int size, String sort, String dir
     );
 }

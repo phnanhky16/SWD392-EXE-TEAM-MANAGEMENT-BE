@@ -14,6 +14,8 @@ import java.util.Optional;
 public interface GroupRepository extends JpaRepository<Group, Long>, JpaSpecificationExecutor<Group> {
     Optional<Group> findByLeader(User leader);
 
+    Optional<Group> findByTitle(String title);
+
     void deleteGroupByLeader(User leader);
 
     List<Group> findGroupsByStatusAndType(GroupStatus status, GroupType type);

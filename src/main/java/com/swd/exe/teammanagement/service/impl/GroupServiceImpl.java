@@ -12,13 +12,15 @@ import com.swd.exe.teammanagement.enums.group.Semester;
 import com.swd.exe.teammanagement.enums.user.MembershipRole;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
+import com.swd.exe.teammanagement.mapper.GroupMapper;
 import com.swd.exe.teammanagement.repository.*;
 import com.swd.exe.teammanagement.service.GroupService;
 import com.swd.exe.teammanagement.spec.GroupSpecs;
+import com.swd.exe.teammanagement.util.PageUtil;
+import com.swd.exe.teammanagement.util.SortUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -40,10 +42,11 @@ public class GroupServiceImpl implements GroupService {
     GroupRepository groupRepository;
     UserRepository userRepository;
     GroupMemberRepository groupMemberRepository;
-    private final PostRepository postRepository;
-    private final IdeaRepository ideaRepository;
-    private final VoteRepository voteRepository;
-    private final JoinRepository joinRepository;
+    PostRepository postRepository;
+    IdeaRepository ideaRepository;
+    VoteRepository voteRepository;
+    GroupMapper groupMapper;
+    JoinRepository joinRepository;
 
 
     @Override
@@ -60,18 +63,28 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public List<GroupResponse> getAllGroups() {
-        List<Group> groups = groupRepository.findAll();
+    @Transactional(readOnly = true)
+    public PagingResponse<GroupResponse> searchGroups(
+            String q, GroupStatus status, GroupType type,
+            int page, int size, String sort, String dir) {
 
-        return groups.stream().map(group -> GroupResponse.builder()
-                .title(group.getTitle())
-                .description(group.getDescription())
-                .leader(group.getLeader())
-                .type(group.getType()).status(group.getStatus())
-                .checkpointTeacher(group.getCheckpointLecture())
-                .build()
-        ).toList();
+        Sort s = SortUtil.sanitize(sort, dir,
+                Set.of("id", "title", "status", "type"),
+                "id", Sort.Direction.DESC);
+
+        Pageable pageable = SortUtil.pageable1Based(page, size, s);
+
+        Specification<Group> spec = Specification.allOf(
+                GroupSpecs.keyword(q),
+                GroupSpecs.status(status),
+                GroupSpecs.type(type)
+        );
+
+        Page<Group> p = groupRepository.findAll(spec, pageable);
+
+        return PageUtil.toResponse(p, groupMapper::toGroupResponse);
     }
+
 
     @Override
     public Void deleteGroup() {
@@ -227,63 +240,6 @@ public class GroupServiceImpl implements GroupService {
         }
         return null;
     }
-
-    @Override
-    @Transactional(readOnly = true)
-    public PagingResponse<GroupResponse> searchGroups(
-            String q,
-            GroupStatus status,
-            GroupType type,
-            int page,
-            int size,
-            String sort,
-            String dir
-    ) {
-        // Chuẩn hoá page/size
-        page = (page <= 0) ? 1 : page;
-        size = Math.min(Math.max(size, 1), 100);
-
-        // Sort whitelist
-        Set<String> allowed = Set.of("id", "title", "status", "type",
-                "leader.fullName", "checkpointLecture.fullName");
-        String sortField = allowed.contains(sort) ? sort : "id";
-        Sort.Direction direction = "asc".equalsIgnoreCase(dir) ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(direction, sortField));
-
-        // Specification
-        Specification<Group> spec = Specification.allOf(
-                GroupSpecs.keyword(q),
-                GroupSpecs.status(status),
-                GroupSpecs.type(type)
-        );
-
-        Page<Group> groups = groupRepository.findAll(spec, pageable);
-
-        // Map entity -> response
-        List<GroupResponse> items = groups.getContent().stream()
-                .map(group -> GroupResponse.builder()
-                        .id(group.getId())
-                        .title(group.getTitle())
-                        .description(group.getDescription())
-                        .leader(group.getLeader())
-                        .type(group.getType())
-                        .status(group.getStatus())
-                        .checkpointTeacher(group.getCheckpointLecture())
-                        .build())
-                .toList();
-
-        return PagingResponse.<GroupResponse>builder()
-                .content(items)
-                .page(groups.getNumber() + 1)
-                .size(groups.getSize())
-                .totalElements(groups.getTotalElements())
-                .totalPages(groups.getTotalPages())
-                .first(groups.isFirst())
-                .last(groups.isLast())
-                .sort(sortField + "," + direction.name().toLowerCase())
-                .build();
-    }
-
 
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
