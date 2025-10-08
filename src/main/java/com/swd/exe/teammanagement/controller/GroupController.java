@@ -2,6 +2,8 @@ package com.swd.exe.teammanagement.controller;
 
 import com.swd.exe.teammanagement.dto.ApiResponse;
 import com.swd.exe.teammanagement.dto.response.GroupResponse;
+import com.swd.exe.teammanagement.entity.Major;
+import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.group.GroupStatus;
 import com.swd.exe.teammanagement.enums.group.GroupType;
 import com.swd.exe.teammanagement.service.GroupService;
@@ -58,7 +60,43 @@ public class GroupController {
     )
     @GetMapping("/user/{userId}")
     public ApiResponse<GroupResponse> getGroupByUserId(@PathVariable Long userId) {
-        return ApiResponse.success("Get user's group successfully", groupService.getGroup(userId));
+        return ApiResponse.success("Get user's group successfully", groupService.getGroupByUserId(userId));
+    }
+
+    @Operation(
+            summary = "Get my group",
+            description = "Get the group that the current authenticated user belongs to"
+    )
+    @GetMapping("/my-group")
+    public ApiResponse<GroupResponse> getMyGroup() {
+        return ApiResponse.success("Get my group successfully", groupService.getMyGroup());
+    }
+
+    @Operation(
+            summary = "Get group members",
+            description = "Get all members of a specific group by group ID"
+    )
+    @GetMapping("/{groupId}/members")
+    public ApiResponse<List<User>> getMembersByGroupId(@PathVariable Long groupId) {
+        return ApiResponse.success("Get group members successfully", groupService.getMembersByGroupId(groupId));
+    }
+
+    @Operation(
+            summary = "Get group member count",
+            description = "Get the total number of members in a specific group"
+    )
+    @GetMapping("/{groupId}/members/count")
+    public ApiResponse<Integer> getGroupMemberCount(@PathVariable Long groupId) {
+        return ApiResponse.success("Get member count successfully", groupService.getGroupMemberCount(groupId));
+    }
+
+    @Operation(
+            summary = "Get major distribution",
+            description = "Get the list of majors represented in a specific group"
+    )
+    @GetMapping("/{groupId}/majors")
+    public ApiResponse<List<Major>> getMajorDistribution(@PathVariable Long groupId) {
+        return ApiResponse.success("Get major distribution successfully", groupService.getMajorDistribution(groupId));
     }
 
     @Operation(
@@ -75,7 +113,7 @@ public class GroupController {
             description = "Toggle group type between PUBLIC and PRIVATE. Only group leader can perform this action."
     )
     @PatchMapping("/change-type")
-    public ApiResponse<GroupResponse> changeGroupType() {
+    public ApiResponse<Void> changeGroupType() {
         return ApiResponse.success("Change group type successfully", groupService.changeGroupType());
     }
 
@@ -91,7 +129,7 @@ public class GroupController {
 
     @Operation(
             summary = "Leave group",
-            description = "Leave the current group. Group leader cannot leave the group."
+            description = "Leave the current group. If leader leaves and group has other members, leadership transfers to another member."
     )
     @DeleteMapping("/leave")
     public ApiResponse<Void> leaveGroup() {
@@ -100,14 +138,15 @@ public class GroupController {
     }
 
     @Operation(
-            summary = "Delete group",
-            description = "Delete the entire group including all members, posts, and ideas. Only group leader can perform this action."
+            summary = "Remove member from group",
+            description = "Remove a member from the group. Only group leader can perform this action."
     )
-    @DeleteMapping
-    public ApiResponse<Void> deleteGroup() {
-        groupService.deleteGroup();
-        return ApiResponse.success("Delete group successfully", null);
+    @DeleteMapping("/members/{userId}")
+    public ApiResponse<Void> removeMember(@PathVariable Long userId) {
+        groupService.removeMemberByLeader(userId);
+        return ApiResponse.success("Member removed successfully", null);
     }
+
     @Operation(
             summary = "Create empty groups",
             description = "Create N empty groups. Title formatted like 'Group EXE FALL 2025 #1'. Requires authentication."

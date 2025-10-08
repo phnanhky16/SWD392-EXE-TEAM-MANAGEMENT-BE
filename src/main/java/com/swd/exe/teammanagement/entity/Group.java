@@ -41,6 +41,7 @@ public class Group {
     @ManyToOne
     @JoinColumn(name = "checkpoint_lecture_id")
     User checkpointLecture;
+
     LocalDateTime createdAt;
 }
 

@@ -8,15 +8,21 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 public interface GroupRepository extends JpaRepository<Group, Long>, JpaSpecificationExecutor<Group> {
     Optional<Group> findByLeader(User leader);
 
+    Optional<Group> findByTitle(String title);
+
     void deleteGroupByLeader(User leader);
 
     List<Group> findGroupsByStatusAndType(GroupStatus status, GroupType type);
 
     List<Group> findGroupsByStatusAndTypeAndCreatedAtBetween(GroupStatus status, GroupType type, LocalDateTime createdAtAfter, LocalDateTime createdAtBefore);
+
+    List<Group> findGroupsByCreatedAtBetween(LocalDateTime createdAtAfter, LocalDateTime createdAtBefore);
+    List<Group> findGroupsByStatusInAndCreatedAtBetween(Collection<GroupStatus> statuses, LocalDateTime createdAtAfter, LocalDateTime createdAtBefore);
 }

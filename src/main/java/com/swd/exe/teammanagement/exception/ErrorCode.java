@@ -42,6 +42,7 @@ public enum ErrorCode {
     GROUP_LEADER_CANNOT_LEAVE("Group leader cannot leave the group", HttpStatus.BAD_REQUEST),
     ROLE_UPDATE_NOT_SWITCHABLE("Role update is only switchable between TEACHER and MODERATOR", HttpStatus.BAD_REQUEST),
     GROUP_NOT_FOUND("Group not found", HttpStatus.NOT_FOUND),
+    JUST_ONE_POST_ONE_MEMBER("Just one post is allowed for each member", HttpStatus.BAD_REQUEST),
     ;
 
     private final String message;

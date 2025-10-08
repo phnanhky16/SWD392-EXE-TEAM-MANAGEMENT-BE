@@ -22,4 +22,5 @@ public class GroupResponse {
     GroupType type;
     GroupStatus status;
     User checkpointTeacher;
+    LocalDateTime createdAt;
 }

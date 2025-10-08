@@ -3,16 +3,15 @@ package com.swd.exe.teammanagement.service.impl;
 import com.swd.exe.teammanagement.dto.request.PostRequest;
 import com.swd.exe.teammanagement.dto.response.PostResponse;
 import com.swd.exe.teammanagement.entity.Group;
+import com.swd.exe.teammanagement.entity.GroupMember;
 import com.swd.exe.teammanagement.entity.Post;
 import com.swd.exe.teammanagement.entity.User;
-import com.swd.exe.teammanagement.enums.idea_join_post.PostType;
+import com.swd.exe.teammanagement.enums.idea_join_post_score.PostType;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
 import com.swd.exe.teammanagement.mapper.PostMapper;
-import com.swd.exe.teammanagement.repository.CommentRepository;
-import com.swd.exe.teammanagement.repository.GroupRepository;
-import com.swd.exe.teammanagement.repository.PostRepository;
-import com.swd.exe.teammanagement.repository.UserRepository;
+import com.swd.exe.teammanagement.repository.*;
+import com.swd.exe.teammanagement.service.GroupMemberService;
 import com.swd.exe.teammanagement.service.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -31,6 +30,8 @@ public class PostServiceImpl implements PostService {
     UserRepository userRepository;
     GroupRepository groupRepository;
     CommentRepository commentRepository;
+    private final GroupMemberRepository groupMemberRepository;
+
     @Override
     // Create post to find member, only group leader can create this type of post
     public PostResponse createPostToFindMember(PostRequest request) {
@@ -40,7 +41,6 @@ public class PostServiceImpl implements PostService {
         if(postRepository.countPostByGroup(group)==1){
             throw new AppException(ErrorCode.JUST_ONE_POST_ONE_GROUP);
         }
-        post.setUser(user);
         post.setGroup(group);
         post.setType(PostType.FIND_MEMBER);
         post.setCreatedAt(LocalDateTime.now());
@@ -51,6 +51,12 @@ public class PostServiceImpl implements PostService {
     public PostResponse createPostToFindGroup(PostRequest request) {
         Post post = postMapper.toPost(request);
         User user = getCurrentUser();
+        if(groupMemberRepository.existsByUser(user)){
+            throw new AppException(ErrorCode.USER_ALREADY_IN_GROUP);
+        }
+        if(postRepository.countPostByUser(user)==1){
+            throw new AppException(ErrorCode.JUST_ONE_POST_ONE_MEMBER);
+        }
         post.setUser(user);
         post.setType(PostType.FIND_GROUP);
         post.setCreatedAt(LocalDateTime.now());

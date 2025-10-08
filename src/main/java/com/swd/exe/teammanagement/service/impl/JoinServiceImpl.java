@@ -36,6 +36,7 @@ public class JoinServiceImpl implements JoinService
             throw new AppException(ErrorCode.USER_ALREADY_IN_GROUP);
         }
         Group g = groupRepository.findById(groupId).orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+
         g.setTitle(request.getTitle());
         g.setDescription(request.getDescription());
         g.setLeader(user);

@@ -8,7 +8,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 @RestController
@@ -16,7 +18,7 @@ import java.util.List;
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/ideas")
 @Tag(name = "Idea Management", description = "APIs for managing group ideas")
-
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class IdeaController {
 
     IdeaService ideaService;

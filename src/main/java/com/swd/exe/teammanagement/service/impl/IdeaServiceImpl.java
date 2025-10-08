@@ -6,6 +6,7 @@ import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.Idea;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.group.GroupStatus;
+import com.swd.exe.teammanagement.enums.idea_join_post_score.IdeaSource;
 import com.swd.exe.teammanagement.enums.idea_join_post_score.IdeaStatus;
 import com.swd.exe.teammanagement.enums.user.MembershipRole;
 import com.swd.exe.teammanagement.enums.user.UserRole;
@@ -51,19 +52,29 @@ public class IdeaServiceImpl implements IdeaService {
     @Transactional
     public IdeaResponse createIdea(IdeaRequest request) {
         User current = getCurrentUser();
-        Group group = getGroupOrThrow(request.getGroupId());
 
-        ensureGroupActiveForWrite(group);
-        ensureLeaderInGroup(current.getId(), group.getId());
+        Idea idea = ideaMapper.toIdea(request);   // map title, description
+        idea.setAuthor(current);                  // entity mới dùng 'author'
+        idea.setStatus(IdeaStatus.DRAFT);         // default
 
-        Idea idea = ideaMapper.toIdea(request);
-        idea.setGroup(group);
-        idea.setUser(current);                 // nếu entity dùng 'user' → đổi thành setUser(current)
-        idea.setStatus(IdeaStatus.DRAFT);
-        idea.setCreatedAt(LocalDateTime.now());
+        if (isLecturerOrAdmin(current)) {
+            // Ý tưởng tham khảo của giảng viên/ADMIN
+            idea.setSource(IdeaSource.LECTURER);
+        } else {
+            // Ý tưởng của NHÓM do leader gửi — tự suy ra group theo leader hiện tại
+            Group group = groupRepository.findByLeader(current)
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_LEADER_OF_ANY_GROUP));
+
+            ensureGroupActiveForWrite(group);                 // chỉ check khi group != null
+            ensureLeaderInGroup(current.getId(), group.getId()); // an toàn: xác thực đúng leader
+
+            idea.setSource(IdeaSource.STUDENT);
+            idea.setGroup(group);
+        }
 
         return ideaMapper.toIdeaResponse(ideaRepository.save(idea));
     }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -146,8 +157,8 @@ public class IdeaServiceImpl implements IdeaService {
             throw new AppException(ErrorCode.ONLY_PROPOSED_CAN_BE_APPROVED);
 
         idea.setStatus(IdeaStatus.APPROVED);      // coi APPROVED là trạng thái đã public
-        idea.setApprovedBy(teacher);
-        idea.setApprovedAt(LocalDateTime.now());
+        idea.setReviewer(teacher);
+        idea.setCreatedAt(LocalDateTime.now());
 
         return ideaMapper.toIdeaResponse(ideaRepository.save(idea));
     }
@@ -165,9 +176,9 @@ public class IdeaServiceImpl implements IdeaService {
             throw new AppException(ErrorCode.ONLY_PROPOSED_CAN_BE_REJECTED);
 
         idea.setStatus(IdeaStatus.REJECTED);
-        idea.setApprovedBy(teacher);
-        idea.setApprovedAt(LocalDateTime.now());
-        idea.setRejectionReason(reason);
+        idea.setReviewer(teacher);
+        idea.setCreatedAt(LocalDateTime.now());
+        idea.setReviewNote(reason);
 
         return ideaMapper.toIdeaResponse(ideaRepository.save(idea));
     }
@@ -178,11 +189,6 @@ public class IdeaServiceImpl implements IdeaService {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
-    }
-
-    private Group getGroupOrThrow(Long groupId) {
-        return groupRepository.findById(groupId)
-                .orElseThrow(() -> new AppException(ErrorCode.GROUP_UNEXISTED));
     }
 
     private Idea getIdeaOrThrow(Long id) {
@@ -196,7 +202,7 @@ public class IdeaServiceImpl implements IdeaService {
     }
 
     private void ensureLeaderOfIdea(Long userId, Idea idea) {
-        if (!Objects.equals(idea.getUser().getId(), userId))   // nếu entity dùng 'user' → idea.getUser().getId()
+        if (!Objects.equals(idea.getAuthor().getId(), userId))   // nếu entity dùng 'user' → idea.getUser().getId()
             throw new AppException(ErrorCode.ONLY_LEADER_CAN_MODIFY_IDEA);
     }
 
@@ -212,5 +218,8 @@ public class IdeaServiceImpl implements IdeaService {
             throw new AppException(ErrorCode.GROUP_LOCKED);
         if (group.getStatus() != GroupStatus.ACTIVE)
             throw new AppException(ErrorCode.GROUP_NOT_ACTIVE);
+    }
+    private boolean isLecturerOrAdmin(User u) {
+        return u.getRole() == UserRole.LECTURER || u.getRole() == UserRole.ADMIN;
     }
 }
