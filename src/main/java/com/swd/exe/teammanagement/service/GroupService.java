@@ -1,5 +1,6 @@
 package com.swd.exe.teammanagement.service;
 
+import com.swd.exe.teammanagement.dto.request.GroupCreateRequest;
 import com.swd.exe.teammanagement.dto.response.GroupResponse;
 import com.swd.exe.teammanagement.dto.response.PagingResponse;
 import com.swd.exe.teammanagement.entity.Major;
@@ -34,4 +35,5 @@ public interface GroupService {
     List<Major> getMajorDistribution(Long groupId);
     GroupResponse getMyGroup();
     Void removeMemberByLeader(Long userId);
+    GroupResponse updateGroupInfo(GroupCreateRequest request);
 }

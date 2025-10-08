@@ -1,5 +1,6 @@
 package com.swd.exe.teammanagement.service.impl;
 
+import com.swd.exe.teammanagement.dto.request.GroupCreateRequest;
 import com.swd.exe.teammanagement.dto.response.GroupResponse;
 import com.swd.exe.teammanagement.dto.response.PagingResponse;
 import com.swd.exe.teammanagement.entity.Group;
@@ -56,7 +57,8 @@ public class GroupServiceImpl implements GroupService {
                 .title(group.getTitle())
                 .description(group.getDescription())
                 .leader(group.getLeader())
-                .type(group.getType()).status(group.getStatus())
+                .status(group.getStatus())
+                .type(group.getType())
                 .checkpointTeacher(group.getCheckpointLecture())
                 .createdAt(group.getCreatedAt())
                 .build();
@@ -71,8 +73,10 @@ public class GroupServiceImpl implements GroupService {
                 .title(group.getTitle())
                 .description(group.getDescription())
                 .leader(group.getLeader())
-                .type(group.getType()).status(group.getStatus())
+                .status(group.getStatus())
+                .type(group.getType())
                 .checkpointTeacher(group.getCheckpointLecture())
+                .createdAt(group.getCreatedAt())
                 .build()
         ).toList();
     }
@@ -127,8 +131,10 @@ public class GroupServiceImpl implements GroupService {
                 .title(group.getTitle())
                 .description(group.getDescription())
                 .leader(group.getLeader())
+                .status(group.getStatus())
                 .type(group.getType()).status(group.getStatus())
                 .checkpointTeacher(group.getCheckpointLecture())
+                .createdAt(group.getCreatedAt())
                 .build()
         ).toList();
     }
@@ -160,8 +166,10 @@ public class GroupServiceImpl implements GroupService {
                 .title(group.getTitle())
                 .description(group.getDescription())
                 .leader(group.getLeader())
-                .type(group.getType()).status(group.getStatus())
+                .status(group.getStatus())
+                .type(group.getType())
                 .checkpointTeacher(group.getCheckpointLecture())
+                .createdAt(group.getCreatedAt())
                 .build();
     }
 
@@ -180,6 +188,30 @@ public class GroupServiceImpl implements GroupService {
         groupMemberRepository.delete(member);
         joinRepository.deleteJoinByFromUser(memberToRemove);
         return null;
+    }
+
+    @Override
+    public GroupResponse updateGroupInfo(GroupCreateRequest request) {
+        User user = getCurrentUser();
+        GroupMember groupMember = groupMemberRepository.findByUser(user)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
+        if (!groupMember.getRole().equals(MembershipRole.LEADER)) {
+            throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
+        }
+        Group g = groupMember.getGroup();
+        g.setTitle(request.getTitle());
+        g.setDescription(request.getDescription());
+        groupRepository.save(g);
+        return GroupResponse.builder()
+                .id(g.getId())
+                .title(g.getTitle())
+                .description(g.getDescription())
+                .leader(g.getLeader())
+                .status(g.getStatus())
+                .type(g.getType()).status(g.getStatus())
+                .checkpointTeacher(g.getCheckpointLecture())
+                .createdAt(g.getCreatedAt())
+                .build();
     }
 
     public Void deleteGroup(Long groupId) {
@@ -220,8 +252,10 @@ public class GroupServiceImpl implements GroupService {
                 .title(group.getTitle())
                 .description(group.getDescription())
                 .leader(group.getLeader())
-                .type(group.getType()).status(group.getStatus())
+                .status(group.getStatus())
+                .type(group.getType())
                 .checkpointTeacher(group.getCheckpointLecture())
+                .createdAt(group.getCreatedAt())
                 .build();
     }
 
@@ -233,6 +267,7 @@ public class GroupServiceImpl implements GroupService {
         Group  group = groupMember.getGroup();
         List<GroupMember> gMS  = groupMemberRepository.findByGroup(group);
         if(gMS.size()==1){
+            groupMemberRepository.delete(groupMember);
             deleteGroup(group.getId());
         }else{
             if (groupMember.getRole().equals(MembershipRole.LEADER)) {
@@ -294,8 +329,10 @@ public class GroupServiceImpl implements GroupService {
                 .title(group.getTitle())
                 .description(group.getDescription())
                 .leader(group.getLeader())
-                .type(group.getType()).status(group.getStatus())
+                .status(group.getStatus())
+                .type(group.getType())
                 .checkpointTeacher(group.getCheckpointLecture())
+                .createdAt(group.getCreatedAt())
                 .build()
         ).toList();
     }
@@ -353,4 +390,5 @@ public class GroupServiceImpl implements GroupService {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
     }
+
 }
