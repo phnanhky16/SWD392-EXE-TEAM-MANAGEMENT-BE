@@ -63,14 +63,8 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public PagingResponse<GroupResponse> searchGroups(
-            String q, GroupStatus status, GroupType type,
-            int page, int size, String sort, String dir) {
-
-        Sort s = SortUtil.sanitize(sort, dir,
-                Set.of("id", "title", "status", "type"),
-                "id", Sort.Direction.DESC);
+    public List<GroupResponse> getAllGroups() {
+        List<Group> groups = groupRepository.findAll();
 
         return groups.stream().map(group -> GroupResponse.builder()
                 .id(group.getId())
@@ -81,6 +75,18 @@ public class GroupServiceImpl implements GroupService {
                 .checkpointTeacher(group.getCheckpointLecture())
                 .build()
         ).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PagingResponse<GroupResponse> searchGroups(
+            String q, GroupStatus status, GroupType type,
+            int page, int size, String sort, String dir) {
+
+        Sort s = SortUtil.sanitize(sort, dir,
+                Set.of("id", "title", "status", "type"),
+                "id", Sort.Direction.DESC);
+
         Pageable pageable = SortUtil.pageable1Based(page, size, s);
 
         Specification<Group> spec = Specification.allOf(
@@ -93,6 +99,89 @@ public class GroupServiceImpl implements GroupService {
 
         return PageUtil.toResponse(p, groupMapper::toGroupResponse);
     }
+
+    @Override
+    public List<GroupResponse> getCurrentGroupList() {
+        LocalDateTime now = LocalDateTime.now();
+        int month = now.getMonthValue();
+        int year = now.getYear();
+        int startMonth;
+        int endMonth;
+        if (month >= 1 && month <= 4) {
+            startMonth = 1;
+            endMonth = 4;
+        } else if (month >= 5 && month <= 8) {
+            startMonth = 5;
+            endMonth = 8;
+        } else {
+            startMonth = 9;
+            endMonth = 12;
+        }
+
+        java.time.YearMonth endYearMonth = java.time.YearMonth.of(year, endMonth);
+        LocalDateTime startDate = LocalDateTime.of(year, startMonth, 1, 0, 0);
+        LocalDateTime endDate = endYearMonth.atEndOfMonth().atTime(23, 59, 59);
+        List<Group> groups = groupRepository.findGroupsByCreatedAtBetween(startDate,endDate);
+        return groups.stream().map(group -> GroupResponse.builder()
+                .id(group.getId())
+                .title(group.getTitle())
+                .description(group.getDescription())
+                .leader(group.getLeader())
+                .type(group.getType()).status(group.getStatus())
+                .checkpointTeacher(group.getCheckpointLecture())
+                .build()
+        ).toList();
+    }
+
+    @Override
+    public List<User> getMembersByGroupId(Long groupId) {
+        return groupMemberRepository.findUsersByGroupId(groupId);
+    }
+
+    @Override
+    public int getGroupMemberCount(Long groupId) {
+        return groupMemberRepository.countByGroupId(groupId);
+    }
+
+    @Override
+    public List<Major> getMajorDistribution(Long groupId) {
+        Set<Major> majors = groupMemberRepository.findMajorsByGroupId(groupId);
+        return List.copyOf(majors);
+    }
+
+    @Override
+    public GroupResponse getMyGroup() {
+        User user = getCurrentUser();
+        GroupMember groupMember = groupMemberRepository.findByUser(user)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
+        Group group = groupMember.getGroup();
+        return GroupResponse.builder()
+                .id(group.getId())
+                .title(group.getTitle())
+                .description(group.getDescription())
+                .leader(group.getLeader())
+                .type(group.getType()).status(group.getStatus())
+                .checkpointTeacher(group.getCheckpointLecture())
+                .build();
+    }
+
+    @Override
+    public Void removeMemberByLeader(Long userId) {
+        User leader = getCurrentUser();
+        GroupMember leaderMember = groupMemberRepository.findByUser(leader)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
+        if (!leaderMember.getRole().equals(MembershipRole.LEADER)) {
+            throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
+        }
+        User memberToRemove = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
+        GroupMember member = groupMemberRepository.findByUser(memberToRemove)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
+        groupMemberRepository.delete(member);
+        joinRepository.deleteJoinByFromUser(memberToRemove);
+        return null;
+    }
+
     public Void deleteGroup(Long groupId) {
         Group g = groupRepository.findById(groupId)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_UNEXISTED));
