@@ -1,6 +1,7 @@
 package com.swd.exe.teammanagement.controller;
 
 import com.swd.exe.teammanagement.dto.ApiResponse;
+import com.swd.exe.teammanagement.dto.request.GroupCreateRequest;
 import com.swd.exe.teammanagement.dto.response.GroupResponse;
 import com.swd.exe.teammanagement.entity.Major;
 import com.swd.exe.teammanagement.entity.User;
@@ -155,6 +156,15 @@ public class GroupController {
     public ApiResponse<Void> removeMember(@PathVariable Long userId) {
         groupService.removeMemberByLeader(userId);
         return ApiResponse.success("Member removed successfully", null);
+    }
+
+    @Operation(
+            summary = "Update group information",
+            description = "Update title and description of the group. Only group leader can perform this action."
+    )
+    @PutMapping("/update")
+    public ApiResponse<GroupResponse> updateGroupInfo(@RequestBody GroupCreateRequest request) {
+        return ApiResponse.success("Group information updated successfully", groupService.updateGroupInfo(request));
     }
 
     @Operation(
