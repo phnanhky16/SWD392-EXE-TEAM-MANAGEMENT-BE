@@ -3,12 +3,14 @@ package com.swd.exe.teammanagement.service;
 import com.swd.exe.teammanagement.dto.request.GroupCreateRequest;
 import com.swd.exe.teammanagement.dto.response.GroupResponse;
 import com.swd.exe.teammanagement.dto.response.PagingResponse;
+import com.swd.exe.teammanagement.dto.response.UserResponse;
 import com.swd.exe.teammanagement.entity.Major;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.group.GroupStatus;
 import com.swd.exe.teammanagement.enums.group.GroupType;
 
 import java.util.List;
+import java.util.Set;
 
 public interface GroupService {
     GroupResponse getGroupById(Long groupId);
@@ -30,9 +32,9 @@ public interface GroupService {
             String dir
     );
     List<GroupResponse> getCurrentGroupList();
-    List<User> getMembersByGroupId(Long groupId);
+    List<UserResponse> getMembersByGroupId(Long groupId);
     int getGroupMemberCount(Long groupId);
-    List<Major> getMajorDistribution(Long groupId);
+    Set<Major> getMajorDistribution(Long groupId);
     GroupResponse getMyGroup();
     Void removeMemberByLeader(Long userId);
     GroupResponse updateGroupInfo(GroupCreateRequest request);

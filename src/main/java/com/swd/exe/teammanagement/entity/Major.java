@@ -14,10 +14,10 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 public class Major {
-
     @Id
-    @Column(length = 20)
-    String code;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
+    @Column(nullable = false, unique = true)
     String name;
 }
 

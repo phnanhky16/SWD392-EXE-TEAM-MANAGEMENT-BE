@@ -25,12 +25,12 @@ public class MajorController {
     MajorService majorService;
     
     @Operation(
-            summary = "Get major by code",
-            description = "Retrieve a specific major by its unique code identifier"
+            summary = "Get major by id",
+            description = "Retrieve a specific major by its unique id identifier"
     )
-    @GetMapping("/{code}")
-    public ApiResponse<MajorResponse> getMajorByCode(@PathVariable String code) {
-        return ApiResponse.success("Get major successfully", majorService.getMajorByCode(code));
+    @GetMapping("/{id}")
+    public ApiResponse<MajorResponse> getMajorById(@PathVariable Long id) {
+        return ApiResponse.success("Get major successfully", majorService.getMajorById(id));
     }
     
     @Operation(
@@ -47,26 +47,26 @@ public class MajorController {
             description = "Create a new academic major. Requires admin privileges."
     )
     @PostMapping
-    public ApiResponse<MajorResponse> createMajor(@Valid @RequestBody MajorRequest request) {
+    public ApiResponse<MajorResponse> createMajor( @RequestBody MajorRequest request) {
         return ApiResponse.created("Create major successfully", majorService.createMajor(request));
     }
     
     @Operation(
             summary = "Update major",
-            description = "Update an existing major by code. Requires admin privileges."
+            description = "Update an existing major by id. Requires admin privileges."
     )
-    @PutMapping("/{code}")
-    public ApiResponse<MajorResponse> updateMajor(@PathVariable String code, @Valid @RequestBody MajorRequest request) {
-        return ApiResponse.success("Update major successfully", majorService.updateMajor(code, request));
+    @PutMapping("/{id}")
+    public ApiResponse<MajorResponse> updateMajor(@PathVariable Long id, @Valid @RequestBody MajorRequest request) {
+        return ApiResponse.success("Update major successfully", majorService.updateMajor(id, request));
     }
     
     @Operation(
             summary = "Delete major",
-            description = "Delete a major by code. Requires admin privileges."
+            description = "Delete a major by id. Requires admin privileges."
     )
-    @DeleteMapping("/{code}")
-    public ApiResponse<Void> deleteMajor(@PathVariable String code) {
-        majorService.deleteMajor(code);
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteMajor(@PathVariable Long id) {
+        majorService.deleteMajor(id);
         return ApiResponse.success("Delete major successfully", null);
     }
 }

@@ -3,8 +3,8 @@ package com.swd.exe.teammanagement.controller;
 import com.swd.exe.teammanagement.dto.ApiResponse;
 import com.swd.exe.teammanagement.dto.request.GroupCreateRequest;
 import com.swd.exe.teammanagement.dto.response.GroupResponse;
+import com.swd.exe.teammanagement.dto.response.UserResponse;
 import com.swd.exe.teammanagement.entity.Major;
-import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.group.GroupStatus;
 import com.swd.exe.teammanagement.enums.group.GroupType;
 import com.swd.exe.teammanagement.service.GroupService;
@@ -18,6 +18,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/groups")
@@ -78,7 +79,7 @@ public class GroupController {
             description = "Get all members of a specific group by group ID"
     )
     @GetMapping("/{groupId}/members")
-    public ApiResponse<List<User>> getMembersByGroupId(@PathVariable Long groupId) {
+    public ApiResponse<List<UserResponse>> getMembersByGroupId(@PathVariable Long groupId) {
         return ApiResponse.success("Get group members successfully", groupService.getMembersByGroupId(groupId));
     }
 
@@ -96,7 +97,7 @@ public class GroupController {
             description = "Get the list of majors represented in a specific group"
     )
     @GetMapping("/{groupId}/majors")
-    public ApiResponse<List<Major>> getMajorDistribution(@PathVariable Long groupId) {
+    public ApiResponse<Set<Major>> getMajorDistribution(@PathVariable Long groupId) {
         return ApiResponse.success("Get major distribution successfully", groupService.getMajorDistribution(groupId));
     }
 

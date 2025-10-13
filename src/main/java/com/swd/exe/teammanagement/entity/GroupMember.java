@@ -28,7 +28,7 @@ public class GroupMember {
     User user;
 
     @Enumerated(EnumType.STRING)
-    MembershipRole role;
+    MembershipRole membershipRole;
 
 }
 

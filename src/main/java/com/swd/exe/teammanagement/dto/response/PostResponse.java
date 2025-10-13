@@ -6,6 +6,8 @@ import com.swd.exe.teammanagement.enums.idea_join_post_score.PostType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -13,9 +15,9 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PostResponse {
     Long id;
-    User user;
-    Group group;
+    UserResponse userResponse;
+    GroupResponse groupResponse;
     String content;
     PostType type;
-    String createdAt;
+    LocalDateTime createdAt;
 }

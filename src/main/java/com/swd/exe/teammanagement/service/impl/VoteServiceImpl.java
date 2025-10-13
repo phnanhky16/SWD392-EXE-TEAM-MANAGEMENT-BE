@@ -72,7 +72,7 @@ public class VoteServiceImpl implements VoteService {
                 groupMemberRepository.save(GroupMember.builder()
                         .group(g)
                         .user(v.getTargetUser())
-                        .role(MembershipRole.MEMBER)
+                        .membershipRole(MembershipRole.MEMBER)
                         .build());
                 joinRepository.save(Join.builder().toGroup(g).fromUser(v.getTargetUser()).status(JoinStatus.ACCEPTED).build());
             } else {
@@ -93,7 +93,7 @@ public class VoteServiceImpl implements VoteService {
                 groupMemberRepository.save(GroupMember.builder()
                         .group(g)
                         .user(v.getTargetUser())
-                        .role(MembershipRole.MEMBER)
+                        .membershipRole(MembershipRole.MEMBER)
                         .build());
                 joinRepository.save(Join.builder().toGroup(g).fromUser(v.getTargetUser()).status(JoinStatus.ACCEPTED).build());
             } else {

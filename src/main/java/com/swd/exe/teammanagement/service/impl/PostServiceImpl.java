@@ -7,11 +7,13 @@ import com.swd.exe.teammanagement.entity.GroupMember;
 import com.swd.exe.teammanagement.entity.Post;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.idea_join_post_score.PostType;
+import com.swd.exe.teammanagement.enums.user.MembershipRole;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
+import com.swd.exe.teammanagement.mapper.GroupMapper;
 import com.swd.exe.teammanagement.mapper.PostMapper;
+import com.swd.exe.teammanagement.mapper.UserMapper;
 import com.swd.exe.teammanagement.repository.*;
-import com.swd.exe.teammanagement.service.GroupMemberService;
 import com.swd.exe.teammanagement.service.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -31,37 +33,77 @@ public class PostServiceImpl implements PostService {
     GroupRepository groupRepository;
     CommentRepository commentRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final UserMapper userMapper;
+    private final GroupMapper groupMapper;
 
     @Override
-    // Create post to find member, only group leader can create this type of post
-    public PostResponse createPostToFindMember(PostRequest request) {
-        Post post = postMapper.toPost(request);
-        User user = getCurrentUser();
-        Group group = groupRepository.findByLeader(user).orElseThrow(() -> new AppException(ErrorCode.GROUP_UNEXISTED));
-        if(postRepository.countPostByGroup(group)==1){
-            throw new AppException(ErrorCode.JUST_ONE_POST_ONE_GROUP);
+    public PostResponse createPost(PostRequest request) {
+        User user =getCurrentUser();
+        Post post = new Post();
+        if(request.getPostType().equals(PostType.FIND_GROUP)) {
+            if (groupMemberRepository.existsByUser(user)) {
+                throw new AppException(ErrorCode.USER_ALREADY_IN_GROUP);
+            }
+            if (postRepository.countPostByUser(user) == 1) {
+                throw new AppException(ErrorCode.JUST_ONE_POST_ONE_MEMBER);
+            }
+            post.setContent(request.getContent());
+            post.setCreatedAt(LocalDateTime.now());
+            post.setType(PostType.FIND_GROUP);
+            post.setUser(user);
+            postRepository.save(post);
+        }else{
+            GroupMember gm = groupMemberRepository.findByUser(user).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
+            if (gm.getMembershipRole() != MembershipRole.LEADER) {
+                throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
+            }
+            Group group = gm.getGroup();
+            if (postRepository.countPostByGroup(group) == 1) {
+                throw new AppException(ErrorCode.JUST_ONE_POST_ONE_GROUP);
+            }
+            post.setContent(request.getContent());
+            post.setCreatedAt(LocalDateTime.now());
+            post.setType(PostType.FIND_MEMBER);
+            post.setGroup(group);
+            postRepository.save(post);
         }
-        post.setGroup(group);
-        post.setType(PostType.FIND_MEMBER);
-        post.setCreatedAt(LocalDateTime.now());
-        return postMapper.toPostResponse(postRepository.save(post));
+        return PostResponse.builder().id(post.getId()).content(post.getContent()).createdAt(post.getCreatedAt()).type(post.getType()).userResponse(userMapper.toUserResponse(post.getUser())).groupResponse(groupMapper.toGroupResponse(post.getGroup())).build();
     }
 
-    @Override
-    public PostResponse createPostToFindGroup(PostRequest request) {
-        Post post = postMapper.toPost(request);
-        User user = getCurrentUser();
-        if(groupMemberRepository.existsByUser(user)){
-            throw new AppException(ErrorCode.USER_ALREADY_IN_GROUP);
-        }
-        if(postRepository.countPostByUser(user)==1){
-            throw new AppException(ErrorCode.JUST_ONE_POST_ONE_MEMBER);
-        }
-        post.setUser(user);
-        post.setType(PostType.FIND_GROUP);
-        post.setCreatedAt(LocalDateTime.now());
-        return postMapper.toPostResponse(postRepository.save(post));
-    }
+//    @Override
+//    // Create post to find member, only group leader can create this type of post
+//    public PostResponse createPostToFindMember(PostRequest request) {
+//        Post post = postMapper.toPost(request);
+//        User user = getCurrentUser();
+//        GroupMember gm = groupMemberRepository.findByUser(user).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
+//        if (gm.getMembershipRole() != MembershipRole.LEADER) {
+//            throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
+//        }
+//        Group group = gm.getGroup();
+//        if (postRepository.countPostByGroup(group) == 1) {
+//            throw new AppException(ErrorCode.JUST_ONE_POST_ONE_GROUP);
+//        }
+//        post.setGroup(group);
+//        post.setType(PostType.FIND_MEMBER);
+//        post.setCreatedAt(LocalDateTime.now());
+//        return postMapper.toPostResponse(postRepository.save(post));
+//    }
+//
+//    @Override
+//    public PostResponse createPostToFindGroup(PostRequest request) {
+//        Post post = postMapper.toPost(request);
+//        User user = getCurrentUser();
+//        if (groupMemberRepository.existsByUser(user)) {
+//            throw new AppException(ErrorCode.USER_ALREADY_IN_GROUP);
+//        }
+//        if (postRepository.countPostByUser(user) == 1) {
+//            throw new AppException(ErrorCode.JUST_ONE_POST_ONE_MEMBER);
+//        }
+//        post.setUser(user);
+//        post.setType(PostType.FIND_GROUP);
+//        post.setCreatedAt(LocalDateTime.now());
+//        return postMapper.toPostResponse(postRepository.save(post));
+//    }
 
     @Override
     public PostResponse getPostById(Long id) {
@@ -71,7 +113,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<PostResponse> getAllPosts() {
-        return postMapper.toPostResponseList(postRepository.findAll()) ;
+        return postMapper.toPostResponseList(postRepository.findAll());
     }
 
     @Override
@@ -102,6 +144,7 @@ public class PostServiceImpl implements PostService {
         postMapper.toUpdatePost(post, request);
         return postMapper.toPostResponse(postRepository.save(post));
     }
+
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email)
