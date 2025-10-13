@@ -14,6 +14,5 @@ import javax.management.relation.Role;
 public class UserUpdateRequest {
     String cvUrl;
     String avatarUrl;
-    String majorCode;
-    UserRole role;
+    Long majorId;
 }

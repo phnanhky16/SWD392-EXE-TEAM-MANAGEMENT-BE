@@ -26,12 +26,12 @@ public final class UserSpecs {
         return active == null ? null : (root, cq, cb) -> cb.equal(root.get("isActive"), active);
     }
 
-    public static Specification<User> majorCode(String code) {
-        if (code == null || code.isBlank()) return null;
-        return (root, cq, cb) -> {
-            var major = root.join("major", JoinType.LEFT);
-            return cb.equal(cb.lower(major.get("code")), code.toLowerCase());
-        };
-    }
+//    public static Specification<User> majorCode(String code) {
+//        if (code == null || code.isBlank()) return null;
+//        return (root, cq, cb) -> {
+//            var major = root.join("major", JoinType.LEFT);
+//            return cb.equal(cb.lower(major.get("code")), code.toLowerCase());
+//        };
+//    }
 }
 

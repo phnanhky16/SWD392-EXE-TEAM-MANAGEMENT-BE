@@ -3,6 +3,7 @@ package com.swd.exe.teammanagement.service.impl;
 import com.swd.exe.teammanagement.dto.request.IdeaRequest;
 import com.swd.exe.teammanagement.dto.response.IdeaResponse;
 import com.swd.exe.teammanagement.entity.Group;
+import com.swd.exe.teammanagement.entity.GroupMember;
 import com.swd.exe.teammanagement.entity.Idea;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.group.GroupStatus;
@@ -62,9 +63,11 @@ public class IdeaServiceImpl implements IdeaService {
             idea.setSource(IdeaSource.LECTURER);
         } else {
             // Ý tưởng của NHÓM do leader gửi — tự suy ra group theo leader hiện tại
-            Group group = groupRepository.findByLeader(current)
-                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_LEADER_OF_ANY_GROUP));
-
+            GroupMember gm = groupMemberRepository.findByUser(current)
+                    .orElseThrow(() -> new AppException(ErrorCode.ONLY_GROUP_LEADER));
+            if (gm.getMembershipRole() != MembershipRole.LEADER)
+                throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
+            Group group = gm.getGroup();
             ensureGroupActiveForWrite(group);                 // chỉ check khi group != null
             ensureLeaderInGroup(current.getId(), group.getId()); // an toàn: xác thực đúng leader
 
@@ -197,7 +200,7 @@ public class IdeaServiceImpl implements IdeaService {
     }
 
     private void ensureLeaderInGroup(Long userId, Long groupId) {
-        boolean ok = groupMemberRepository.existsByGroupIdAndUserIdAndRole(groupId, userId, MembershipRole.LEADER);
+        boolean ok = groupMemberRepository.existsByGroupIdAndUserIdAndMembershipRole(groupId, userId, MembershipRole.LEADER);
         if (!ok) throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
     }
 

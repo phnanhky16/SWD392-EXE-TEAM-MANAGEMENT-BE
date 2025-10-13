@@ -29,7 +29,8 @@ public class JoinServiceImpl implements JoinService
     JoinRepository joinRepository;
     GroupMemberRepository groupMemberRepository;
     VoteService voteService;
-    private final NotificationRepository notificationRepository;
+    NotificationRepository notificationRepository;
+    PostRepository postRepository;
 
     @Override
     public Void joinGroup(Long groupId) {
@@ -43,21 +44,23 @@ public class JoinServiceImpl implements JoinService
             groupMemberRepository.save(GroupMember.builder()
                     .group(g)
                     .user(user)
-                    .role(MembershipRole.LEADER)
+                    .membershipRole(MembershipRole.LEADER)
                     .build());
             groupRepository.save(g);
             joinRepository.save(Join.builder().toGroup(g).fromUser(user).status(JoinStatus.ACCEPTED).build());
+            postRepository.deletePostByUser(user);
         }else if (g.getStatus() == GroupStatus.ACTIVE) {
             groupMemberRepository.save(GroupMember.builder()
                     .group(g)
                     .user(user)
-                    .role(MembershipRole.MEMBER)
+                    .membershipRole(MembershipRole.MEMBER)
                     .build());
             joinRepository.save(Join.builder().toGroup(g).fromUser(user).status(JoinStatus.ACCEPTED).build());
+            postRepository.deletePostByUser(user);
         }else {
             joinRequest(groupId,user.getId());
+            postRepository.deletePostByUser(user);
         }
-
         return null;
     }
 

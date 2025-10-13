@@ -1,5 +1,6 @@
 package com.swd.exe.teammanagement.dto.response;
 
+import com.swd.exe.teammanagement.entity.Major;
 import com.swd.exe.teammanagement.enums.user.UserRole;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -16,8 +17,7 @@ public class UserResponse {
     String email;
     String cvUrl;
     String avatarUrl;
-    String majorCode;   // thay cho entity
-    String majorName;
+    Major major;
     UserRole role;
     Boolean isActive;
 }

@@ -3,6 +3,7 @@ package com.swd.exe.teammanagement.service.impl;
 import com.swd.exe.teammanagement.dto.request.GroupCreateRequest;
 import com.swd.exe.teammanagement.dto.response.GroupResponse;
 import com.swd.exe.teammanagement.dto.response.PagingResponse;
+import com.swd.exe.teammanagement.dto.response.UserResponse;
 import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.GroupMember;
 import com.swd.exe.teammanagement.entity.Major;
@@ -22,7 +23,6 @@ import com.swd.exe.teammanagement.util.SortUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -46,7 +46,7 @@ public class GroupServiceImpl implements GroupService {
     VoteRepository voteRepository;
     GroupMapper groupMapper;
     JoinRepository joinRepository;
-
+    int MAXSIZE = 6;
 
     @Override
     public GroupResponse getGroupById(Long groupId) {
@@ -56,10 +56,8 @@ public class GroupServiceImpl implements GroupService {
                 .id(group.getId())
                 .title(group.getTitle())
                 .description(group.getDescription())
-                .leader(group.getLeader())
                 .status(group.getStatus())
                 .type(group.getType())
-                .checkpointTeacher(group.getCheckpointLecture())
                 .createdAt(group.getCreatedAt())
                 .build();
     }
@@ -72,10 +70,8 @@ public class GroupServiceImpl implements GroupService {
                 .id(group.getId())
                 .title(group.getTitle())
                 .description(group.getDescription())
-                .leader(group.getLeader())
                 .status(group.getStatus())
                 .type(group.getType())
-                .checkpointTeacher(group.getCheckpointLecture())
                 .createdAt(group.getCreatedAt())
                 .build()
         ).toList();
@@ -130,18 +126,26 @@ public class GroupServiceImpl implements GroupService {
                 .id(group.getId())
                 .title(group.getTitle())
                 .description(group.getDescription())
-                .leader(group.getLeader())
                 .status(group.getStatus())
                 .type(group.getType()).status(group.getStatus())
-                .checkpointTeacher(group.getCheckpointLecture())
                 .createdAt(group.getCreatedAt())
                 .build()
         ).toList();
     }
 
     @Override
-    public List<User> getMembersByGroupId(Long groupId) {
-        return groupMemberRepository.findUsersByGroupId(groupId);
+    public List<UserResponse> getMembersByGroupId(Long groupId) {
+        List<User> users = groupMemberRepository.findUsersByGroupId(groupId);
+        return users.stream().map(user -> UserResponse.builder()
+                .id(user.getId())
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .studentCode(user.getStudentCode())
+                .major(user.getMajor())
+                .role(user.getRole())
+                .isActive(user.getIsActive())
+                .build()
+        ).toList();
     }
 
     @Override
@@ -150,9 +154,9 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public List<Major> getMajorDistribution(Long groupId) {
-        Set<Major> majors = groupMemberRepository.findMajorsByGroupId(groupId);
-        return List.copyOf(majors);
+    public Set<Major> getMajorDistribution(Long groupId) {
+        List<Major> majors = groupMemberRepository.findMajorsByGroupId(groupId);
+        return new HashSet<>(majors);
     }
 
     @Override
@@ -165,10 +169,8 @@ public class GroupServiceImpl implements GroupService {
                 .id(group.getId())
                 .title(group.getTitle())
                 .description(group.getDescription())
-                .leader(group.getLeader())
                 .status(group.getStatus())
                 .type(group.getType())
-                .checkpointTeacher(group.getCheckpointLecture())
                 .createdAt(group.getCreatedAt())
                 .build();
     }
@@ -178,7 +180,7 @@ public class GroupServiceImpl implements GroupService {
         User leader = getCurrentUser();
         GroupMember leaderMember = groupMemberRepository.findByUser(leader)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
-        if (!leaderMember.getRole().equals(MembershipRole.LEADER)) {
+        if (!leaderMember.getMembershipRole().equals(MembershipRole.LEADER)) {
             throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
         }
         User memberToRemove = userRepository.findById(userId)
@@ -195,7 +197,7 @@ public class GroupServiceImpl implements GroupService {
         User user = getCurrentUser();
         GroupMember groupMember = groupMemberRepository.findByUser(user)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
-        if (!groupMember.getRole().equals(MembershipRole.LEADER)) {
+        if (!groupMember.getMembershipRole().equals(MembershipRole.LEADER)) {
             throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
         }
         Group g = groupMember.getGroup();
@@ -206,10 +208,8 @@ public class GroupServiceImpl implements GroupService {
                 .id(g.getId())
                 .title(g.getTitle())
                 .description(g.getDescription())
-                .leader(g.getLeader())
                 .status(g.getStatus())
                 .type(g.getType()).status(g.getStatus())
-                .checkpointTeacher(g.getCheckpointLecture())
                 .createdAt(g.getCreatedAt())
                 .build();
     }
@@ -222,7 +222,7 @@ public class GroupServiceImpl implements GroupService {
         GroupMember currentLeaderMember = groupMemberRepository.findByUser(currentLeader)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
         
-        if (!currentLeaderMember.getRole().equals(MembershipRole.LEADER)) {
+        if (!currentLeaderMember.getMembershipRole().equals(MembershipRole.LEADER)) {
             throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
         }
         
@@ -247,11 +247,9 @@ public class GroupServiceImpl implements GroupService {
         }
         
         // Chuyển role: leader hiện tại -> member, member mới -> leader
-        currentLeaderMember.setRole(MembershipRole.MEMBER);
-        newLeaderMember.setRole(MembershipRole.LEADER);
-        
-        // Cập nhật leader trong group
-        group.setLeader(newLeader);
+        currentLeaderMember.setMembershipRole(MembershipRole.MEMBER);
+        newLeaderMember.setMembershipRole(MembershipRole.LEADER);
+
         
         // Save changes
         groupMemberRepository.save(currentLeaderMember);
@@ -261,27 +259,38 @@ public class GroupServiceImpl implements GroupService {
         return null;
     }
 
-    public Void deleteGroup(Long groupId) {
-        Group g = groupRepository.findById(groupId)
-                .orElseThrow(() -> new AppException(ErrorCode.GROUP_UNEXISTED));
-        int size = getCurrentGroupList().size();
-        g.setLeader(null);
-        g.setTitle("Group exe #"+ size+1);
-        g.setDescription(null);
-        g.setType(GroupType.PUBLIC);
-        g.setStatus(GroupStatus.FORMING);
-        groupRepository.save(g);
-        postRepository.deletePostByGroup(g);
-        ideaRepository.deleteIdeaByGroup(g);
-        voteRepository.deleteVotesByGroup(g);
-        joinRepository.deleteJoinsByToGroup(g);
-        return null;
-    }
+//    public void deleteGroup(Long groupId) {
+//        Group g = groupRepository.findById(groupId)
+//                .orElseThrow(() -> new AppException(ErrorCode.GROUP_UNEXISTED));
+//        int month = LocalDateTime.now().getMonthValue();
+//        Semester semester;
+//        if (month >= 1 && month <= 4) {
+//            semester = Semester.SPRING;
+//        } else if (month >= 5 && month <= 8) {
+//            semester = Semester.SUMMER;
+//        } else {
+//            semester = Semester.FALL;
+//        }
+//        int year = LocalDateTime.now().getYear();
+//        g.setTitle("Group EXE " + semester + " " + year);
+//        g.setDescription(null);
+//        g.setType(GroupType.PUBLIC);
+//        g.setStatus(GroupStatus.FORMING);
+//        groupRepository.save(g);
+//        postRepository.deletePostByGroup(g);
+//        ideaRepository.deleteIdeaByGroup(g);
+//        voteRepository.deleteVotesByGroup(g);
+//        joinRepository.deleteJoinsByToGroup(g);
+//    }
 
     @Override
     public Void changeGroupType() {
-        Group g = groupRepository.findByLeader(getCurrentUser())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_LEADER_OF_ANY_GROUP));
+        GroupMember gm = groupMemberRepository.findByUser(getCurrentUser())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
+        if(gm.getMembershipRole().equals(MembershipRole.MEMBER)) {
+            throw  new AppException(ErrorCode.ONLY_GROUP_LEADER);
+        }
+        Group g = gm.getGroup();
         g.setType(!g.getType().equals(GroupType.PUBLIC) ? GroupType.PUBLIC : GroupType.PRIVATE);
         groupRepository.save(g);
         return null;
@@ -298,10 +307,8 @@ public class GroupServiceImpl implements GroupService {
                 .id(group.getId())
                 .title(group.getTitle())
                 .description(group.getDescription())
-                .leader(group.getLeader())
                 .status(group.getStatus())
                 .type(group.getType())
-                .checkpointTeacher(group.getCheckpointLecture())
                 .createdAt(group.getCreatedAt())
                 .build();
     }
@@ -315,13 +322,32 @@ public class GroupServiceImpl implements GroupService {
         List<GroupMember> gMS  = groupMemberRepository.findByGroup(group);
         if(gMS.size()==1){
             groupMemberRepository.delete(groupMember);
-            deleteGroup(group.getId());
+            int month = LocalDateTime.now().getMonthValue();
+            Semester semester;
+            if (month >= 1 && month <= 4) {
+                semester = Semester.SPRING;
+            } else if (month >= 5 && month <= 8) {
+                semester = Semester.SUMMER;
+            } else {
+                semester = Semester.FALL;
+            }
+            int year = LocalDateTime.now().getYear();
+            group.setTitle("Group EXE " + semester + " " + year);
+            group.setDescription(null);
+            group.setType(GroupType.PUBLIC);
+            group.setStatus(GroupStatus.FORMING);
+            groupRepository.save(group);
+            postRepository.deletePostByGroup(group);
+            ideaRepository.deleteIdeasByGroup(group);
+            voteRepository.deleteVotesByGroup(group);
+            joinRepository.deleteJoinByFromUser(user);
         }else{
-            if (groupMember.getRole().equals(MembershipRole.LEADER)) {
-                gMS.get(2).setRole(MembershipRole.LEADER);
-                User member = gMS.get(2).getUser();
-                group.setLeader(member);
+            if (groupMember.getMembershipRole().equals(MembershipRole.LEADER)) {
+                gMS.get(1).setMembershipRole(MembershipRole.LEADER);
                 groupRepository.save(group);
+                groupMemberRepository.delete(groupMember);
+                joinRepository.deleteJoinByFromUser(user);
+            }else{
                 groupMemberRepository.delete(groupMember);
                 joinRepository.deleteJoinByFromUser(user);
             }
@@ -375,10 +401,8 @@ public class GroupServiceImpl implements GroupService {
                 .id(group.getId())
                 .title(group.getTitle())
                 .description(group.getDescription())
-                .leader(group.getLeader())
                 .status(group.getStatus())
                 .type(group.getType())
-                .checkpointTeacher(group.getCheckpointLecture())
                 .createdAt(group.getCreatedAt())
                 .build()
         ).toList();
@@ -390,12 +414,11 @@ public class GroupServiceImpl implements GroupService {
             GroupMember groupMember = groupMemberRepository.findByUser(user)
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
             Group group = groupMember.getGroup();
-            if (!groupMember.getRole().equals(MembershipRole.LEADER)) {
+            if (!groupMember.getMembershipRole().equals(MembershipRole.LEADER)) {
                 throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
             }
             int memberCount = groupMemberRepository.countByGroup(group);
-        int MAX_SIZE = 6;
-        if (memberCount != MAX_SIZE) {
+        if (memberCount != MAXSIZE) {
                 throw new AppException(ErrorCode.GROUP_SHOULD_ENOUGH_MEMBERS);
             }
             group.setStatus(GroupStatus.LOCKED);
@@ -418,7 +441,7 @@ public class GroupServiceImpl implements GroupService {
         }
         int year = LocalDateTime.now().getYear();
         int count = getCurrentGroupList().size();
-        for (int i = count+1; i < size+count; i++) {
+        for (int i = count+1; i <= size+count; i++) {
             String title = "Group EXE " + semester + " " + year + " #" + i;
             Group group = Group.builder()
                     .title(title)

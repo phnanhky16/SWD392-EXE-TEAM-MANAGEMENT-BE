@@ -18,9 +18,7 @@ public class GroupResponse {
     Long id;
     String title;
     String description;
-    User leader;
     GroupType type;
     GroupStatus status;
-    User checkpointTeacher;
     LocalDateTime createdAt;
 }

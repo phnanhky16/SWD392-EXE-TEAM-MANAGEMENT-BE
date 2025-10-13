@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse updateUser(Long id,UserUpdateRequest request) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
-        Major major = majorRepository.findById(request.getMajorCode())
+        Major major = majorRepository.findById(request.getMajorId())
                 .orElseThrow(() -> new AppException(ErrorCode.MAJOR_UNEXISTED));
         user.setMajor(major);
         userMapper.toUserUpdate(user, request);
@@ -69,6 +69,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse updateMyInfo(UserUpdateRequest request) {
         User user = getCurrentUser();
+        Major major = majorRepository.findById(request.getMajorId())
+                .orElseThrow(() -> new AppException(ErrorCode.MAJOR_UNEXISTED));
+        user.setMajor(major);
         userMapper.toUserUpdate(user, request);
         return userMapper.toUserResponse(userRepository.save(user));
     }
@@ -117,8 +120,8 @@ public class UserServiceImpl implements UserService {
         Specification<User> spec = Specification.allOf(
                 UserSpecs.keyword(q),
                 UserSpecs.role(role),
-                UserSpecs.active(active),
-                UserSpecs.majorCode(majorCode)
+                UserSpecs.active(active)
+//                UserSpecs.majorCode(majorCode)
         );
 
         Page<User> p = userRepository.findAll(spec, pageable);

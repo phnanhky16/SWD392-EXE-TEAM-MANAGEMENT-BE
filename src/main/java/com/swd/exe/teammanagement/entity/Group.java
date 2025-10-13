@@ -7,6 +7,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 @Entity
@@ -28,19 +29,14 @@ public class Group {
     @Column(columnDefinition = "TEXT")
     String description;
 
-    @ManyToOne
-    @JoinColumn(name = "leader_id")
-    User leader;
-
     @Enumerated(EnumType.STRING)
     GroupType type;
 
     @Enumerated(EnumType.STRING)
     GroupStatus status;
 
-    @ManyToOne
-    @JoinColumn(name = "checkpoint_lecture_id")
-    User checkpointLecture;
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<GroupMember> members;
 
     LocalDateTime createdAt;
 }

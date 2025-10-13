@@ -26,22 +26,31 @@ public class PostController {
     PostService postService;
     
     @Operation(
-            summary = "Create post to find member",
-            description = "Group leader creates a post to recruit members for their group. Only group leaders can create this type of post."
+            summary = "Create post",
+            description = "Create a recruitment post. Depending on type, user or group will be set."
     )
-    @PostMapping("/findMember")
-    public ApiResponse<PostResponse> createPostToFindMember(@Valid @RequestBody PostRequest request) {
-        return ApiResponse.created("Create post to find member successfully", postService.createPostToFindMember(request));
+    @PostMapping
+    public ApiResponse<PostResponse> createPost(@Valid @RequestBody PostRequest request) {
+        return ApiResponse.created("Create post successfully", postService.createPost(request));
     }
     
-    @Operation(
-            summary = "Create post to find group",
-            description = "Individual student creates a post to find and join a group. Students without group can create this type of post."
-    )
-    @PostMapping("/findGroup")
-    public ApiResponse<PostResponse> createPostToFindGroup(@Valid @RequestBody PostRequest request) {
-        return ApiResponse.created("Create post to find group successfully", postService.createPostToFindGroup(request));
-    }
+//    @Operation(
+//            summary = "Create post to find member",
+//            description = "Group leader creates a post to recruit members for their group. Only group leaders can create this type of post."
+//    )
+//    @PostMapping("/findMember")
+//    public ApiResponse<PostResponse> createPostToFindMember(@Valid @RequestBody PostRequest request) {
+//        return ApiResponse.created("Create post to find member successfully", postService.createPostToFindMember(request));
+//    }
+//
+//    @Operation(
+//            summary = "Create post to find group",
+//            description = "Individual student creates a post to find and join a group. Students without group can create this type of post."
+//    )
+//    @PostMapping("/findGroup")
+//    public ApiResponse<PostResponse> createPostToFindGroup(@Valid @RequestBody PostRequest request) {
+//        return ApiResponse.created("Create post to find group successfully", postService.createPostToFindGroup(request));
+//    }
     
     @Operation(
             summary = "Get post by ID",

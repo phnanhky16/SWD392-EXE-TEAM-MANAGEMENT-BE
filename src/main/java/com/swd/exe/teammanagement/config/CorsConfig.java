@@ -20,7 +20,9 @@ public class CorsConfig {
                 "http://127.0.0.1:5500",
                 "http://localhost:5500",
                 "http://localhost:5173",
-                "https://swd392-exe-team-management-be.onrender.com" // nếu FE deploy ở domain khác, thêm domain đó
+                "https://swd392-exe-team-management-be.onrender.com",
+                "https://exe-groups.pages.dev"
+                 // nếu FE deploy ở domain khác, thêm domain đó
         ));
 
         config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));

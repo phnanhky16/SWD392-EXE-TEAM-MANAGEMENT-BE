@@ -7,8 +7,9 @@ import com.swd.exe.teammanagement.enums.idea_join_post_score.PostType;
 import java.util.List;
 
 public interface PostService {
-     PostResponse createPostToFindMember(PostRequest request);
-     PostResponse createPostToFindGroup(PostRequest request);
+     PostResponse createPost(PostRequest request);
+//     PostResponse createPostToFindMember(PostRequest request);
+//     PostResponse createPostToFindGroup(PostRequest request);
      PostResponse getPostById(Long id);
      List<PostResponse> getAllPosts();
      Void deletePost(Long id);

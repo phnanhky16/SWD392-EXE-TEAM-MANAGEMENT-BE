@@ -7,9 +7,9 @@ import java.util.List;
 
 public interface MajorService {
     MajorResponse createMajor(MajorRequest request);
-    MajorResponse updateMajor(String code, MajorRequest request);
-    Void deleteMajor(String code);
-    MajorResponse getMajorByCode(String code);
+    MajorResponse updateMajor(Long id, MajorRequest request);
+    Void deleteMajor(Long id);
+    MajorResponse getMajorById(Long id);
     List<MajorResponse> getAllMajors();
 
 }
