@@ -36,5 +36,6 @@ public class Post {
     String content;
 
     LocalDateTime createdAt;
+    boolean active;
 }
 

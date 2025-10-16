@@ -35,9 +35,11 @@ public class Group {
     @Enumerated(EnumType.STRING)
     GroupStatus status;
 
-    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<GroupMember> members;
+    @ManyToOne
+    @JoinColumn(name = "semester_id")
+    Semester semester;
 
     LocalDateTime createdAt;
+    boolean active;
 }
 

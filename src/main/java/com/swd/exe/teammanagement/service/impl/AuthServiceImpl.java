@@ -66,9 +66,8 @@ public class AuthServiceImpl implements AuthService {
     private User createNewUser(FirebaseAuthService.FirebaseUserInfo firebaseInfo) {
         String email = firebaseInfo.email();
         EmailParts emailParts = parseEmail(email);
-        UserRole role = determineRole(emailParts.domain());
+        UserRole role = determineRole(emailParts.domain(), email);
         String fullName = getDisplayName(firebaseInfo.name(), emailParts.localPart());
-
         User newUser = new User();
         newUser.setEmail(email);
         newUser.setFullName(fullName);
@@ -93,8 +92,16 @@ public class AuthServiceImpl implements AuthService {
         return new EmailParts(localPart, domain);
     }
 
-    private UserRole determineRole(String domain) {
-        return "fe.edu.vn".equals(domain) ? UserRole.LECTURER : UserRole.STUDENT;
+    private UserRole determineRole(String domain, String email) {
+        if ("quanlydaotaofpt@gmail.com".equalsIgnoreCase(email)) {
+            return UserRole.ADMIN;
+        }
+
+        if ("fe.edu.vn".equals(domain)) {
+            return UserRole.LECTURER;
+        }
+
+        return UserRole.STUDENT;
     }
 
     private boolean isEducationalDomain(String domain) {

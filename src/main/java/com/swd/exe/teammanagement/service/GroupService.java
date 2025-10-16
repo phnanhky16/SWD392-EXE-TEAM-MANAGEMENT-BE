@@ -15,13 +15,13 @@ import java.util.Set;
 public interface GroupService {
     GroupResponse getGroupById(Long groupId);
     List<GroupResponse> getAllGroups();
-
+    UserResponse getGroupLeader(Long groupId);
     Void changeGroupType();
     GroupResponse getGroupByUserId(Long userId);
     Void leaveGroup();
     List<GroupResponse> getAvailableGroups();
     Void doneTeam();
-    Void createGroup(int size);
+    Void createGroup(int size,long semesterId);
     PagingResponse<GroupResponse> searchGroups(
             String q,
             GroupStatus status,
@@ -39,4 +39,5 @@ public interface GroupService {
     Void removeMemberByLeader(Long userId);
     GroupResponse updateGroupInfo(GroupCreateRequest request);
     Void changeLeader(Long newLeaderId);
+    List<GroupResponse> getGroupsBySemester(Long semesterId);
 }

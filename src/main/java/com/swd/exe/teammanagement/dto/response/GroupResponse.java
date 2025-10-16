@@ -1,5 +1,6 @@
 package com.swd.exe.teammanagement.dto.response;
 
+import com.swd.exe.teammanagement.entity.Semester;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.group.GroupStatus;
 import com.swd.exe.teammanagement.enums.group.GroupType;
@@ -18,6 +19,7 @@ public class GroupResponse {
     Long id;
     String title;
     String description;
+    Semester semester;
     GroupType type;
     GroupStatus status;
     LocalDateTime createdAt;

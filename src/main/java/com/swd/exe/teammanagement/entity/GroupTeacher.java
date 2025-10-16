@@ -1,20 +1,20 @@
 package com.swd.exe.teammanagement.entity;
 
-import com.swd.exe.teammanagement.enums.user.MembershipRole;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "group_members")
+@Table(name = "group_teachers")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GroupMember {
-
+public class GroupTeacher {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
@@ -24,11 +24,9 @@ public class GroupMember {
     Group group;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    User user;
+    @JoinColumn(name = "teacher_id")
+    User teacher;
 
-    @Enumerated(EnumType.STRING)
-    MembershipRole membershipRole;
+    LocalDateTime assignedAt;
     boolean active;
 }
-

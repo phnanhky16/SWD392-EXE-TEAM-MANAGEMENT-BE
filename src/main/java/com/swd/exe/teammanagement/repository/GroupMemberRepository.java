@@ -34,4 +34,6 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
     List<Major> findMajorsByGroupId(@Param("groupId") Long groupId);
 
     List<GroupMember> findByGroup(Group group);
+
+    Optional<GroupMember> findByGroupAndMembershipRole(Group group, MembershipRole membershipRole);
 }

@@ -5,28 +5,17 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Entity
-@Table(name = "messages")
+@Table(name = "semesters")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Message {
-
+public class Semester {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-
-    @ManyToOne
-    @JoinColumn(name = "group_id")
-    Group group;
-
-    @ManyToOne
-    @JoinColumn(name = "from_user_id")
-    User fromUser;
-
-    @Column(columnDefinition = "TEXT")
-    String messageText;
-    boolean active;
+    String name;
+    Boolean active;
 }

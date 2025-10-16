@@ -30,7 +30,6 @@ public class PostServiceImpl implements PostService {
     PostRepository postRepository;
     PostMapper postMapper;
     UserRepository userRepository;
-    GroupRepository groupRepository;
     CommentRepository commentRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final UserMapper userMapper;

@@ -1,8 +1,9 @@
 package com.swd.exe.teammanagement.exception;
 
-import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+
+import lombok.Getter;
 
 @Getter
 public enum ErrorCode {
@@ -13,6 +14,8 @@ public enum ErrorCode {
     USER_UNEXISTED("User does not exist", HttpStatus.BAD_REQUEST),
     MAJOR_EXISTED("Major already exists", HttpStatus.BAD_REQUEST),
     MAJOR_UNEXISTED("Major does not exist", HttpStatus.BAD_REQUEST),
+    SEMESTER_EXISTED("Semester already exists", HttpStatus.BAD_REQUEST),
+    SEMESTER_UNEXISTED("Semester does not exist", HttpStatus.BAD_REQUEST),
     EMAIL_INVALID_FORMAT("Email has invalid format", HttpStatus.BAD_REQUEST),
     GROUP_UNEXISTED("Group does not exist", HttpStatus.BAD_REQUEST),
     POST_UNEXISTED("Post does not exist", HttpStatus.BAD_REQUEST),
@@ -47,6 +50,15 @@ public enum ErrorCode {
     JOIN_REQUEST_NOT_FOUND("Join request not found", HttpStatus.NOT_FOUND),
     JOIN_REQUEST_ALREADY_PROCESSED("Join request has already been processed", HttpStatus.BAD_REQUEST),
     CANNOT_TRANSFER_TO_SELF("Cannot transfer leadership to yourself", HttpStatus.BAD_REQUEST),
+    GROUP_LEADER_NOT_FOUND("Group leader not found", HttpStatus.NOT_FOUND),
+    DUPLICATE_VOTE("Duplicate vote", HttpStatus.BAD_REQUEST),
+    DUPLICATE_JOIN_REQUEST("Duplicate join request", HttpStatus.BAD_REQUEST),
+    NOTIFICATION_NOT_FOUND("Notification not found", HttpStatus.NOT_FOUND),
+    GROUP_USER_NOT_SEMESTER_MATCH("student and the group must be in the same semester", HttpStatus.BAD_REQUEST),
+    GROUP_NOT_DIVERSE("Group members must come from different majors", HttpStatus.BAD_REQUEST),
+    GROUP_NOT_ENOUGH_MEMBER("Group must have at least 5 members", HttpStatus.BAD_REQUEST),
+    TEACHER_OVERLOAD("Teacher has reached the maximum number of groups they can supervise", HttpStatus.BAD_REQUEST),
+    TEACHER_ASSIGNED("Teacher has already been assigned to this group", HttpStatus.BAD_REQUEST),
     ;
 
     private final String message;

@@ -1,27 +1,11 @@
 package com.swd.exe.teammanagement.service.impl;
 
-import com.swd.exe.teammanagement.dto.request.GroupCreateRequest;
-import com.swd.exe.teammanagement.dto.response.GroupResponse;
-import com.swd.exe.teammanagement.dto.response.PagingResponse;
-import com.swd.exe.teammanagement.dto.response.UserResponse;
-import com.swd.exe.teammanagement.entity.Group;
-import com.swd.exe.teammanagement.entity.GroupMember;
-import com.swd.exe.teammanagement.entity.Major;
-import com.swd.exe.teammanagement.entity.User;
-import com.swd.exe.teammanagement.enums.group.GroupStatus;
-import com.swd.exe.teammanagement.enums.group.GroupType;
-import com.swd.exe.teammanagement.enums.group.Semester;
-import com.swd.exe.teammanagement.enums.user.MembershipRole;
-import com.swd.exe.teammanagement.exception.AppException;
-import com.swd.exe.teammanagement.exception.ErrorCode;
-import com.swd.exe.teammanagement.mapper.GroupMapper;
-import com.swd.exe.teammanagement.repository.*;
-import com.swd.exe.teammanagement.service.GroupService;
-import com.swd.exe.teammanagement.spec.GroupSpecs;
-import com.swd.exe.teammanagement.util.PageUtil;
-import com.swd.exe.teammanagement.util.SortUtil;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -30,14 +14,42 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.*;
+import com.swd.exe.teammanagement.dto.request.GroupCreateRequest;
+import com.swd.exe.teammanagement.dto.response.GroupResponse;
+import com.swd.exe.teammanagement.dto.response.PagingResponse;
+import com.swd.exe.teammanagement.dto.response.UserResponse;
+import com.swd.exe.teammanagement.entity.Group;
+import com.swd.exe.teammanagement.entity.GroupMember;
+import com.swd.exe.teammanagement.entity.Major;
+import com.swd.exe.teammanagement.entity.Semester;
+import com.swd.exe.teammanagement.entity.User;
+import com.swd.exe.teammanagement.enums.group.GroupStatus;
+import com.swd.exe.teammanagement.enums.group.GroupType;
+import com.swd.exe.teammanagement.enums.user.MembershipRole;
+import com.swd.exe.teammanagement.exception.AppException;
+import com.swd.exe.teammanagement.exception.ErrorCode;
+import com.swd.exe.teammanagement.mapper.GroupMapper;
+import com.swd.exe.teammanagement.repository.GroupMemberRepository;
+import com.swd.exe.teammanagement.repository.GroupRepository;
+import com.swd.exe.teammanagement.repository.IdeaRepository;
+import com.swd.exe.teammanagement.repository.JoinRepository;
+import com.swd.exe.teammanagement.repository.PostRepository;
+import com.swd.exe.teammanagement.repository.SemesterRepository;
+import com.swd.exe.teammanagement.repository.UserRepository;
+import com.swd.exe.teammanagement.repository.VoteRepository;
+import com.swd.exe.teammanagement.service.GroupService;
+import com.swd.exe.teammanagement.spec.GroupSpecs;
+import com.swd.exe.teammanagement.util.PageUtil;
+import com.swd.exe.teammanagement.util.SortUtil;
 
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = lombok.AccessLevel.PRIVATE)
 public class GroupServiceImpl implements GroupService {
+
     GroupRepository groupRepository;
     UserRepository userRepository;
     GroupMemberRepository groupMemberRepository;
@@ -46,35 +58,31 @@ public class GroupServiceImpl implements GroupService {
     VoteRepository voteRepository;
     GroupMapper groupMapper;
     JoinRepository joinRepository;
-    int MAXSIZE = 6;
-
+    SemesterRepository semesterRepository;
     @Override
     public GroupResponse getGroupById(Long groupId) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_UNEXISTED));
-        return GroupResponse.builder()
-                .id(group.getId())
-                .title(group.getTitle())
-                .description(group.getDescription())
-                .status(group.getStatus())
-                .type(group.getType())
-                .createdAt(group.getCreatedAt())
-                .build();
+        return mapToResponse(group);
     }
 
     @Override
     public List<GroupResponse> getAllGroups() {
-        List<Group> groups = groupRepository.findAll();
+        return groupRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
 
-        return groups.stream().map(group -> GroupResponse.builder()
-                .id(group.getId())
-                .title(group.getTitle())
-                .description(group.getDescription())
-                .status(group.getStatus())
-                .type(group.getType())
-                .createdAt(group.getCreatedAt())
-                .build()
-        ).toList();
+    @Override
+    public UserResponse getGroupLeader(Long groupId) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_UNEXISTED));
+
+        GroupMember leaderMember = groupMemberRepository
+                .findByGroupAndMembershipRole(group, MembershipRole.LEADER)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_LEADER_NOT_FOUND));
+
+        return mapToUserResponse(leaderMember.getUser());
     }
 
     @Override
@@ -102,50 +110,15 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public List<GroupResponse> getCurrentGroupList() {
-        LocalDateTime now = LocalDateTime.now();
-        int month = now.getMonthValue();
-        int year = now.getYear();
-        int startMonth;
-        int endMonth;
-        if (month >= 1 && month <= 4) {
-            startMonth = 1;
-            endMonth = 4;
-        } else if (month >= 5 && month <= 8) {
-            startMonth = 5;
-            endMonth = 8;
-        } else {
-            startMonth = 9;
-            endMonth = 12;
-        }
-
-        java.time.YearMonth endYearMonth = java.time.YearMonth.of(year, endMonth);
-        LocalDateTime startDate = LocalDateTime.of(year, startMonth, 1, 0, 0);
-        LocalDateTime endDate = endYearMonth.atEndOfMonth().atTime(23, 59, 59);
-        List<Group> groups = groupRepository.findGroupsByCreatedAtBetween(startDate,endDate);
-        return groups.stream().map(group -> GroupResponse.builder()
-                .id(group.getId())
-                .title(group.getTitle())
-                .description(group.getDescription())
-                .status(group.getStatus())
-                .type(group.getType()).status(group.getStatus())
-                .createdAt(group.getCreatedAt())
-                .build()
-        ).toList();
+        Semester semester = semesterRepository.findByActive(true);
+        List<Group> groups = groupRepository.findGroupsBySemester(semester);
+        return groups.stream().map(this::mapToResponse).toList();
     }
 
     @Override
     public List<UserResponse> getMembersByGroupId(Long groupId) {
         List<User> users = groupMemberRepository.findUsersByGroupId(groupId);
-        return users.stream().map(user -> UserResponse.builder()
-                .id(user.getId())
-                .fullName(user.getFullName())
-                .email(user.getEmail())
-                .studentCode(user.getStudentCode())
-                .major(user.getMajor())
-                .role(user.getRole())
-                .isActive(user.getIsActive())
-                .build()
-        ).toList();
+        return users.stream().map(this::mapToUserResponse).toList();
     }
 
     @Override
@@ -155,24 +128,14 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public Set<Major> getMajorDistribution(Long groupId) {
-        List<Major> majors = groupMemberRepository.findMajorsByGroupId(groupId);
-        return new HashSet<>(majors);
+        return new HashSet<>(groupMemberRepository.findMajorsByGroupId(groupId));
     }
 
     @Override
     public GroupResponse getMyGroup() {
-        User user = getCurrentUser();
-        GroupMember groupMember = groupMemberRepository.findByUser(user)
+        GroupMember gm = groupMemberRepository.findByUser(getCurrentUser())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
-        Group group = groupMember.getGroup();
-        return GroupResponse.builder()
-                .id(group.getId())
-                .title(group.getTitle())
-                .description(group.getDescription())
-                .status(group.getStatus())
-                .type(group.getType())
-                .createdAt(group.getCreatedAt())
-                .build();
+        return mapToResponse(gm.getGroup());
     }
 
     @Override
@@ -180,119 +143,90 @@ public class GroupServiceImpl implements GroupService {
         User leader = getCurrentUser();
         GroupMember leaderMember = groupMemberRepository.findByUser(leader)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
+
         if (!leaderMember.getMembershipRole().equals(MembershipRole.LEADER)) {
             throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
         }
-        User memberToRemove = userRepository.findById(userId)
+
+        User member = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
-        GroupMember member = groupMemberRepository.findByUser(memberToRemove)
+
+        GroupMember gm = groupMemberRepository.findByUser(member)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
-        groupMemberRepository.delete(member);
-        joinRepository.deleteJoinByFromUser(memberToRemove);
-        return null;
+
+        groupMemberRepository.delete(gm);
+        joinRepository.deleteJoinByFromUser(member);
+        return null; // keep Void for compatibility
     }
 
     @Override
     public GroupResponse updateGroupInfo(GroupCreateRequest request) {
         User user = getCurrentUser();
-        GroupMember groupMember = groupMemberRepository.findByUser(user)
+        GroupMember gm = groupMemberRepository.findByUser(user)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
-        if (!groupMember.getMembershipRole().equals(MembershipRole.LEADER)) {
+
+        if (!gm.getMembershipRole().equals(MembershipRole.LEADER)) {
             throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
         }
-        Group g = groupMember.getGroup();
-        g.setTitle(request.getTitle());
-        g.setDescription(request.getDescription());
-        groupRepository.save(g);
-        return GroupResponse.builder()
-                .id(g.getId())
-                .title(g.getTitle())
-                .description(g.getDescription())
-                .status(g.getStatus())
-                .type(g.getType()).status(g.getStatus())
-                .createdAt(g.getCreatedAt())
-                .build();
+
+        Group group = gm.getGroup();
+        group.setTitle(request.getTitle());
+        group.setDescription(request.getDescription());
+        groupRepository.save(group);
+
+        return mapToResponse(group);
     }
 
     @Override
     public Void changeLeader(Long newLeaderId) {
         User currentLeader = getCurrentUser();
-        
-        // Kiểm tra user hiện tại có phải là leader không
-        GroupMember currentLeaderMember = groupMemberRepository.findByUser(currentLeader)
+        GroupMember leaderMember = groupMemberRepository.findByUser(currentLeader)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
-        
-        if (!currentLeaderMember.getMembershipRole().equals(MembershipRole.LEADER)) {
+
+        if (!leaderMember.getMembershipRole().equals(MembershipRole.LEADER)) {
             throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
         }
-        
-        Group group = currentLeaderMember.getGroup();
-        
-        // Tìm user mới sẽ là leader
+
+        Group group = leaderMember.getGroup();
         User newLeader = userRepository.findById(newLeaderId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
-        
-        // Kiểm tra user mới có trong nhóm không
+
         GroupMember newLeaderMember = groupMemberRepository.findByUser(newLeader)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
-        
-        // Kiểm tra user mới có cùng group với leader hiện tại không
+
         if (!newLeaderMember.getGroup().getId().equals(group.getId())) {
             throw new AppException(ErrorCode.USER_NOT_IN_GROUP);
         }
-        
-        // Không thể chuyển quyền cho chính mình
+
         if (currentLeader.getId().equals(newLeaderId)) {
             throw new AppException(ErrorCode.CANNOT_TRANSFER_TO_SELF);
         }
-        
-        // Chuyển role: leader hiện tại -> member, member mới -> leader
-        currentLeaderMember.setMembershipRole(MembershipRole.MEMBER);
+
+        leaderMember.setMembershipRole(MembershipRole.MEMBER);
         newLeaderMember.setMembershipRole(MembershipRole.LEADER);
 
-        
-        // Save changes
-        groupMemberRepository.save(currentLeaderMember);
-        groupMemberRepository.save(newLeaderMember);
-        groupRepository.save(group);
-        
+        groupMemberRepository.saveAll(List.of(leaderMember, newLeaderMember));
         return null;
     }
 
-//    public void deleteGroup(Long groupId) {
-//        Group g = groupRepository.findById(groupId)
-//                .orElseThrow(() -> new AppException(ErrorCode.GROUP_UNEXISTED));
-//        int month = LocalDateTime.now().getMonthValue();
-//        Semester semester;
-//        if (month >= 1 && month <= 4) {
-//            semester = Semester.SPRING;
-//        } else if (month >= 5 && month <= 8) {
-//            semester = Semester.SUMMER;
-//        } else {
-//            semester = Semester.FALL;
-//        }
-//        int year = LocalDateTime.now().getYear();
-//        g.setTitle("Group EXE " + semester + " " + year);
-//        g.setDescription(null);
-//        g.setType(GroupType.PUBLIC);
-//        g.setStatus(GroupStatus.FORMING);
-//        groupRepository.save(g);
-//        postRepository.deletePostByGroup(g);
-//        ideaRepository.deleteIdeaByGroup(g);
-//        voteRepository.deleteVotesByGroup(g);
-//        joinRepository.deleteJoinsByToGroup(g);
-//    }
+    @Override
+    public List<GroupResponse> getGroupsBySemester(Long semesterId) {
+        Semester semester = semesterRepository.findById(semesterId)
+                                .orElseThrow(() -> new AppException(ErrorCode.SEMESTER_UNEXISTED));
+        List<Group> groups = groupRepository.findGroupsBySemester(semester);
+        return groups.stream().map(this::mapToResponse).toList();
+    }
 
     @Override
     public Void changeGroupType() {
         GroupMember gm = groupMemberRepository.findByUser(getCurrentUser())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
-        if(gm.getMembershipRole().equals(MembershipRole.MEMBER)) {
-            throw  new AppException(ErrorCode.ONLY_GROUP_LEADER);
+        if (gm.getMembershipRole().equals(MembershipRole.MEMBER)) {
+            throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
         }
-        Group g = gm.getGroup();
-        g.setType(!g.getType().equals(GroupType.PUBLIC) ? GroupType.PUBLIC : GroupType.PRIVATE);
-        groupRepository.save(g);
+        Group group = gm.getGroup();
+        group.setType(group.getType() == GroupType.PUBLIC ? GroupType.PRIVATE : GroupType.PUBLIC);
+        groupRepository.save(group);
         return null;
     }
 
@@ -300,57 +234,23 @@ public class GroupServiceImpl implements GroupService {
     public GroupResponse getGroupByUserId(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
-        GroupMember groupMember = groupMemberRepository.findByUser(user)
+        GroupMember gm = groupMemberRepository.findByUser(user)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
-        Group group = groupMember.getGroup();
-        return GroupResponse.builder()
-                .id(group.getId())
-                .title(group.getTitle())
-                .description(group.getDescription())
-                .status(group.getStatus())
-                .type(group.getType())
-                .createdAt(group.getCreatedAt())
-                .build();
+        return mapToResponse(gm.getGroup());
     }
 
     @Override
     public Void leaveGroup() {
         User user = getCurrentUser();
-        GroupMember groupMember = groupMemberRepository.findByUser(user)
+        GroupMember gm = groupMemberRepository.findByUser(user)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
-        Group  group = groupMember.getGroup();
-        List<GroupMember> gMS  = groupMemberRepository.findByGroup(group);
-        if(gMS.size()==1){
-            groupMemberRepository.delete(groupMember);
-            int month = LocalDateTime.now().getMonthValue();
-            Semester semester;
-            if (month >= 1 && month <= 4) {
-                semester = Semester.SPRING;
-            } else if (month >= 5 && month <= 8) {
-                semester = Semester.SUMMER;
-            } else {
-                semester = Semester.FALL;
-            }
-            int year = LocalDateTime.now().getYear();
-            group.setTitle("Group EXE " + semester + " " + year);
-            group.setDescription(null);
-            group.setType(GroupType.PUBLIC);
-            group.setStatus(GroupStatus.FORMING);
-            groupRepository.save(group);
-            postRepository.deletePostByGroup(group);
-            ideaRepository.deleteIdeasByGroup(group);
-            voteRepository.deleteVotesByGroup(group);
-            joinRepository.deleteJoinByFromUser(user);
-        }else{
-            if (groupMember.getMembershipRole().equals(MembershipRole.LEADER)) {
-                gMS.get(1).setMembershipRole(MembershipRole.LEADER);
-                groupRepository.save(group);
-                groupMemberRepository.delete(groupMember);
-                joinRepository.deleteJoinByFromUser(user);
-            }else{
-                groupMemberRepository.delete(groupMember);
-                joinRepository.deleteJoinByFromUser(user);
-            }
+
+        Group group = gm.getGroup();
+        List<GroupMember> members = groupMemberRepository.findByGroup(group);
+        if (members.size() == 1) {
+            resetGroup(group);
+        } else {
+            handleLeaveWhenNotAlone(gm, members, user);
         }
         return null;
     }
@@ -358,94 +258,66 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public List<GroupResponse> getAvailableGroups() {
         User user = getCurrentUser();
-
-        LocalDateTime now = LocalDateTime.now();
-        int month = now.getMonthValue();
-        int year = now.getYear();
-        int startMonth;
-        int endMonth;
-        if (month >= 1 && month <= 4) {
-            startMonth = 1;
-            endMonth = 4;
-        } else if (month >= 5 && month <= 8) {
-            startMonth = 5;
-            endMonth = 8;
-        } else {
-            startMonth = 9;
-            endMonth = 12;
-        }
-
-        java.time.YearMonth endYearMonth = java.time.YearMonth.of(year, endMonth);
-        LocalDateTime startDate = LocalDateTime.of(year, startMonth, 1, 0, 0);
-        LocalDateTime endDate = endYearMonth.atEndOfMonth().atTime(23, 59, 59);
-
-        // fetch groups created within this semester window with ACTIVE status and PUBLIC type
-        List<Group> groups = groupRepository.findGroupsByStatusInAndCreatedAtBetween(
-                Arrays.asList(GroupStatus.ACTIVE, GroupStatus.FORMING), startDate, endDate
+        Semester semester = semesterRepository.findByActive(true);
+        List<Group> groups = groupRepository.findGroupsByStatusInAndSemester(
+                List.of(GroupStatus.ACTIVE, GroupStatus.FORMING), semester
         );
-        List<Group> groupListAvailable = new ArrayList<>();
+
+        List<Group> available = new ArrayList<>();
         Set<Major> majors = new HashSet<>();
-        for( Group g : groups){
-            if(groupMemberRepository.countByGroup(g) ==5) {
-                for (User member : groupMemberRepository.findUsersByGroup(g)) {
-                    majors.add(member.getMajor());
+
+        for (Group g : groups) {
+            if (groupMemberRepository.countByGroup(g) == 5) {
+                for (User m : groupMemberRepository.findUsersByGroup(g)) {
+                    majors.add(m.getMajor());
                 }
                 majors.add(user.getMajor());
                 if (majors.size() > 1) {
-                    groupListAvailable.add(g);
+                    available.add(g);
                 }
                 majors.clear();
-            }else{ groupListAvailable.add(g); }
+            } else {
+                available.add(g);
+            }
         }
-        return groupListAvailable.stream().map(group -> GroupResponse.builder()
-                .id(group.getId())
-                .title(group.getTitle())
-                .description(group.getDescription())
-                .status(group.getStatus())
-                .type(group.getType())
-                .createdAt(group.getCreatedAt())
-                .build()
-        ).toList();
+        return available.stream().map(this::mapToResponse).toList();
     }
 
     @Override
     public Void doneTeam() {
-            User user = getCurrentUser();
-            GroupMember groupMember = groupMemberRepository.findByUser(user)
-                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
-            Group group = groupMember.getGroup();
-            if (!groupMember.getMembershipRole().equals(MembershipRole.LEADER)) {
-                throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
-            }
-            int memberCount = groupMemberRepository.countByGroup(group);
-        if (memberCount != MAXSIZE) {
-                throw new AppException(ErrorCode.GROUP_SHOULD_ENOUGH_MEMBERS);
-            }
-            group.setStatus(GroupStatus.LOCKED);
-            groupRepository.save(group);
+        GroupMember gm = groupMemberRepository.findByUser(getCurrentUser())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
+
+        if (!gm.getMembershipRole().equals(MembershipRole.LEADER)) {
+            throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
+        }
+        Group group = gm.getGroup();
+        Set<Major> majors = getMajorDistribution(group.getId()) ;
+        if(majors.size() < 2){
+            throw new AppException(ErrorCode.GROUP_NOT_DIVERSE);
+        }
+        List<GroupMember> gms = groupMemberRepository.findByGroup(group);
+        if(gms.size() < 5 || gms.size() > 6){
+            throw  new AppException(ErrorCode.GROUP_NOT_ENOUGH_MEMBER);
+        }
+        group.setStatus(GroupStatus.LOCKED);
+        groupRepository.save(group);
+        postRepository.deletePostByGroup(group);
         return null;
     }
 
     @Override
-    public Void createGroup(int size) {
+    public Void createGroup(int size,long semesterId) {
         if (size <= 0) size = 1;
-
-        int month = LocalDateTime.now().getMonthValue();
-        Semester semester;
-        if (month >= 1 && month <= 4) {
-            semester = Semester.SPRING;
-        } else if (month >= 5 && month <= 8) {
-            semester = Semester.SUMMER;
-        } else {
-            semester = Semester.FALL;
-        }
-        int year = LocalDateTime.now().getYear();
         int count = getCurrentGroupList().size();
-        for (int i = count+1; i <= size+count; i++) {
-            String title = "Group EXE " + semester + " " + year + " #" + i;
+        Semester semester = semesterRepository.findById(semesterId)
+                .orElseThrow(() -> new AppException(ErrorCode.SEMESTER_UNEXISTED));
+        for (int i = count + 1; i <= size + count; i++) {
+            String title = "Group EXE " + semester.getName() + " #" + i;
             Group group = Group.builder()
                     .title(title)
                     .description("Empty group created in " + semester + " semester")
+                    .semester(semester)
                     .type(GroupType.PUBLIC)
                     .status(GroupStatus.FORMING)
                     .createdAt(LocalDateTime.now())
@@ -455,10 +327,57 @@ public class GroupServiceImpl implements GroupService {
         return null;
     }
 
+    // ===== PRIVATE HELPERS =====
+
+    private void handleLeaveWhenNotAlone(GroupMember gm, List<GroupMember> members, User user) {
+        if (gm.getMembershipRole().equals(MembershipRole.LEADER)) {
+            members.get(1).setMembershipRole(MembershipRole.LEADER);
+        }
+        groupMemberRepository.delete(gm);
+        joinRepository.deleteJoinByFromUser(user);
+    }
+
+    private void resetGroup(Group group) {
+        group.setTitle("Group EXE " + group.getSemester().getName());
+        group.setDescription(null);
+        group.setType(GroupType.PUBLIC);
+        group.setStatus(GroupStatus.FORMING);
+        groupRepository.save(group);
+
+        postRepository.deletePostByGroup(group);
+        ideaRepository.deleteIdeasByGroup(group);
+        voteRepository.deleteVotesByGroup(group);
+        joinRepository.deleteJoinsByToGroup(group);
+    }
+
+
+    private GroupResponse mapToResponse(Group g) {
+        return GroupResponse.builder()
+                .id(g.getId())
+                .title(g.getTitle())
+                .description(g.getDescription())
+                .semester(g.getSemester())
+                .status(g.getStatus())
+                .type(g.getType())
+                .createdAt(g.getCreatedAt())
+                .build();
+    }
+
+    private UserResponse mapToUserResponse(User u) {
+        return UserResponse.builder()
+                .id(u.getId())
+                .fullName(u.getFullName())
+                .email(u.getEmail())
+                .studentCode(u.getStudentCode())
+                .major(u.getMajor())
+                .role(u.getRole())
+                .isActive(u.getIsActive())
+                .build();
+    }
+
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
     }
-
 }

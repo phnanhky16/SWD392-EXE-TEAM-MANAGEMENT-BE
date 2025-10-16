@@ -5,5 +5,8 @@ public enum NotificationType {
     VOTE,
     POST,
     IDEA,
-    SYSTEM
+    SYSTEM,
+    JOIN_ACCEPTED,
+    JOIN_REJECTED
+
 }

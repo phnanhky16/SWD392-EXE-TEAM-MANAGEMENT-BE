@@ -111,6 +111,15 @@ public class GroupController {
     }
 
     @Operation(
+            summary = "Get groups by semester",
+            description = "Retrieve all groups that belong to a specific semester"
+    )
+    @GetMapping("/semester/{semesterId}")
+    public ApiResponse<List<GroupResponse>> getGroupsBySemester(@PathVariable Long semesterId) {
+        return ApiResponse.success("Get groups by semester successfully", groupService.getGroupsBySemester(semesterId));
+    }
+
+    @Operation(
             summary = "Change group type",
             description = "Toggle group type between PUBLIC and PRIVATE. Only group leader can perform this action."
     )
@@ -173,8 +182,9 @@ public class GroupController {
             description = "Create N empty groups. Title formatted like 'Group EXE FALL 2025 #1'. Requires authentication."
     )
     @PostMapping
-    public ApiResponse<Void> createGroups(@RequestParam(name = "size", defaultValue = "1") int size) {
-        groupService.createGroup(size);
+    public ApiResponse<Void> createGroups(@RequestParam(name = "size", defaultValue = "1") int size,
+                                        @RequestParam(name = "semesterId") Long semesterId) {
+        groupService.createGroup(size,semesterId);
         return ApiResponse.created("Created empty groups successfully", null);
     }
 }
