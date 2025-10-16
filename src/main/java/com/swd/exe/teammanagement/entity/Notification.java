@@ -24,7 +24,7 @@ public class Notification {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    User user;
+    User receiver;
 
     @Enumerated(EnumType.STRING)
     NotificationType type;

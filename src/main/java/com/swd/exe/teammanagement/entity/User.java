@@ -41,7 +41,5 @@ public class User {
 
     Boolean isActive;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<GroupMember> groupMembers = new ArrayList<>();
 }
 

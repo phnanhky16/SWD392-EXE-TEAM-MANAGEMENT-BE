@@ -17,4 +17,6 @@ public interface JoinRepository extends JpaRepository<Join, Long> {
     List<Join> findByToGroupAndStatus(Group toGroup, JoinStatus status);
 
     List<Join> findByFromUserAndStatus(User fromUser, JoinStatus status);
+
+    boolean existsByFromUserAndToGroup(User fromUser, Group toGroup);
 }

@@ -1,6 +1,7 @@
 package com.swd.exe.teammanagement.repository;
 
 import com.swd.exe.teammanagement.entity.User;
+import com.swd.exe.teammanagement.enums.user.UserRole;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -24,4 +25,6 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     @Override
     @EntityGraph(attributePaths = "major")
     Page<User> findAll(Specification<User> spec, Pageable pageable);
+
+    List<User> findByRole(UserRole role);
 }

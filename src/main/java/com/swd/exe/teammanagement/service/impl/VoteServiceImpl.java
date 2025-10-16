@@ -2,6 +2,8 @@ package com.swd.exe.teammanagement.service.impl;
 
 import com.swd.exe.teammanagement.entity.*;
 import com.swd.exe.teammanagement.enums.idea_join_post_score.JoinStatus;
+import com.swd.exe.teammanagement.enums.notification.NotificationStatus;
+import com.swd.exe.teammanagement.enums.notification.NotificationType;
 import com.swd.exe.teammanagement.enums.user.MembershipRole;
 import com.swd.exe.teammanagement.enums.vote.ChoiceValue;
 import com.swd.exe.teammanagement.enums.vote.VoteStatus;
@@ -11,6 +13,7 @@ import com.swd.exe.teammanagement.repository.*;
 import com.swd.exe.teammanagement.service.VoteService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -22,82 +25,151 @@ import java.util.List;
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = lombok.AccessLevel.PRIVATE)
 public class VoteServiceImpl implements VoteService {
+
     UserRepository userRepository;
     VoteRepository voteRepository;
     GroupRepository groupRepository;
     GroupMemberRepository groupMemberRepository;
     VoteChoiceRepository voteChoiceRepository;
-    private final JoinRepository joinRepository;
+    JoinRepository joinRepository;
+    NotificationRepository notificationRepository;
+    SimpMessagingTemplate messagingTemplate;
 
+    // 🗳️ Tạo Vote cho yêu cầu Join nhóm
     @Override
-    public Vote voteJoin(Long groupId,Long userId) {
-        User joinUser = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
-        Group g = groupRepository.findById(groupId).orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
-        return voteRepository.save(Vote.builder().group(g).topic("User "+ joinUser.getEmail()+" wants to join your group").status(VoteStatus.OPEN).targetUser(joinUser).closedAt(LocalDateTime.now().plusMinutes(6)).build());
+    public Vote voteJoin(Long groupId, Long userId) {
+        User joinUser = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
+
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+
+        Vote vote = Vote.builder()
+                .group(group)
+                .topic("User " + joinUser.getFullName() + " muốn tham gia nhóm " + group.getTitle())
+                .status(VoteStatus.OPEN)
+                .targetUser(joinUser)
+                .closedAt(LocalDateTime.now().plusMinutes(6))
+                .build();
+
+        Vote savedVote = voteRepository.save(vote);
+
+        // 🛰️ Gửi thông báo real-time tới tất cả trong nhóm
+        messagingTemplate.convertAndSend("/topic/group/" + groupId,
+                "📢 Vote mới: " + savedVote.getTopic());
+
+        return savedVote;
     }
+
+    // ✅ Thành viên bầu chọn (YES / NO)
     @Override
     public VoteChoice voteChoice(Long voteId, ChoiceValue choiceValue) {
-        Vote v = voteRepository.findById(voteId).orElseThrow(() -> new AppException(ErrorCode.VOTE_NOT_FOUND));
+        Vote vote = voteRepository.findById(voteId)
+                .orElseThrow(() -> new AppException(ErrorCode.VOTE_NOT_FOUND));
+
         User user = getCurrentUser();
-        return voteChoiceRepository.save(VoteChoice.builder().choiceValue(choiceValue).vote(v).user(user).build());
+        VoteChoice voteChoice = VoteChoice.builder()
+                .choiceValue(choiceValue)
+                .vote(vote)
+                .user(user)
+                .build();
+
+        VoteChoice savedChoice = voteChoiceRepository.save(voteChoice);
+
+        // 🛰️ Thông báo real-time tới group
+        messagingTemplate.convertAndSend("/topic/group/" + vote.getGroup().getId(),
+                "🗳️ " + user.getFullName() + " đã vote " + choiceValue + " cho " + vote.getTopic());
+
+        return savedChoice;
     }
 
+    // ✅ Khi vote kết thúc (thủ công hoặc auto)
     @Override
     public void voteDone(Long voteId) {
-        Vote v = voteRepository.findById(voteId)
+        Vote vote = voteRepository.findById(voteId)
                 .orElseThrow(() -> new AppException(ErrorCode.VOTE_NOT_FOUND));
-        processVoteResult(v);
+
+        processVoteResult(vote);
     }
 
-    /**
-     * Process vote result and update group membership
-     */
-    private void processVoteResult(Vote v) {
-        Group g = v.getGroup();
-        List<User> members = groupMemberRepository.findUsersByGroup(g);
-        List<VoteChoice> voteChoices = voteChoiceRepository.findByVote(v);
-        
-        if (members.size() == voteChoices.size()) {
-            v.setStatus(VoteStatus.CLOSED);
-            voteRepository.save(v);
-            int total = 0;
-            for (VoteChoice vc : voteChoices) {
-                if (vc.getChoiceValue() == ChoiceValue.YES) {
-                    total++;
-                } else if (vc.getChoiceValue() == ChoiceValue.NO) {
-                    total--;
+    // 📊 Xử lý kết quả vote
+    private void processVoteResult(Vote vote) {
+        Group group = vote.getGroup();
+        List<User> members = groupMemberRepository.findUsersByGroup(group);
+        List<VoteChoice> voteChoices = voteChoiceRepository.findByVote(vote);
+
+        int yes = (int) voteChoices.stream().filter(v -> v.getChoiceValue() == ChoiceValue.YES).count();
+        int no = (int) voteChoices.stream().filter(v -> v.getChoiceValue() == ChoiceValue.NO).count();
+        int total = yes - no;
+
+        vote.setStatus(VoteStatus.CLOSED);
+        voteRepository.save(vote);
+
+        // ✅ Nếu YES nhiều hơn hoặc bằng NO → ACCEPTED
+        if (total >= 0) {
+            groupMemberRepository.save(GroupMember.builder()
+                    .group(group)
+                    .user(vote.getTargetUser())
+                    .membershipRole(MembershipRole.MEMBER)
+                    .build());
+
+            joinRepository.save(Join.builder()
+                    .toGroup(group)
+                    .fromUser(vote.getTargetUser())
+                    .status(JoinStatus.ACCEPTED)
+                    .build());
+
+            // 🔔 Gửi notification cho người được chấp nhận
+            sendNotification(vote.getTargetUser(),
+                    "🎉 Bạn đã được chấp nhận vào nhóm " + group.getTitle(),
+                    NotificationType.JOIN_ACCEPTED);
+
+            // 🔔 Gửi notification cho các thành viên group
+            for (User member : members) {
+                if (!member.getId().equals(vote.getTargetUser().getId())) {
+                    sendNotification(member,
+                            "✅ " + vote.getTargetUser().getFullName() + " đã được chấp nhận vào nhóm " + group.getTitle(),
+                            NotificationType.JOIN_ACCEPTED);
                 }
             }
-            if (total >= 0) {
-                groupMemberRepository.save(GroupMember.builder()
-                        .group(g)
-                        .user(v.getTargetUser())
-                        .membershipRole(MembershipRole.MEMBER)
-                        .build());
-                joinRepository.save(Join.builder().toGroup(g).fromUser(v.getTargetUser()).status(JoinStatus.ACCEPTED).build());
-            } else {
-                joinRepository.save(Join.builder().toGroup(g).fromUser(v.getTargetUser()).status(JoinStatus.REJECTED).build());
-            }
-        } else if (v.getStatus() == VoteStatus.CLOSED) {
-            int total = 0;
-            int yes = members.size() - voteChoices.size();
-            total += yes;
-            for (VoteChoice vc : voteChoices) {
-                if (vc.getChoiceValue() == ChoiceValue.YES) {
-                    total++;
-                } else if (vc.getChoiceValue() == ChoiceValue.NO) {
-                    total--;
+
+            // 🛰️ Gửi WebSocket thông báo tới group
+            messagingTemplate.convertAndSend("/topic/group/" + group.getId(),
+                    "✅ " + vote.getTargetUser().getFullName() + " đã được chấp nhận vào nhóm.");
+
+        } else { // ❌ Bị từ chối
+            joinRepository.save(Join.builder()
+                    .toGroup(group)
+                    .fromUser(vote.getTargetUser())
+                    .status(JoinStatus.REJECTED)
+                    .build());
+
+            sendNotification(vote.getTargetUser(),
+                    "❌ Yêu cầu tham gia nhóm " + group.getTitle() + " đã bị từ chối.",
+                    NotificationType.JOIN_REJECTED);
+
+            messagingTemplate.convertAndSend("/topic/group/" + group.getId(),
+                    "❌ " + vote.getTargetUser().getFullName() + " bị từ chối tham gia nhóm.");
+        }
+    }
+
+    // 🕒 Tự động đóng vote mỗi phút
+    @Scheduled(fixedRate = 60000)
+    public void autoCloseVotes() {
+        List<Vote> openVotes = voteRepository.findByStatus(VoteStatus.OPEN);
+        LocalDateTime now = LocalDateTime.now();
+
+        for (Vote vote : openVotes) {
+            if (vote.getClosedAt() != null && now.isAfter(vote.getClosedAt())) {
+                vote.setStatus(VoteStatus.CLOSED);
+                voteRepository.save(vote);
+
+                try {
+                    processVoteResult(vote);
+                    System.out.println("Vote " + vote.getId() + " đã được auto xử lý.");
+                } catch (Exception e) {
+                    System.err.println("Lỗi xử lý vote " + vote.getId() + ": " + e.getMessage());
                 }
-            }
-            if (total >= 0) {
-                groupMemberRepository.save(GroupMember.builder()
-                        .group(g)
-                        .user(v.getTargetUser())
-                        .membershipRole(MembershipRole.MEMBER)
-                        .build());
-                joinRepository.save(Join.builder().toGroup(g).fromUser(v.getTargetUser()).status(JoinStatus.ACCEPTED).build());
-            } else {
-                joinRepository.save(Join.builder().toGroup(g).fromUser(v.getTargetUser()).status(JoinStatus.REJECTED).build());
             }
         }
     }
@@ -127,26 +199,15 @@ public class VoteServiceImpl implements VoteService {
         return voteChoiceRepository.findByVote(vote);
     }
 
-    @Scheduled(fixedRate = 60000) // Mỗi phút kiểm tra
-    public void autoCloseVotes() {
-        List<Vote> openVotes = voteRepository.findByStatus(VoteStatus.OPEN);
-        LocalDateTime now = LocalDateTime.now();
-
-        for (Vote v : openVotes) {
-            if (v.getClosedAt() != null && now.isAfter(v.getClosedAt())) {
-                v.setStatus(VoteStatus.CLOSED);
-                voteRepository.save(v);
-                System.out.println("Vote ID " + v.getId() + " đã tự động đóng!");
-                
-                // Tự động xử lý kết quả vote sau khi đóng
-                try {
-                    processVoteResult(v);
-                    System.out.println("Vote ID " + v.getId() + " đã xử lý kết quả thành công!");
-                } catch (Exception e) {
-                    System.err.println("Lỗi khi xử lý kết quả vote ID " + v.getId() + ": " + e.getMessage());
-                }
-            }
-        }
+    // 📩 helper
+    private void sendNotification(User user, String content, NotificationType type) {
+        notificationRepository.save(Notification.builder()
+                .receiver(user)
+                .content(content)
+                .type(type)
+                .status(NotificationStatus.UNREAD)
+                .createdAt(LocalDateTime.now())
+                .build());
     }
 
     private User getCurrentUser() {

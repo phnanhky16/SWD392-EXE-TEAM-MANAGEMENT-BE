@@ -1,6 +1,7 @@
 package com.swd.exe.teammanagement.repository;
 
 import com.swd.exe.teammanagement.entity.Group;
+import com.swd.exe.teammanagement.entity.Semester;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.group.GroupStatus;
 import com.swd.exe.teammanagement.enums.group.GroupType;
@@ -22,4 +23,10 @@ public interface GroupRepository extends JpaRepository<Group, Long>, JpaSpecific
 
     List<Group> findGroupsByCreatedAtBetween(LocalDateTime createdAtAfter, LocalDateTime createdAtBefore);
     List<Group> findGroupsByStatusInAndCreatedAtBetween(Collection<GroupStatus> statuses, LocalDateTime createdAtAfter, LocalDateTime createdAtBefore);
+
+    List<Group> findGroupsBySemester(Semester semester);
+
+    List<Group> findGroupsByStatusInAndSemester(Collection<GroupStatus> statuses, Semester semester);
+
+    long countBySemester(Semester semester);
 }
