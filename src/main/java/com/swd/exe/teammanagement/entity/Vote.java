@@ -35,5 +35,6 @@ public class Vote {
     VoteStatus status;
 
     LocalDateTime closedAt;
+    boolean active;
 }
 

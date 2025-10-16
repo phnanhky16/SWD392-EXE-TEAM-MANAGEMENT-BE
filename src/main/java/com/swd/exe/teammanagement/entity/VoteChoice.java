@@ -31,4 +31,5 @@ public class VoteChoice {
 
     @Enumerated(EnumType.STRING)
     ChoiceValue choiceValue;
+    boolean active;
 }

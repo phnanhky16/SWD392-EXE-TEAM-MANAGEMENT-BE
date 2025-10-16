@@ -40,5 +40,6 @@ public class Group {
     Semester semester;
 
     LocalDateTime createdAt;
+    boolean active;
 }
 

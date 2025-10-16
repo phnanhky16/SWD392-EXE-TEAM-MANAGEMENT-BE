@@ -28,4 +28,5 @@ public class Message {
 
     @Column(columnDefinition = "TEXT")
     String messageText;
+    boolean active;
 }
