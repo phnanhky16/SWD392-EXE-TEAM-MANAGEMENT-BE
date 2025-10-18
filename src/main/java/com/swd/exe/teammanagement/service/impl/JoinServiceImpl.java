@@ -56,9 +56,9 @@ public class JoinServiceImpl implements JoinService {
                     .build());
             postRepository.deletePostByUser(user);
             groupRepository.save(group);
-            sendNotification(user, "🎉 Bạn đã tạo nhóm thành công!", NotificationType.SYSTEM);
-            messagingTemplate.convertAndSend("/topic/groups",
-                    "Group " + group.getTitle() + " đã được tạo bởi " + user.getFullName());
+//            sendNotification(user, "🎉 Bạn đã tạo nhóm thành công!", NotificationType.SYSTEM);
+//            messagingTemplate.convertAndSend("/topic/groups",
+//                    "Group " + group.getTitle() + " đã được tạo bởi " + user.getFullName());
             return null;
         }
         if (group.getStatus() == GroupStatus.ACTIVE) {
@@ -73,19 +73,19 @@ public class JoinServiceImpl implements JoinService {
                     .status(JoinStatus.ACCEPTED)
                     .build());
             postRepository.deletePostByUser(user);
-            List<User> members = groupMemberRepository.findUsersByGroup(group);
-            for (User member : members) {
-                if (!member.getId().equals(user.getId())) {
-                    sendNotification(member,
-                            "👋 Thành viên mới " + user.getFullName() + " vừa tham gia nhóm " + group.getTitle(),
-                            NotificationType.JOIN_ACCEPTED);
-                }
-            }
-            sendNotification(user,
-                    "🎉 Bạn đã tham gia thành công nhóm " + group.getTitle(),
-                    NotificationType.SYSTEM);
-            messagingTemplate.convertAndSend("/topic/group/" + groupId,
-                    "User " + user.getFullName() + " joined the group");
+//            List<User> members = groupMemberRepository.findUsersByGroup(group);
+//            for (User member : members) {
+//                if (!member.getId().equals(user.getId())) {
+//                    sendNotification(member,
+//                            "👋 Thành viên mới " + user.getFullName() + " vừa tham gia nhóm " + group.getTitle(),
+//                            NotificationType.JOIN_ACCEPTED);
+//                }
+//            }
+//            sendNotification(user,
+//                    "🎉 Bạn đã tham gia thành công nhóm " + group.getTitle(),
+//                    NotificationType.SYSTEM);
+//            messagingTemplate.convertAndSend("/topic/group/" + groupId,
+//                    "User " + user.getFullName() + " joined the group");
             return null;
         }
         joinRequest(groupId, user.getId());
@@ -107,18 +107,18 @@ public class JoinServiceImpl implements JoinService {
                 .fromUser(user)
                 .status(JoinStatus.PENDING)
                 .build());
-        List<User> members = groupMemberRepository.findUsersByGroup(group);
-        for (User member : members) {
-            sendNotification(member,
-                    "📨 " + user.getFullName() + " đã gửi yêu cầu tham gia nhóm " + group.getTitle(),
-                    NotificationType.JOIN_REQUEST);
-        }
-        sendNotification(user,
-                "✅ Yêu cầu tham gia nhóm " + group.getTitle() + " đã được gửi.",
-                NotificationType.SYSTEM);
+//        List<User> members = groupMemberRepository.findUsersByGroup(group);
+//        for (User member : members) {
+//            sendNotification(member,
+//                    "📨 " + user.getFullName() + " đã gửi yêu cầu tham gia nhóm " + group.getTitle(),
+//                    NotificationType.JOIN_REQUEST);
+//        }
+//        sendNotification(user,
+//                "✅ Yêu cầu tham gia nhóm " + group.getTitle() + " đã được gửi.",
+//                NotificationType.SYSTEM);
         voteService.voteJoin(groupId, userId);
-        messagingTemplate.convertAndSend("/topic/group/" + groupId,
-                "📢 " + user.getFullName() + " has requested to join the group.");
+//        messagingTemplate.convertAndSend("/topic/group/" + groupId,
+//                "📢 " + user.getFullName() + " has requested to join the group.");
         return null;
     }
 
