@@ -54,9 +54,9 @@ public class VoteServiceImpl implements VoteService {
 
         Vote savedVote = voteRepository.save(vote);
 
-        // 🛰️ Gửi thông báo real-time tới tất cả trong nhóm
-        messagingTemplate.convertAndSend("/topic/group/" + groupId,
-                "📢 Vote mới: " + savedVote.getTopic());
+//        // 🛰️ Gửi thông báo real-time tới tất cả trong nhóm
+//        messagingTemplate.convertAndSend("/topic/group/" + groupId,
+//                "📢 Vote mới: " + savedVote.getTopic());
 
         return savedVote;
     }
@@ -76,9 +76,9 @@ public class VoteServiceImpl implements VoteService {
 
         VoteChoice savedChoice = voteChoiceRepository.save(voteChoice);
 
-        // 🛰️ Thông báo real-time tới group
-        messagingTemplate.convertAndSend("/topic/group/" + vote.getGroup().getId(),
-                "🗳️ " + user.getFullName() + " đã vote " + choiceValue + " cho " + vote.getTopic());
+//        // 🛰️ Thông báo real-time tới group
+//        messagingTemplate.convertAndSend("/topic/group/" + vote.getGroup().getId(),
+//                "🗳️ " + user.getFullName() + " đã vote " + choiceValue + " cho " + vote.getTopic());
 
         return savedChoice;
     }
@@ -119,23 +119,23 @@ public class VoteServiceImpl implements VoteService {
                     .status(JoinStatus.ACCEPTED)
                     .build());
 
-            // 🔔 Gửi notification cho người được chấp nhận
-            sendNotification(vote.getTargetUser(),
-                    "🎉 Bạn đã được chấp nhận vào nhóm " + group.getTitle(),
-                    NotificationType.JOIN_ACCEPTED);
+//            // 🔔 Gửi notification cho người được chấp nhận
+//            sendNotification(vote.getTargetUser(),
+//                    "🎉 Bạn đã được chấp nhận vào nhóm " + group.getTitle(),
+//                    NotificationType.JOIN_ACCEPTED);
 
-            // 🔔 Gửi notification cho các thành viên group
-            for (User member : members) {
-                if (!member.getId().equals(vote.getTargetUser().getId())) {
-                    sendNotification(member,
-                            "✅ " + vote.getTargetUser().getFullName() + " đã được chấp nhận vào nhóm " + group.getTitle(),
-                            NotificationType.JOIN_ACCEPTED);
-                }
-            }
-
-            // 🛰️ Gửi WebSocket thông báo tới group
-            messagingTemplate.convertAndSend("/topic/group/" + group.getId(),
-                    "✅ " + vote.getTargetUser().getFullName() + " đã được chấp nhận vào nhóm.");
+//            // 🔔 Gửi notification cho các thành viên group
+//            for (User member : members) {
+//                if (!member.getId().equals(vote.getTargetUser().getId())) {
+//                    sendNotification(member,
+//                            "✅ " + vote.getTargetUser().getFullName() + " đã được chấp nhận vào nhóm " + group.getTitle(),
+//                            NotificationType.JOIN_ACCEPTED);
+//                }
+//            }
+//
+//            // 🛰️ Gửi WebSocket thông báo tới group
+//            messagingTemplate.convertAndSend("/topic/group/" + group.getId(),
+//                    "✅ " + vote.getTargetUser().getFullName() + " đã được chấp nhận vào nhóm.");
 
         } else { // ❌ Bị từ chối
             joinRepository.save(Join.builder()
@@ -144,12 +144,12 @@ public class VoteServiceImpl implements VoteService {
                     .status(JoinStatus.REJECTED)
                     .build());
 
-            sendNotification(vote.getTargetUser(),
-                    "❌ Yêu cầu tham gia nhóm " + group.getTitle() + " đã bị từ chối.",
-                    NotificationType.JOIN_REJECTED);
-
-            messagingTemplate.convertAndSend("/topic/group/" + group.getId(),
-                    "❌ " + vote.getTargetUser().getFullName() + " bị từ chối tham gia nhóm.");
+//            sendNotification(vote.getTargetUser(),
+//                    "❌ Yêu cầu tham gia nhóm " + group.getTitle() + " đã bị từ chối.",
+//                    NotificationType.JOIN_REJECTED);
+//
+//            messagingTemplate.convertAndSend("/topic/group/" + group.getId(),
+//                    "❌ " + vote.getTargetUser().getFullName() + " bị từ chối tham gia nhóm.");
         }
     }
 
