@@ -84,6 +84,15 @@ public class GroupController {
     }
 
     @Operation(
+            summary = "Get group leader",
+            description = "Retrieve the leader of a specific group by group ID"
+    )
+    @GetMapping("/{groupId}/leader")
+    public ApiResponse<UserResponse> getGroupLeader(@PathVariable Long groupId) {
+        return ApiResponse.success("Get group leader successfully", groupService.getGroupLeader(groupId));
+    }
+
+    @Operation(
             summary = "Get group member count",
             description = "Get the total number of members in a specific group"
     )
