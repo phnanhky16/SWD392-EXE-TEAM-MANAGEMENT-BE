@@ -316,7 +316,7 @@ public class GroupServiceImpl implements GroupService {
             String title = "Group EXE " + semester.getName() + " #" + i;
             Group group = Group.builder()
                     .title(title)
-                    .description("Empty group created in " + semester + " semester")
+                    .description("Empty group created in " + semester.getName() + " semester")
                     .semester(semester)
                     .type(GroupType.PUBLIC)
                     .status(GroupStatus.FORMING)
