@@ -16,6 +16,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/users")
@@ -101,4 +104,13 @@ public class UserController {
       public ApiResponse<UserResponse> updateRoleForLecturer(@PathVariable Long id) {
           return ApiResponse.success("Update role successfully", userService.updateRole(id));
       }
+    @PostMapping("/{id}/avatar")
+    public UserResponse uploadAvatar(@PathVariable Long id, @RequestParam("file") MultipartFile avatar) throws IOException {
+        return userService.uploadAvatar(id, avatar);
+    }
+
+    @PostMapping("/{id}/cv")
+    public UserResponse uploadCV(@PathVariable Long id, @RequestParam("file") MultipartFile cvFile) throws IOException {
+        return userService.uploadCV(id, cvFile);
+    }
 }

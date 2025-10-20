@@ -27,3 +27,9 @@ fcm:
   token-uri: ${FCM_TOKEN_URI}
   auth-provider-x509-cert-url: ${FCM_AUTH_PROVIDER_CERT_URL}
   client-x509-cert-url: ${FCM_CLIENT_CERT_URL}
+
+cloudinary:
+  cloud_name: ${CLOUDINARY_CLOUD_NAME}
+  api_key: ${CLOUDINARY_API_KEY}
+  api_secret: ${CLOUDINARY_API_SECRET}
+  secure: ${CLOUDINARY_SECURE}

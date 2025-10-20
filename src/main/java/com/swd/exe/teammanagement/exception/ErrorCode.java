@@ -59,6 +59,7 @@ public enum ErrorCode {
     GROUP_NOT_ENOUGH_MEMBER("Group must have at least 5 members", HttpStatus.BAD_REQUEST),
     TEACHER_OVERLOAD("Teacher has reached the maximum number of groups they can supervise", HttpStatus.BAD_REQUEST),
     TEACHER_ASSIGNED("Teacher has already been assigned to this group", HttpStatus.BAD_REQUEST),
+    INVALID_FILE_TYPE("Invalid file type", HttpStatus.BAD_REQUEST),
     ;
 
     private final String message;

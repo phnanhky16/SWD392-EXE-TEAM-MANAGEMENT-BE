@@ -11,6 +11,7 @@ import com.swd.exe.teammanagement.exception.ErrorCode;
 import com.swd.exe.teammanagement.mapper.UserMapper;
 import com.swd.exe.teammanagement.repository.MajorRepository;
 import com.swd.exe.teammanagement.repository.UserRepository;
+import com.swd.exe.teammanagement.service.CloudinaryService;
 import com.swd.exe.teammanagement.service.UserService;
 import com.swd.exe.teammanagement.spec.UserSpecs;
 import com.swd.exe.teammanagement.util.PageUtil;
@@ -24,8 +25,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -35,6 +39,7 @@ public class UserServiceImpl implements UserService {
     UserRepository userRepository;
     UserMapper userMapper;
     MajorRepository majorRepository;
+    CloudinaryService cloudinaryService;
 
     @Override
     public UserResponse getUserById(Long id) {
@@ -127,6 +132,40 @@ public class UserServiceImpl implements UserService {
         Page<User> p = userRepository.findAll(spec, pageable);
 
         return PageUtil.toResponse(p, userMapper::toUserResponse);
+    }
+
+    @Override
+    public UserResponse uploadAvatar(Long userId, MultipartFile avatar) throws IOException {
+        if (avatar.isEmpty() || !avatar.getContentType().startsWith("image/")) {
+            throw new AppException(ErrorCode.INVALID_FILE_TYPE);
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
+
+        Map<String, Object> uploadResult = cloudinaryService.uploadImage(avatar, "avatars");
+
+        user.setAvatarUrl((String) uploadResult.get("secure_url"));
+        userRepository.save(user);
+
+        return userMapper.toUserResponse(user);
+    }
+
+    @Override
+    public UserResponse uploadCV(Long userId, MultipartFile cvFile) throws IOException {
+        if (cvFile.isEmpty() || !cvFile.getOriginalFilename().toLowerCase().endsWith(".pdf")) {
+            throw new AppException(ErrorCode.INVALID_FILE_TYPE);
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
+
+        Map<String, Object> uploadResult = cloudinaryService.uploadFile(cvFile, "cv");
+
+        user.setCvUrl((String) uploadResult.get("secure_url"));
+        userRepository.save(user);
+
+        return userMapper.toUserResponse(user);
     }
 
 }
