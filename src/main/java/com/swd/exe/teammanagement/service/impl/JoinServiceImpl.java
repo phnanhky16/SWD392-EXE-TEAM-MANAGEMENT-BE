@@ -2,6 +2,7 @@ package com.swd.exe.teammanagement.service.impl;
 
 import com.swd.exe.teammanagement.entity.*;
 import com.swd.exe.teammanagement.enums.group.GroupStatus;
+import com.swd.exe.teammanagement.enums.group.GroupType;
 import com.swd.exe.teammanagement.enums.idea_join_post_score.JoinStatus;
 import com.swd.exe.teammanagement.enums.notification.NotificationStatus;
 import com.swd.exe.teammanagement.enums.notification.NotificationType;
@@ -42,6 +43,9 @@ public class JoinServiceImpl implements JoinService {
         }
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+        if(group.getStatus().equals(GroupStatus.LOCKED)){
+            throw new AppException(ErrorCode.GROUP_LOCKED);
+        }
         if (group.getStatus() == GroupStatus.FORMING) {
             group.setStatus(GroupStatus.ACTIVE);
             groupMemberRepository.save(GroupMember.builder()
@@ -61,7 +65,7 @@ public class JoinServiceImpl implements JoinService {
 //                    "Group " + group.getTitle() + " đã được tạo bởi " + user.getFullName());
             return null;
         }
-        if (group.getStatus() == GroupStatus.ACTIVE) {
+        if (group.getStatus() == GroupStatus.ACTIVE && group.getType().equals(GroupType.PUBLIC)) {
             groupMemberRepository.save(GroupMember.builder()
                     .group(group)
                     .user(user)
@@ -87,6 +91,7 @@ public class JoinServiceImpl implements JoinService {
 //            messagingTemplate.convertAndSend("/topic/group/" + groupId,
 //                    "User " + user.getFullName() + " joined the group");
             return null;
+
         }
         joinRequest(groupId, user.getId());
         postRepository.deletePostByUser(user);
