@@ -49,7 +49,7 @@ public class VoteServiceImpl implements VoteService {
                 .topic("User " + joinUser.getFullName() + " muốn tham gia nhóm " + group.getTitle())
                 .status(VoteStatus.OPEN)
                 .targetUser(joinUser)
-                .closedAt(LocalDateTime.now().plusMinutes(6))
+                .closedAt(LocalDateTime.now().plusDays(1))
                 .build();
 
         Vote savedVote = voteRepository.save(vote);
