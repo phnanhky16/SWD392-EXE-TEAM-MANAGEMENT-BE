@@ -311,6 +311,9 @@ public class GroupServiceImpl implements GroupService {
         if (size <= 0) size = 1;
         Semester semester = semesterRepository.findById(semesterId)
                 .orElseThrow(() -> new AppException(ErrorCode.SEMESTER_UNEXISTED));
+        if(semester.getActive()==false){
+            throw new AppException(ErrorCode.SEMESTER_NOT_ACTIVE);
+        }
         int count = getGroupsBySemester(semesterId).size();
         for (int i = count + 1; i <= size + count; i++) {
             String title = "Group EXE " + semester.getName() + " #" + i;
