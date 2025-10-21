@@ -14,5 +14,4 @@ import jakarta.validation.constraints.NotBlank;
 public class SemesterRequest {
     @NotBlank
     String name;
-    Boolean active;
 }
