@@ -31,7 +31,7 @@ public class SemesterServiceImpl implements SemesterService {
         }
         Semester semester = Semester.builder()
                 .name(request.getName())
-                .active(request.getActive())
+                .active(false)
                 .build();
         semesterRepository.save(semester);
         return semesterMapper.toSemesterResponse(semester);

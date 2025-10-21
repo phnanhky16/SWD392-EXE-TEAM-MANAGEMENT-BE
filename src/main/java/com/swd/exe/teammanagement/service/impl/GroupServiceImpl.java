@@ -309,9 +309,9 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public Void createGroup(int size,long semesterId) {
         if (size <= 0) size = 1;
-        int count = getCurrentGroupList().size();
         Semester semester = semesterRepository.findById(semesterId)
                 .orElseThrow(() -> new AppException(ErrorCode.SEMESTER_UNEXISTED));
+        int count = getGroupsBySemester(semesterId).size();
         for (int i = count + 1; i <= size + count; i++) {
             String title = "Group EXE " + semester.getName() + " #" + i;
             Group group = Group.builder()
