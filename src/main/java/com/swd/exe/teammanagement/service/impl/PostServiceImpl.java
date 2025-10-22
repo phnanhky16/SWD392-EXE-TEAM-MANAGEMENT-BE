@@ -1,7 +1,9 @@
 package com.swd.exe.teammanagement.service.impl;
 
 import com.swd.exe.teammanagement.dto.request.PostRequest;
+import com.swd.exe.teammanagement.dto.response.GroupResponse;
 import com.swd.exe.teammanagement.dto.response.PostResponse;
+import com.swd.exe.teammanagement.dto.response.UserResponse;
 import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.GroupMember;
 import com.swd.exe.teammanagement.entity.Post;
@@ -50,6 +52,7 @@ public class PostServiceImpl implements PostService {
             post.setCreatedAt(LocalDateTime.now());
             post.setType(PostType.FIND_GROUP);
             post.setUser(user);
+            post.setActive(true);
             postRepository.save(post);
         }else{
             GroupMember gm = groupMemberRepository.findByUser(user).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
@@ -64,6 +67,7 @@ public class PostServiceImpl implements PostService {
             post.setCreatedAt(LocalDateTime.now());
             post.setType(PostType.FIND_MEMBER);
             post.setGroup(group);
+            post.setActive(true);
             postRepository.save(post);
         }
         return PostResponse.builder().id(post.getId()).content(post.getContent()).createdAt(post.getCreatedAt()).type(post.getType()).userResponse(userMapper.toUserResponse(post.getUser())).groupResponse(groupMapper.toGroupResponse(post.getGroup())).build();
@@ -77,7 +81,17 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<PostResponse> getAllPosts() {
-        return postMapper.toPostResponseList(postRepository.findAll());
+        List<Post> posts = postRepository.findAll();
+        return posts.stream()
+                .map(post -> PostResponse.builder()
+                        .id(post.getId())
+                        .content(post.getContent())
+                        .createdAt(post.getCreatedAt())
+                        .groupResponse(groupMapper.toGroupResponse(post.getGroup()))
+                        .userResponse(userMapper.toUserResponse(post.getUser()))
+                        .type(post.getType())
+                        .build())
+                .toList();
     }
 
     @Override
