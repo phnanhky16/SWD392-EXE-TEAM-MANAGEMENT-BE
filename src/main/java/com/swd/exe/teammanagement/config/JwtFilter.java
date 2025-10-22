@@ -68,10 +68,11 @@ public class JwtFilter extends OncePerRequestFilter {
             }
 
             var claims = jwtService.parse(token);
+            String subject = Optional.ofNullable(claims.getSubject()).orElse(null); // user id as string
             String email = Optional.ofNullable(claims.get("email", String.class)).orElse(null);
             String role  = Optional.ofNullable(claims.get("role", String.class)).orElse("").toUpperCase();
 
-            if (email == null || role.isEmpty()) {
+            if (subject == null || subject.isBlank() || role.isEmpty()) {
                 returnUnauthorized(response, "Invalid token payload");
                 return;
             }
@@ -81,7 +82,7 @@ public class JwtFilter extends OncePerRequestFilter {
             List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
 
             var authentication =
-                    new UsernamePasswordAuthenticationToken(email, null, authorities);
+                    new UsernamePasswordAuthenticationToken(subject, null, authorities);
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);

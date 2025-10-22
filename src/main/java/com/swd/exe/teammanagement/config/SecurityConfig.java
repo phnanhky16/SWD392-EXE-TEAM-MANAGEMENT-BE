@@ -31,7 +31,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/**",
                                 "/swagger-ui.html", "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/ws/**" // Cho phép WebSocket endpoint
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
