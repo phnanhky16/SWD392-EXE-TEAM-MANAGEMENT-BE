@@ -112,13 +112,10 @@ public class VoteServiceImpl implements VoteService {
                     .membershipRole(MembershipRole.MEMBER)
                             .active(true)
                     .build());
-
-            joinRepository.save(Join.builder()
-                    .toGroup(group)
-                    .fromUser(vote.getTargetUser())
-                    .status(JoinStatus.ACCEPTED)
-                            .active(true)
-                    .build());
+            Join join = joinRepository.findJoinByFromUserAndToGroup(vote.getTargetUser(), group)
+                    .orElseThrow(() -> new AppException(ErrorCode.JOIN_REQUEST_NOT_FOUND));
+            join.setStatus(JoinStatus.ACCEPTED);
+            joinRepository.save(join);
 
 //            // 🔔 Gửi notification cho người được chấp nhận
 //            sendNotification(vote.getTargetUser(),
@@ -139,11 +136,10 @@ public class VoteServiceImpl implements VoteService {
 //                    "✅ " + vote.getTargetUser().getFullName() + " đã được chấp nhận vào nhóm.");
 
         } else { // ❌ Bị từ chối
-            joinRepository.save(Join.builder()
-                    .toGroup(group)
-                    .fromUser(vote.getTargetUser())
-                    .status(JoinStatus.REJECTED).active(true)
-                    .build());
+            Join join = joinRepository.findJoinByFromUserAndToGroup(vote.getTargetUser(), group)
+                    .orElseThrow(() -> new AppException(ErrorCode.JOIN_REQUEST_NOT_FOUND));
+            join.setStatus(JoinStatus.REJECTED);
+            joinRepository.save(join);
 
 //            sendNotification(vote.getTargetUser(),
 //                    "❌ Yêu cầu tham gia nhóm " + group.getTitle() + " đã bị từ chối.",
