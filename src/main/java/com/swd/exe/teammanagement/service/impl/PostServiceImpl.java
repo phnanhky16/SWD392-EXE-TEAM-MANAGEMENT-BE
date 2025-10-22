@@ -43,8 +43,8 @@ public class PostServiceImpl implements PostService {
             if (groupMemberRepository.existsByUser(user)) {
                 throw new AppException(ErrorCode.USER_ALREADY_IN_GROUP);
             }
-            if (postRepository.countPostByUser(user) == 1) {
-                throw new AppException(ErrorCode.JUST_ONE_POST_ONE_MEMBER);
+            if (postRepository.countPostByUserAndActive(user,true) == 1) {
+                throw new AppException(ErrorCode.POST_ALREADY_ACTIVE);
             }
             post.setContent(request.getContent());
             post.setCreatedAt(LocalDateTime.now());
@@ -57,8 +57,8 @@ public class PostServiceImpl implements PostService {
                 throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
             }
             Group group = gm.getGroup();
-            if (postRepository.countPostByGroup(group) == 1) {
-                throw new AppException(ErrorCode.JUST_ONE_POST_ONE_GROUP);
+            if (postRepository.countPostByGroupAndActive(group,true) == 1) {
+                throw new AppException(ErrorCode.POST_ALREADY_ACTIVE);
             }
             post.setContent(request.getContent());
             post.setCreatedAt(LocalDateTime.now());
@@ -68,41 +68,6 @@ public class PostServiceImpl implements PostService {
         }
         return PostResponse.builder().id(post.getId()).content(post.getContent()).createdAt(post.getCreatedAt()).type(post.getType()).userResponse(userMapper.toUserResponse(post.getUser())).groupResponse(groupMapper.toGroupResponse(post.getGroup())).build();
     }
-
-//    @Override
-//    // Create post to find member, only group leader can create this type of post
-//    public PostResponse createPostToFindMember(PostRequest request) {
-//        Post post = postMapper.toPost(request);
-//        User user = getCurrentUser();
-//        GroupMember gm = groupMemberRepository.findByUser(user).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
-//        if (gm.getMembershipRole() != MembershipRole.LEADER) {
-//            throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
-//        }
-//        Group group = gm.getGroup();
-//        if (postRepository.countPostByGroup(group) == 1) {
-//            throw new AppException(ErrorCode.JUST_ONE_POST_ONE_GROUP);
-//        }
-//        post.setGroup(group);
-//        post.setType(PostType.FIND_MEMBER);
-//        post.setCreatedAt(LocalDateTime.now());
-//        return postMapper.toPostResponse(postRepository.save(post));
-//    }
-//
-//    @Override
-//    public PostResponse createPostToFindGroup(PostRequest request) {
-//        Post post = postMapper.toPost(request);
-//        User user = getCurrentUser();
-//        if (groupMemberRepository.existsByUser(user)) {
-//            throw new AppException(ErrorCode.USER_ALREADY_IN_GROUP);
-//        }
-//        if (postRepository.countPostByUser(user) == 1) {
-//            throw new AppException(ErrorCode.JUST_ONE_POST_ONE_MEMBER);
-//        }
-//        post.setUser(user);
-//        post.setType(PostType.FIND_GROUP);
-//        post.setCreatedAt(LocalDateTime.now());
-//        return postMapper.toPostResponse(postRepository.save(post));
-//    }
 
     @Override
     public PostResponse getPostById(Long id) {
@@ -119,11 +84,24 @@ public class PostServiceImpl implements PostService {
     public Void deletePost(Long id) {
         User user = getCurrentUser();
         Post post = postRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.POST_UNEXISTED));
-        if (!post.getUser().getId().equals(user.getId())) {
-            throw new AppException(ErrorCode.DOES_NOT_DELETE_OTHER_USER_POST);
+        if (post.getGroup()==null) {
+            if(post.getUser().equals(user)){
+                post.setActive(!post.isActive());
+                postRepository.save(post);
+                return null;
+            }
+        }else{
+            GroupMember gm = groupMemberRepository.findByUser(user).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
+            if (gm.getMembershipRole() != MembershipRole.LEADER) {
+                throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
+            }
+            if(!post.getGroup().equals(gm.getGroup())){
+                throw new AppException(ErrorCode.POST_OF_ANOTHER_GROUP);
+            }
+            post.setActive(!post.isActive());
+            postRepository.save(post);
+            return null;
         }
-        postRepository.delete(post);
-        commentRepository.deleteByPost(post);
         return null;
     }
 

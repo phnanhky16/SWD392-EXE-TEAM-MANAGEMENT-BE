@@ -173,8 +173,6 @@ public class VoteServiceImpl implements VoteService {
 
             // 🧠 Nếu tất cả thành viên đã vote HOẶC đã tới thời gian đóng
             if (allVoted || timeExpired) {
-                vote.setStatus(VoteStatus.CLOSED);
-                voteRepository.save(vote);
 
                 try {
                     processVoteResult(vote);
