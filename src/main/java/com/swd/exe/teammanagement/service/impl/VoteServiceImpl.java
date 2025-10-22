@@ -160,13 +160,25 @@ public class VoteServiceImpl implements VoteService {
         LocalDateTime now = LocalDateTime.now();
 
         for (Vote vote : openVotes) {
-            if (vote.getClosedAt() != null && now.isAfter(vote.getClosedAt())) {
+            Group group = vote.getGroup();
+            List<User> members = groupMemberRepository.findUsersByGroup(group);
+            List<VoteChoice> voteChoices = voteChoiceRepository.findByVote(vote);
+
+            int totalMembers = members.size();
+            int totalVotes = voteChoices.size();
+
+            boolean allVoted = totalVotes >= totalMembers;
+            boolean timeExpired = vote.getClosedAt() != null && now.isAfter(vote.getClosedAt());
+
+            // 🧠 Nếu tất cả thành viên đã vote HOẶC đã tới thời gian đóng
+            if (allVoted || timeExpired) {
                 vote.setStatus(VoteStatus.CLOSED);
                 voteRepository.save(vote);
 
                 try {
                     processVoteResult(vote);
-                    System.out.println("Vote " + vote.getId() + " đã được auto xử lý.");
+                    System.out.println("Vote " + vote.getId() + " đã được auto xử lý "
+                            + (allVoted ? "(đóng sớm do đủ lượt vote)" : "(đóng do hết hạn)"));
                 } catch (Exception e) {
                     System.err.println("Lỗi xử lý vote " + vote.getId() + ": " + e.getMessage());
                 }
