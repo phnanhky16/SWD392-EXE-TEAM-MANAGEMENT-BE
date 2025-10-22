@@ -11,4 +11,5 @@ import lombok.experimental.FieldDefaults;
 public class MajorResponse {
     Long id;
     String name;
+    boolean active;
 }

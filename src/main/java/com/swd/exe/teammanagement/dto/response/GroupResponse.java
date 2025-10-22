@@ -23,4 +23,6 @@ public class GroupResponse {
     GroupType type;
     GroupStatus status;
     LocalDateTime createdAt;
+    boolean active;
+
 }

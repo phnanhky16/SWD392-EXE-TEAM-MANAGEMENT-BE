@@ -52,10 +52,12 @@ public class JoinServiceImpl implements JoinService {
                     .group(group)
                     .user(user)
                     .membershipRole(MembershipRole.LEADER)
+                            .active(true)
                     .build());
             joinRepository.save(Join.builder()
                     .toGroup(group)
                     .fromUser(user)
+                            .active(true)
                     .status(JoinStatus.ACCEPTED)
                     .build());
             postRepository.deletePostByUser(user);
@@ -70,11 +72,13 @@ public class JoinServiceImpl implements JoinService {
                     .group(group)
                     .user(user)
                     .membershipRole(MembershipRole.MEMBER)
+                            .active(true)
                     .build());
             joinRepository.save(Join.builder()
                     .toGroup(group)
                     .fromUser(user)
                     .status(JoinStatus.ACCEPTED)
+                            .active(true)
                     .build());
             postRepository.deletePostByUser(user);
 //            List<User> members = groupMemberRepository.findUsersByGroup(group);
@@ -111,6 +115,7 @@ public class JoinServiceImpl implements JoinService {
                 .toGroup(group)
                 .fromUser(user)
                 .status(JoinStatus.PENDING)
+                .active(true)
                 .build());
 //        List<User> members = groupMemberRepository.findUsersByGroup(group);
 //        for (User member : members) {

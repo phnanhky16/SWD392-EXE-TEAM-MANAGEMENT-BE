@@ -48,7 +48,7 @@ public class VoteServiceImpl implements VoteService {
                 .group(group)
                 .topic("User " + joinUser.getFullName() + " muốn tham gia nhóm " + group.getTitle())
                 .status(VoteStatus.OPEN)
-                .targetUser(joinUser)
+                .targetUser(joinUser).active(true)
                 .closedAt(LocalDateTime.now().plusDays(1))
                 .build();
 
@@ -71,7 +71,7 @@ public class VoteServiceImpl implements VoteService {
         VoteChoice voteChoice = VoteChoice.builder()
                 .choiceValue(choiceValue)
                 .vote(vote)
-                .user(user)
+                .user(user).active(true)
                 .build();
 
         VoteChoice savedChoice = voteChoiceRepository.save(voteChoice);
@@ -111,12 +111,14 @@ public class VoteServiceImpl implements VoteService {
                     .group(group)
                     .user(vote.getTargetUser())
                     .membershipRole(MembershipRole.MEMBER)
+                            .active(true)
                     .build());
 
             joinRepository.save(Join.builder()
                     .toGroup(group)
                     .fromUser(vote.getTargetUser())
                     .status(JoinStatus.ACCEPTED)
+                            .active(true)
                     .build());
 
 //            // 🔔 Gửi notification cho người được chấp nhận
@@ -141,7 +143,7 @@ public class VoteServiceImpl implements VoteService {
             joinRepository.save(Join.builder()
                     .toGroup(group)
                     .fromUser(vote.getTargetUser())
-                    .status(JoinStatus.REJECTED)
+                    .status(JoinStatus.REJECTED).active(true)
                     .build());
 
 //            sendNotification(vote.getTargetUser(),

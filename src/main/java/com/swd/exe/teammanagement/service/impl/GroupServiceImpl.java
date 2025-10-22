@@ -323,6 +323,7 @@ public class GroupServiceImpl implements GroupService {
                     .semester(semester)
                     .type(GroupType.PUBLIC)
                     .status(GroupStatus.FORMING)
+                    .active(true)
                     .createdAt(LocalDateTime.now())
                     .build();
             groupRepository.save(group);
