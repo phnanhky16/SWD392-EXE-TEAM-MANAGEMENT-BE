@@ -95,7 +95,6 @@ public class VoteServiceImpl implements VoteService {
     // 📊 Xử lý kết quả vote
     private void processVoteResult(Vote vote) {
         Group group = vote.getGroup();
-        List<User> members = groupMemberRepository.findUsersByGroup(group);
         List<VoteChoice> voteChoices = voteChoiceRepository.findByVote(vote);
 
         int yes = (int) voteChoices.stream().filter(v -> v.getChoiceValue() == ChoiceValue.YES).count();
