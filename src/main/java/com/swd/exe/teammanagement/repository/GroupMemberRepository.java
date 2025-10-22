@@ -19,7 +19,8 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
     boolean existsByUser(User user);
     int countByGroup(Group group);
 
-    List<User> findUsersByGroup(Group group);
+    @Query("SELECT gm.user FROM GroupMember gm WHERE gm.group = :group AND gm.active = true")
+    List<User> findUsersByGroup(@Param("group") Group group);
 
     void deleteByUser(User user);
 
