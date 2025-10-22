@@ -18,4 +18,8 @@ public interface PostRepository extends JpaRepository<Post,Long> {
     int countPostByUser(User user);
     @Transactional
     void deletePostByUser(User user);
+
+    double countPostByUserAndActive(User user, boolean active);
+
+    double countPostByGroupAndActive(Group group, boolean active);
 }

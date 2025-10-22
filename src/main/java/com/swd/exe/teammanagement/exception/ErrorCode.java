@@ -60,7 +60,10 @@ public enum ErrorCode {
     TEACHER_OVERLOAD("Teacher has reached the maximum number of groups they can supervise", HttpStatus.BAD_REQUEST),
     TEACHER_ASSIGNED("Teacher has already been assigned to this group", HttpStatus.BAD_REQUEST),
     INVALID_FILE_TYPE("Invalid file type", HttpStatus.BAD_REQUEST),
-    SEMESTER_NOT_ACTIVE("Semester is not active", HttpStatus.BAD_REQUEST)
+    SEMESTER_NOT_ACTIVE("Semester is not active", HttpStatus.BAD_REQUEST),
+    POST_OF_ANOTHER_GROUP("Post belongs to another group", HttpStatus.BAD_REQUEST),
+    POST_ALREADY_ACTIVE("You already have an active post. Please deactivate it before creating a new one.",HttpStatus.BAD_REQUEST),
+
     ;
 
     private final String message;
