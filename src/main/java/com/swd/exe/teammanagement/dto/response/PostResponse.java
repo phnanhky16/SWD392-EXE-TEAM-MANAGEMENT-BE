@@ -20,4 +20,5 @@ public class PostResponse {
     String content;
     PostType type;
     LocalDateTime createdAt;
+    boolean active;
 }

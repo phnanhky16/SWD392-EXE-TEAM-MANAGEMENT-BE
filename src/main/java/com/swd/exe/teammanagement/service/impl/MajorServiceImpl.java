@@ -36,6 +36,7 @@ public class MajorServiceImpl implements MajorService {
         return MajorResponse.builder()
                 .id(major.getId())
                 .name(major.getName())
+                .active(true)
                 .build();
     }
 
@@ -51,7 +52,8 @@ public class MajorServiceImpl implements MajorService {
     public Void deleteMajor(Long id) {
         Major major = majorRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.MAJOR_UNEXISTED));
-        majorRepository.delete(major);
+        major.setActive(!major.isActive());
+        majorRepository.save(major);
         return null;
     }
 
