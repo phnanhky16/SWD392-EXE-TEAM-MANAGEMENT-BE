@@ -75,8 +75,16 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostResponse getPostById(Long id) {
-        Post post = postRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.POST_UNEXISTED));
-        return postMapper.toPostResponse(post);
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.POST_UNEXISTED));
+        return PostResponse.builder()
+                .id(post.getId())
+                .content(post.getContent())
+                .createdAt(post.getCreatedAt())
+                .groupResponse(groupMapper.toGroupResponse(post.getGroup()))
+                .userResponse(userMapper.toUserResponse(post.getUser()))
+                .type(post.getType())
+                .build();
     }
 
     @Override
