@@ -136,7 +136,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse uploadAvatar(Long userId, MultipartFile avatar) throws IOException {
-        if (avatar.isEmpty() || !avatar.getContentType().startsWith("image/")) {
+        // Validate file
+        if (avatar.isEmpty()) {
+            throw new AppException(ErrorCode.INVALID_FILE_TYPE);
+        }
+
+        String contentType = avatar.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new AppException(ErrorCode.INVALID_FILE_TYPE);
+        }
+
+        // Check file size (max 5MB for avatar)
+        if (avatar.getSize() > 5 * 1024 * 1024) {
             throw new AppException(ErrorCode.INVALID_FILE_TYPE);
         }
 
@@ -153,7 +164,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse uploadCV(Long userId, MultipartFile cvFile) throws IOException {
-        if (cvFile.isEmpty() || !cvFile.getOriginalFilename().toLowerCase().endsWith(".pdf")) {
+        // Validate file
+        if (cvFile.isEmpty()) {
+            throw new AppException(ErrorCode.INVALID_FILE_TYPE);
+        }
+
+        String originalFilename = cvFile.getOriginalFilename();
+        if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".pdf")) {
+            throw new AppException(ErrorCode.INVALID_FILE_TYPE);
+        }
+
+        // Check file size (max 10MB for CV)
+        if (cvFile.getSize() > 10 * 1024 * 1024) {
             throw new AppException(ErrorCode.INVALID_FILE_TYPE);
         }
 
@@ -184,4 +206,17 @@ public class UserServiceImpl implements UserService {
                         .build())
                 .toList();
     }
+
+    @Override
+    public UserResponse uploadMyAvatar(MultipartFile avatar) throws IOException {
+        User currentUser = getCurrentUser();
+        return uploadAvatar(currentUser.getId(), avatar);
+    }
+
+    @Override
+    public UserResponse uploadMyCV(MultipartFile cvFile) throws IOException {
+        User currentUser = getCurrentUser();
+        return uploadCV(currentUser.getId(), cvFile);
+    }
+
 }

@@ -296,7 +296,7 @@ public class GroupServiceImpl implements GroupService {
             throw new AppException(ErrorCode.GROUP_NOT_DIVERSE);
         }
         List<GroupMember> gms = groupMemberRepository.findByGroup(group);
-        if(gms.size() < 5 || gms.size() > 6){
+        if(gms.size() < 1 || gms.size() > 6){
             throw  new AppException(ErrorCode.GROUP_NOT_ENOUGH_MEMBER);
         }
         group.setStatus(GroupStatus.LOCKED);

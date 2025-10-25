@@ -21,7 +21,8 @@ public class CorsConfig {
                 "http://localhost:5500",
                 "http://localhost:5173",
                 "https://swd392-exe-team-management-be.onrender.com",
-                "https://exe-groups.pages.dev"
+                "https://exe-groups.pages.dev",
+                "http://127.0.0.1:5501"
                  // nếu FE deploy ở domain khác, thêm domain đó
         ));
 
@@ -34,7 +35,7 @@ public class CorsConfig {
         config.setExposedHeaders(List.of("Authorization","Location"));
 
         // Nếu dùng cookie/session, bật dòng dưới và KHÔNG dùng "*" cho origins
-        // config.setAllowCredentials(true);
+        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

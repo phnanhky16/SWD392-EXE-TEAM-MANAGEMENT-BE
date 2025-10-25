@@ -42,4 +42,6 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
     GroupMember findByUserAndMembershipRole(User user, MembershipRole membershipRole);
 
     void deleteGroupMemberByGroup(Group group);
+
+    boolean existsByGroupAndUserAndActiveTrue(Group group, User user);
 }
