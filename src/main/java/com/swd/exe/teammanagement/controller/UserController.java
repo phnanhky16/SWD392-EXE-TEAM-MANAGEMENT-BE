@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -112,5 +113,9 @@ public class UserController {
     @PostMapping("/{id}/cv")
     public UserResponse uploadCV(@PathVariable Long id, @RequestParam("file") MultipartFile cvFile) throws IOException {
         return userService.uploadCV(id, cvFile);
+    }
+    @GetMapping("/no-group")
+    public ApiResponse<List<UserResponse>> getNoGroup() {
+          return ApiResponse.success("Get User List without group successfully",userService.getUserNoGroup());
     }
 }

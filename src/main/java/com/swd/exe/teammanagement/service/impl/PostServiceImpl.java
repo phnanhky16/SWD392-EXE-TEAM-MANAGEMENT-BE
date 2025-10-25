@@ -2,9 +2,7 @@ package com.swd.exe.teammanagement.service.impl;
 
 import com.swd.exe.teammanagement.dto.request.PostRequest;
 import com.swd.exe.teammanagement.dto.request.PostUpdateRequest;
-import com.swd.exe.teammanagement.dto.response.GroupResponse;
 import com.swd.exe.teammanagement.dto.response.PostResponse;
-import com.swd.exe.teammanagement.dto.response.UserResponse;
 import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.GroupMember;
 import com.swd.exe.teammanagement.entity.Post;
@@ -33,11 +31,9 @@ public class PostServiceImpl implements PostService {
     PostRepository postRepository;
     PostMapper postMapper;
     UserRepository userRepository;
-    CommentRepository commentRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final UserMapper userMapper;
     private final GroupMapper groupMapper;
-    private final GroupRepository groupRepository;
 
     @Override
     public PostResponse createPost(PostRequest request) {

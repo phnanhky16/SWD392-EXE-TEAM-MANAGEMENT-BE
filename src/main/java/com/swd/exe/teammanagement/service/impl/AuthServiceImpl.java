@@ -3,10 +3,14 @@ package com.swd.exe.teammanagement.service.impl;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.swd.exe.teammanagement.config.JwtService;
 import com.swd.exe.teammanagement.dto.response.AuthResponse;
+import com.swd.exe.teammanagement.entity.Notification;
 import com.swd.exe.teammanagement.entity.User;
+import com.swd.exe.teammanagement.enums.notification.NotificationStatus;
+import com.swd.exe.teammanagement.enums.notification.NotificationType;
 import com.swd.exe.teammanagement.enums.user.UserRole;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
+import com.swd.exe.teammanagement.repository.NotificationRepository;
 import com.swd.exe.teammanagement.repository.UserRepository;
 import com.swd.exe.teammanagement.service.AuthService;
 import com.swd.exe.teammanagement.service.FirebaseAuthService;
@@ -16,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Slf4j
@@ -27,6 +32,7 @@ public class AuthServiceImpl implements AuthService {
     FirebaseAuthService firebaseAuthService;
     UserRepository userRepository;
     JwtService jwtService;
+    NotificationRepository notificationRepository;
 
     @Transactional
     @Override
@@ -80,7 +86,7 @@ public class AuthServiceImpl implements AuthService {
             String studentCode = extractStudentCode(emailParts.localPart());
             newUser.setStudentCode(studentCode.toUpperCase());
         }
-
+        sendNotification(newUser,"Update your major",NotificationType.SYSTEM);
         return userRepository.save(newUser);
 
     }
@@ -138,4 +144,13 @@ public class AuthServiceImpl implements AuthService {
      * Record to hold email components
      */
     private record EmailParts(String localPart, String domain) {}
+    private void sendNotification(User user, String content, NotificationType type) {
+        notificationRepository.save(Notification.builder()
+                .receiver(user)
+                .content(content)
+                .type(type)
+                .status(NotificationStatus.UNREAD)
+                .createdAt(LocalDateTime.now())
+                .build());
+    }
 }

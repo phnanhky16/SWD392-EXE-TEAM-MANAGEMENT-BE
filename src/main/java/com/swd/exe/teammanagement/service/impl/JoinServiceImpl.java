@@ -46,6 +46,9 @@ public class JoinServiceImpl implements JoinService {
         if(group.getStatus().equals(GroupStatus.LOCKED)){
             throw new AppException(ErrorCode.GROUP_LOCKED);
         }
+        if(user.getMajor()==null){
+            throw new AppException(ErrorCode.UPDATE_MAJOR);
+        }
         if (group.getStatus() == GroupStatus.FORMING) {
             group.setStatus(GroupStatus.ACTIVE);
             groupMemberRepository.save(GroupMember.builder()
@@ -62,7 +65,7 @@ public class JoinServiceImpl implements JoinService {
                     .build());
             postRepository.deletePostByUser(user);
             groupRepository.save(group);
-//            sendNotification(user, "🎉 Bạn đã tạo nhóm thành công!", NotificationType.SYSTEM);
+            sendNotification(user, "🎉 Bạn đã tạo nhóm thành công!", NotificationType.SYSTEM);
 //            messagingTemplate.convertAndSend("/topic/groups",
 //                    "Group " + group.getTitle() + " đã được tạo bởi " + user.getFullName());
             return null;
@@ -81,17 +84,17 @@ public class JoinServiceImpl implements JoinService {
                             .active(true)
                     .build());
             postRepository.deletePostByUser(user);
-//            List<User> members = groupMemberRepository.findUsersByGroup(group);
-//            for (User member : members) {
-//                if (!member.getId().equals(user.getId())) {
-//                    sendNotification(member,
-//                            "👋 Thành viên mới " + user.getFullName() + " vừa tham gia nhóm " + group.getTitle(),
-//                            NotificationType.JOIN_ACCEPTED);
-//                }
-//            }
-//            sendNotification(user,
-//                    "🎉 Bạn đã tham gia thành công nhóm " + group.getTitle(),
-//                    NotificationType.SYSTEM);
+            List<User> members = groupMemberRepository.findUsersByGroup(group);
+            for (User member : members) {
+                if (!member.getId().equals(user.getId())) {
+                    sendNotification(member,
+                            "👋 Thành viên mới " + user.getFullName() + " vừa tham gia nhóm " + group.getTitle(),
+                            NotificationType.JOIN_ACCEPTED);
+                }
+            }
+            sendNotification(user,
+                    "🎉 Bạn đã tham gia thành công nhóm " + group.getTitle(),
+                    NotificationType.SYSTEM);
 //            messagingTemplate.convertAndSend("/topic/group/" + groupId,
 //                    "User " + user.getFullName() + " joined the group");
             return null;
@@ -117,15 +120,15 @@ public class JoinServiceImpl implements JoinService {
                 .status(JoinStatus.PENDING)
                 .active(true)
                 .build());
-//        List<User> members = groupMemberRepository.findUsersByGroup(group);
-//        for (User member : members) {
-//            sendNotification(member,
-//                    "📨 " + user.getFullName() + " đã gửi yêu cầu tham gia nhóm " + group.getTitle(),
-//                    NotificationType.JOIN_REQUEST);
-//        }
-//        sendNotification(user,
-//                "✅ Yêu cầu tham gia nhóm " + group.getTitle() + " đã được gửi.",
-//                NotificationType.SYSTEM);
+        List<User> members = groupMemberRepository.findUsersByGroup(group);
+        for (User member : members) {
+            sendNotification(member,
+                    "📨 " + user.getFullName() + " đã gửi yêu cầu tham gia nhóm " + group.getTitle(),
+                    NotificationType.JOIN_REQUEST);
+        }
+        sendNotification(user,
+                "✅ Yêu cầu tham gia nhóm " + group.getTitle() + " đã được gửi.",
+                NotificationType.SYSTEM);
         voteService.voteJoin(groupId, userId);
 //        messagingTemplate.convertAndSend("/topic/group/" + groupId,
 //                "📢 " + user.getFullName() + " has requested to join the group.");
