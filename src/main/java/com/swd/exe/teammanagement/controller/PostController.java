@@ -2,6 +2,7 @@ package com.swd.exe.teammanagement.controller;
 
 import java.util.List;
 
+import com.swd.exe.teammanagement.dto.request.PostUpdateRequest;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -103,7 +104,7 @@ public class PostController {
             description = "Update a recruitment post. Only the post author can update their own post."
     )
     @PutMapping("/{id}")
-    public ApiResponse<PostResponse> updatePost(@PathVariable Long id, @Valid @RequestBody PostRequest request) {
+    public ApiResponse<PostResponse> updatePost(@PathVariable Long id, @Valid @RequestBody PostUpdateRequest request) {
         return ApiResponse.success("Update post successfully", postService.updatePost(id, request));
     }
 }

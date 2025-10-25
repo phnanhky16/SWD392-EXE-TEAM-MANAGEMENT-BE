@@ -37,4 +37,8 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
     List<GroupMember> findByGroup(Group group);
 
     Optional<GroupMember> findByGroupAndMembershipRole(Group group, MembershipRole membershipRole);
+
+    boolean existsByUserAndMembershipRole(User user, MembershipRole membershipRole);
+
+    GroupMember findByUserAndMembershipRole(User user, MembershipRole membershipRole);
 }
