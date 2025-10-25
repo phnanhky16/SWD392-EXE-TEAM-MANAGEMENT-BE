@@ -11,7 +11,6 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> {
     boolean existsByGroupIdAndUserIdAndMembershipRole(Long groupId, Long userId, MembershipRole role);

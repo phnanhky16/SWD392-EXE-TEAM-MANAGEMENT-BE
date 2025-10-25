@@ -49,7 +49,6 @@ import lombok.experimental.FieldDefaults;
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = lombok.AccessLevel.PRIVATE)
 public class GroupServiceImpl implements GroupService {
-
     GroupRepository groupRepository;
     UserRepository userRepository;
     GroupMemberRepository groupMemberRepository;
