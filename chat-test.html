@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat Test - Team Management</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .chat-container {
+        width: 90%;
+        max-width: 1200px;
+        height: 80vh;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        display: flex;
+        overflow: hidden;
+      }
+
+      .sidebar {
+        width: 300px;
+        background: #f8f9fa;
+        border-right: 1px solid #e9ecef;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .user-info {
+        padding: 20px;
+        background: #007bff;
+        color: white;
+        text-align: center;
+      }
+
+      .user-info h3 {
+        margin-bottom: 5px;
+      }
+
+      .user-status {
+        font-size: 12px;
+        opacity: 0.8;
+      }
+
+      .online-users {
+        padding: 20px;
+        flex: 1;
+      }
+
+      .online-users h4 {
+        margin-bottom: 15px;
+        color: #495057;
+      }
+
+      .user-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        margin-bottom: 8px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #007bff;
+        margin-right: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+      }
+
+      .user-name {
+        flex: 1;
+        font-size: 14px;
+      }
+
+      .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #28a745;
+      }
+
+      .chat-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .chat-header {
+        padding: 20px;
+        background: #007bff;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .group-info h2 {
+        margin-bottom: 5px;
+      }
+
+      .group-members {
+        font-size: 12px;
+        opacity: 0.8;
+      }
+
+      .connection-status {
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .connection-status.connected {
+        background: #28a745;
+      }
+
+      .connection-status.disconnected {
+        background: #dc3545;
+      }
+
+      .messages-container {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background: #f8f9fa;
+      }
+
+      .message {
+        margin-bottom: 15px;
+        display: flex;
+        align-items: flex-start;
+      }
+
+      .message.own {
+        flex-direction: row-reverse;
+      }
+
+      .message-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #007bff;
+        margin: 0 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        flex-shrink: 0;
+      }
+
+      .message-content {
+        max-width: 70%;
+        background: white;
+        padding: 12px 16px;
+        border-radius: 18px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .message.own .message-content {
+        background: #007bff;
+        color: white;
+      }
+
+      .message-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+      }
+
+      .message-sender {
+        font-weight: bold;
+        font-size: 12px;
+        margin-right: 10px;
+      }
+
+      .message-time {
+        font-size: 10px;
+        opacity: 0.7;
+      }
+
+      .message-text {
+        line-height: 1.4;
+      }
+
+      .typing-indicator {
+        padding: 10px 20px;
+        font-style: italic;
+        color: #6c757d;
+        font-size: 14px;
+      }
+
+      .chat-input {
+        padding: 20px;
+        background: white;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        gap: 10px;
+      }
+
+      .message-input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid #dee2e6;
+        border-radius: 25px;
+        outline: none;
+        font-size: 14px;
+      }
+
+      .message-input:focus {
+        border-color: #007bff;
+      }
+
+      .send-button {
+        padding: 12px 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background 0.3s;
+      }
+
+      .send-button:hover {
+        background: #0056b3;
+      }
+
+      .send-button:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+      }
+
+      .login-form {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+
+      .login-box {
+        background: white;
+        padding: 40px;
+        border-radius: 15px;
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+      }
+
+      .login-box h2 {
+        margin-bottom: 30px;
+        color: #333;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+        text-align: left;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #555;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+      }
+
+      .login-button {
+        width: 100%;
+        padding: 12px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .login-button:hover {
+        background: #0056b3;
+      }
+
+      .error-message {
+        color: #dc3545;
+        font-size: 12px;
+        margin-top: 5px;
+      }
+
+      .success-message {
+        color: #28a745;
+        font-size: 12px;
+        margin-top: 5px;
+      }
+
+      @media (max-width: 768px) {
+        .chat-container {
+          width: 100%;
+          height: 100vh;
+          border-radius: 0;
+        }
+
+        .sidebar {
+          width: 250px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Login Form -->
+    <div id="loginForm" class="login-form">
+      <div class="login-box">
+        <h2>🔐 Đăng nhập Chat</h2>
+        <form id="loginFormElement">
+          <div class="form-group">
+            <label for="userId">User ID:</label>
+            <input
+              type="number"
+              id="userId"
+              placeholder="Nhập User ID"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="groupId">Group ID:</label>
+            <input
+              type="number"
+              id="groupId"
+              placeholder="Nhập Group ID"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="token">JWT Token (Bearer):</label>
+            <input
+              type="text"
+              id="token"
+              placeholder="Dán token vào đây"
+              required
+            />
+            <div style="font-size: 12px; color: #666; margin-top: 6px">
+              Token sẽ được gửi trong header Authorization
+            </div>
+          </div>
+          <button type="submit" class="login-button">🚀 Bắt đầu Chat</button>
+          <div
+            id="loginError"
+            class="error-message"
+            style="display: none"
+          ></div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div id="chatContainer" class="chat-container" style="display: none">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="user-info">
+          <h3 id="currentUserName">User</h3>
+          <div class="user-status" id="currentUserStatus">🟢 Online</div>
+        </div>
+        <div class="online-users">
+          <h4>👥 Thành viên online</h4>
+          <div id="onlineUsersList">
+            <!-- Online users will be populated here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Chat -->
+      <div class="chat-main">
+        <div class="chat-header">
+          <div class="group-info">
+            <h2 id="groupTitle">Group Chat</h2>
+            <div class="group-members" id="groupMembers">0 thành viên</div>
+          </div>
+          <div class="connection-status" id="connectionStatus">
+            🔴 Kết nối...
+          </div>
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+          <div class="message">
+            <div class="message-avatar">🤖</div>
+            <div class="message-content">
+              <div class="message-header">
+                <span class="message-sender">Hệ thống</span>
+                <span class="message-time">Bây giờ</span>
+              </div>
+              <div class="message-text">
+                Chào mừng bạn đến với chat nhóm! 🎉
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="typingIndicator"
+          class="typing-indicator"
+          style="display: none"
+        >
+          <span id="typingText">Ai đó đang gõ...</span>
+        </div>
+
+        <div class="chat-input">
+          <input
+            type="text"
+            id="messageInput"
+            class="message-input"
+            placeholder="Nhập tin nhắn..."
+            disabled
+          />
+          <button id="sendButton" class="send-button" disabled>📤 Gửi</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <script>
+      // Global variables
+      let stompClient = null;
+      let currentUser = null;
+      let currentGroup = null;
+      let typingTimer = null;
+      let isConnected = false;
+
+      // DOM elements
+      const loginForm = document.getElementById("loginForm");
+      const chatContainer = document.getElementById("chatContainer");
+      const loginFormElement = document.getElementById("loginFormElement");
+      const userIdInput = document.getElementById("userId");
+      const groupIdInput = document.getElementById("groupId");
+      const tokenInput = document.getElementById("token");
+      const loginError = document.getElementById("loginError");
+      const currentUserName = document.getElementById("currentUserName");
+      const currentUserStatus = document.getElementById("currentUserStatus");
+      const groupTitle = document.getElementById("groupTitle");
+      const groupMembers = document.getElementById("groupMembers");
+      const connectionStatus = document.getElementById("connectionStatus");
+      const messagesContainer = document.getElementById("messagesContainer");
+      const typingIndicator = document.getElementById("typingIndicator");
+      const typingText = document.getElementById("typingText");
+      const messageInput = document.getElementById("messageInput");
+      const sendButton = document.getElementById("sendButton");
+      const onlineUsersList = document.getElementById("onlineUsersList");
+
+      // API Base URL
+      const API_BASE = "http://localhost:8080/api";
+
+      // Lưu token sau khi đăng nhập
+      let currentToken = null;
+      function getAuthToken() {
+        return currentToken;
+      }
+
+      // Login form handler
+      loginFormElement.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const userId = parseInt(userIdInput.value);
+        const groupId = parseInt(groupIdInput.value);
+        const token = (tokenInput.value || "").trim();
+
+        if (!userId || !groupId || !token) {
+          showError("Vui lòng điền đầy đủ thông tin!");
+          return;
+        }
+
+        currentUser = { id: userId };
+        currentGroup = { id: groupId };
+        currentToken = token;
+
+        // Initialize chat
+        initializeChat();
+      });
+
+      // Initialize chat
+      async function initializeChat() {
+        console.log("Initializing chat...");
+        // Load user info from API
+        await loadUserInfo();
+
+        // Update UI
+        groupTitle.textContent = `Group ${currentGroup.id}`;
+
+        // Connect to WebSocket
+        connectWebSocket();
+
+        // Load messages
+        loadMessages();
+
+        // Load online users
+        loadOnlineUsers();
+
+        // Show chat container
+        loginForm.style.display = "none";
+        chatContainer.style.display = "flex";
+      }
+
+      // Connect to WebSocket
+      function connectWebSocket() {
+        const socket = new SockJS("http://localhost:8080/ws");
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect(
+          {},
+          function (frame) {
+            console.log("Connected: " + frame);
+            isConnected = true;
+            updateConnectionStatus(true);
+            // ensure history is loaded after ws is up
+            loadMessages();
+
+            // Subscribe to group messages
+            stompClient.subscribe(
+              `/topic/group.${currentGroup.id}.messages`,
+              function (message) {
+                const chatMessage = JSON.parse(message.body);
+                displayMessage(chatMessage);
+              }
+            );
+
+            // Subscribe to typing indicators
+            stompClient.subscribe(
+              `/topic/group.${currentGroup.id}.typing`,
+              function (typing) {
+                handleTypingIndicator(JSON.parse(typing.body));
+              }
+            );
+
+            // Subscribe to user status updates
+            stompClient.subscribe(
+              `/topic/group.${currentGroup.id}.status`,
+              function (status) {
+                handleUserStatusUpdate(JSON.parse(status.body));
+              }
+            );
+
+            // Set user online
+            setUserOnline();
+
+            // Enable input
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+          },
+          function (error) {
+            console.error("Connection error: " + error);
+            isConnected = false;
+            updateConnectionStatus(false);
+          }
+        );
+      }
+
+      // Load user info from API
+      async function loadUserInfo() {
+        try {
+          // Sử dụng endpoint test để lấy thông tin user
+          const response = await fetch(`${API_BASE}/users/${currentUser.id}`, {
+            headers: {
+              Authorization: `Bearer ${getAuthToken()}`,
+            },
+          });
+          const result = await response.json();
+
+          if (result && (result.status === 200 || result.status === 201)) {
+            currentUser.name = result.data.fullName;
+            currentUser.avatar = result.data.avatarUrl;
+            currentUserName.textContent = currentUser.name;
+          } else {
+            // Fallback nếu không lấy được thông tin
+            currentUser.name = `User ${currentUser.id}`;
+            currentUserName.textContent = currentUser.name;
+          }
+        } catch (error) {
+          console.error("Error loading user info:", error);
+          // Fallback nếu có lỗi
+          currentUser.name = `User ${currentUser.id}`;
+          currentUserName.textContent = currentUser.name;
+        }
+      }
+
+      // Load messages from API
+      async function loadMessages() {
+        console.log(
+          "Loading messages for group:",
+          currentGroup && currentGroup.id
+        );
+        try {
+          // Lấy tin nhắn có bảo vệ bằng token
+          const response = await fetch(
+            `${API_BASE}/chat/groups/${currentGroup.id}/messages?page=1&size=50`,
+            {
+              headers: {
+                Authorization: `Bearer ${getAuthToken()}`,
+              },
+            }
+          );
+          const data = await response.json();
+
+          if (data && (data.status === 200 || data.status === 201)) {
+            console.log("Messages loaded:", data.data.length);
+            // Clear existing messages (except welcome message)
+            const welcomeMessage = messagesContainer.querySelector(".message");
+            messagesContainer.innerHTML = "";
+            if (welcomeMessage) {
+              messagesContainer.appendChild(welcomeMessage);
+            }
+
+            // Display messages (already sorted by backend)
+            (data.data || []).forEach((message) => {
+              displayMessage(message);
+            });
+          } else {
+            console.error("Failed to load messages:", data.message);
+          }
+        } catch (error) {
+          console.error("Error loading messages:", error);
+          // Nếu không load được tin nhắn, vẫn hiển thị welcome message
+          console.log("Using welcome message only");
+        }
+      }
+
+      // Load online users
+      async function loadOnlineUsers() {
+        try {
+          // Lấy online users có bảo vệ bằng token
+          const response = await fetch(
+            `${API_BASE}/chat/groups/${currentGroup.id}/online-users`,
+            {
+              headers: {
+                Authorization: `Bearer ${getAuthToken()}`,
+              },
+            }
+          );
+          const data = await response.json();
+
+          if (data && (data.status === 200 || data.status === 201)) {
+            updateOnlineUsers(data.data);
+          } else {
+            console.error("Failed to load online users:", data.message);
+          }
+        } catch (error) {
+          console.error("Error loading online users:", error);
+        }
+      }
+
+      // Display message
+      function displayMessage(message) {
+        console.log("Displaying message:", message);
+
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${
+          message.fromUserId === currentUser.id ? "own" : ""
+        }`;
+
+        const avatar = document.createElement("div");
+        avatar.className = "message-avatar";
+        avatar.textContent = message.fromUserName
+          ? message.fromUserName.charAt(0).toUpperCase()
+          : "U";
+
+        const content = document.createElement("div");
+        content.className = "message-content";
+
+        const header = document.createElement("div");
+        header.className = "message-header";
+        header.innerHTML = `
+                <span class="message-sender">${
+                  message.fromUserName || currentUser.name || "Unknown"
+                }</span>
+                <span class="message-time">${formatTime(
+                  message.createdAt || new Date()
+                )}</span>
+            `;
+
+        const text = document.createElement("div");
+        text.className = "message-text";
+        text.textContent = message.content;
+
+        content.appendChild(header);
+        content.appendChild(text);
+
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(content);
+
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        console.log("Message displayed successfully");
+      }
+
+      // Handle typing indicator
+      function handleTypingIndicator(typing) {
+        if (typing.userId === currentUser.id) return; // Don't show own typing
+
+        if (typing.isTyping) {
+          typingText.textContent = `${typing.userName} đang gõ...`;
+          typingIndicator.style.display = "block";
+        } else {
+          typingIndicator.style.display = "none";
+        }
+      }
+
+      // Handle user status update
+      function handleUserStatusUpdate(status) {
+        // Update online users list
+        loadOnlineUsers();
+      }
+
+      // Update online users
+      function updateOnlineUsers(users) {
+        onlineUsersList.innerHTML = "";
+        groupMembers.textContent = `${users.length} thành viên`;
+
+        users.forEach((user) => {
+          const userDiv = document.createElement("div");
+          userDiv.className = "user-item";
+          userDiv.innerHTML = `
+                    <div class="user-avatar">${
+                      user.userName
+                        ? user.userName.charAt(0).toUpperCase()
+                        : "U"
+                    }</div>
+                    <div class="user-name">${user.userName || "Unknown"}</div>
+                    <div class="status-indicator"></div>
+                `;
+          onlineUsersList.appendChild(userDiv);
+        });
+      }
+
+      // Set user online
+      function setUserOnline() {
+        if (stompClient && isConnected) {
+          const statusUpdate = {
+            userId: currentUser.id,
+            userName: currentUser.name || `User ${currentUser.id}`,
+            status: "ONLINE",
+            currentGroupId: currentGroup.id.toString(),
+          };
+          stompClient.send(
+            "/app/user.status",
+            {},
+            JSON.stringify(statusUpdate)
+          );
+        }
+      }
+
+      // Send message
+      async function sendMessage() {
+        const content = messageInput.value.trim();
+        if (!content) return;
+
+        const message = {
+          content: content,
+          groupId: currentGroup.id,
+          messageType: "TEXT",
+        };
+
+        try {
+          // Gửi tin nhắn qua endpoint bảo vệ
+          const response = await fetch(`${API_BASE}/chat/messages`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${getAuthToken()}`,
+            },
+            body: JSON.stringify(message),
+          });
+
+          const result = await response.json();
+
+          if (result && (result.status === 200 || result.status === 201)) {
+            console.log("Message sent successfully:", result.data);
+
+            // Hiển thị tin nhắn đã lưu
+            displayMessage(result.data);
+
+            // Refresh history to include any ordering/edits
+            loadMessages();
+
+            // Broadcast tin nhắn đến các user khác qua WebSocket
+            if (stompClient && isConnected) {
+              stompClient.send(
+                "/app/chat.sendMessage",
+                {},
+                JSON.stringify(result.data)
+              );
+            }
+          } else {
+            console.error("Failed to send message:", result.message);
+            showError("Không thể gửi tin nhắn: " + result.message);
+          }
+        } catch (error) {
+          console.error("Error sending message:", error);
+          // Hiển thị tin nhắn ngay lập tức nếu có lỗi
+          const testMessage = {
+            id: Date.now(),
+            content: content,
+            fromUserId: currentUser.id,
+            fromUserName: currentUser.name || `User ${currentUser.id}`,
+            createdAt: new Date().toISOString(),
+            groupId: currentGroup.id,
+          };
+          displayMessage(testMessage);
+        }
+
+        // Clear input
+        messageInput.value = "";
+
+        // Stop typing indicator
+        sendTypingIndicator(false);
+      }
+
+      // Send typing indicator
+      function sendTypingIndicator(isTyping) {
+        if (!isConnected) return;
+
+        const typing = {
+          userId: currentUser.id,
+          userName: currentUser.name || `User ${currentUser.id}`,
+          groupId: currentGroup.id,
+          isTyping: isTyping,
+        };
+
+        const endpoint = isTyping ? "/app/chat.typing" : "/app/chat.stopTyping";
+        stompClient.send(endpoint, {}, JSON.stringify(typing));
+      }
+
+      // Event listeners
+      sendButton.addEventListener("click", sendMessage);
+
+      messageInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          sendMessage();
+        }
+      });
+
+      messageInput.addEventListener("input", function () {
+        if (this.value.trim()) {
+          sendTypingIndicator(true);
+
+          // Clear previous timer
+          if (typingTimer) {
+            clearTimeout(typingTimer);
+          }
+
+          // Set timer to stop typing indicator
+          typingTimer = setTimeout(() => {
+            sendTypingIndicator(false);
+          }, 1000);
+        }
+      });
+
+      // Utility functions
+      function formatTime(timestamp) {
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      function updateConnectionStatus(connected) {
+        if (connected) {
+          connectionStatus.textContent = "🟢 Đã kết nối";
+          connectionStatus.className = "connection-status connected";
+        } else {
+          connectionStatus.textContent = "🔴 Mất kết nối";
+          connectionStatus.className = "connection-status disconnected";
+        }
+      }
+
+      function showError(message) {
+        loginError.textContent = message;
+        loginError.style.display = "block";
+        setTimeout(() => {
+          loginError.style.display = "none";
+        }, 3000);
+      }
+
+      // Handle page unload
+      window.addEventListener("beforeunload", function () {
+        if (stompClient && isConnected) {
+          setUserOffline();
+          stompClient.disconnect();
+        }
+      });
+
+      // Set user offline
+      function setUserOffline() {
+        if (stompClient && isConnected) {
+          const statusUpdate = {
+            userId: currentUser.id,
+            userName: currentUser.name || `User ${currentUser.id}`,
+            status: "OFFLINE",
+            currentGroupId: currentGroup.id.toString(),
+          };
+          stompClient.send(
+            "/app/user.status",
+            {},
+            JSON.stringify(statusUpdate)
+          );
+        }
+      }
+    </script>
+  </body>
+</html>
