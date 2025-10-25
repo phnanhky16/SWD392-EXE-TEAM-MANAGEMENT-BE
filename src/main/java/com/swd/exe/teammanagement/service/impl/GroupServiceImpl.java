@@ -347,7 +347,7 @@ public class GroupServiceImpl implements GroupService {
         group.setType(GroupType.PUBLIC);
         group.setStatus(GroupStatus.FORMING);
         groupRepository.save(group);
-
+        groupMemberRepository.deleteGroupMemberByGroup(group);
         postRepository.deletePostByGroup(group);
         ideaRepository.deleteIdeasByGroup(group);
         voteRepository.deleteVotesByGroup(group);
