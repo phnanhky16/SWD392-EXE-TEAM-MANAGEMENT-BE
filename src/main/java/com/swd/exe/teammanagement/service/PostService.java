@@ -1,6 +1,7 @@
 package com.swd.exe.teammanagement.service;
 
 import com.swd.exe.teammanagement.dto.request.PostRequest;
+import com.swd.exe.teammanagement.dto.request.PostUpdateRequest;
 import com.swd.exe.teammanagement.dto.response.PostResponse;
 import com.swd.exe.teammanagement.enums.idea_join_post_score.PostType;
 
@@ -14,5 +15,5 @@ public interface PostService {
      List<PostResponse> getAllPosts();
      Void deletePost(Long id);
      List<PostResponse> getPostsByType(PostType type);
-     PostResponse updatePost(Long id, PostRequest request);
+     PostResponse updatePost(Long id, PostUpdateRequest request);
 }
