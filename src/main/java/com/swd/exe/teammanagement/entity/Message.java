@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "messages")
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -28,5 +30,27 @@ public class Message {
 
     @Column(columnDefinition = "TEXT")
     String messageText;
+    
+    @Column(name = "message_type")
+    String messageType; // "TEXT", "IMAGE", "FILE"
+    
+    @ManyToOne
+    @JoinColumn(name = "reply_to_message_id")
+    Message replyToMessage;
+    
+    @Column(name = "is_edited")
+    boolean isEdited;
+    
+    @Column(name = "edited_at")
+    LocalDateTime editedAt;
+    
+    @Column(name = "created_at")
+    LocalDateTime createdAt;
+    
     boolean active;
+    
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 }
