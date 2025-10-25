@@ -95,7 +95,6 @@ public class VoteServiceImpl implements VoteService {
     // 📊 Xử lý kết quả vote
     private void processVoteResult(Vote vote) {
         Group group = vote.getGroup();
-        List<User> members = groupMemberRepository.findUsersByGroup(group);
         List<VoteChoice> voteChoices = voteChoiceRepository.findByVote(vote);
 
         int yes = (int) voteChoices.stream().filter(v -> v.getChoiceValue() == ChoiceValue.YES).count();
@@ -113,13 +112,10 @@ public class VoteServiceImpl implements VoteService {
                     .membershipRole(MembershipRole.MEMBER)
                             .active(true)
                     .build());
-
-            joinRepository.save(Join.builder()
-                    .toGroup(group)
-                    .fromUser(vote.getTargetUser())
-                    .status(JoinStatus.ACCEPTED)
-                            .active(true)
-                    .build());
+            Join join = joinRepository.findJoinByFromUserAndToGroup(vote.getTargetUser(), group)
+                    .orElseThrow(() -> new AppException(ErrorCode.JOIN_REQUEST_NOT_FOUND));
+            join.setStatus(JoinStatus.ACCEPTED);
+            joinRepository.save(join);
 
 //            // 🔔 Gửi notification cho người được chấp nhận
 //            sendNotification(vote.getTargetUser(),
@@ -140,11 +136,10 @@ public class VoteServiceImpl implements VoteService {
 //                    "✅ " + vote.getTargetUser().getFullName() + " đã được chấp nhận vào nhóm.");
 
         } else { // ❌ Bị từ chối
-            joinRepository.save(Join.builder()
-                    .toGroup(group)
-                    .fromUser(vote.getTargetUser())
-                    .status(JoinStatus.REJECTED).active(true)
-                    .build());
+            Join join = joinRepository.findJoinByFromUserAndToGroup(vote.getTargetUser(), group)
+                    .orElseThrow(() -> new AppException(ErrorCode.JOIN_REQUEST_NOT_FOUND));
+            join.setStatus(JoinStatus.REJECTED);
+            joinRepository.save(join);
 
 //            sendNotification(vote.getTargetUser(),
 //                    "❌ Yêu cầu tham gia nhóm " + group.getTitle() + " đã bị từ chối.",
@@ -174,8 +169,6 @@ public class VoteServiceImpl implements VoteService {
 
             // 🧠 Nếu tất cả thành viên đã vote HOẶC đã tới thời gian đóng
             if (allVoted || timeExpired) {
-                vote.setStatus(VoteStatus.CLOSED);
-                voteRepository.save(vote);
 
                 try {
                     processVoteResult(vote);

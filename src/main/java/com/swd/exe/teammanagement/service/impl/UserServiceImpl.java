@@ -140,12 +140,12 @@ public class UserServiceImpl implements UserService {
         if (avatar.isEmpty()) {
             throw new AppException(ErrorCode.INVALID_FILE_TYPE);
         }
-        
+
         String contentType = avatar.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new AppException(ErrorCode.INVALID_FILE_TYPE);
         }
-        
+
         // Check file size (max 5MB for avatar)
         if (avatar.getSize() > 5 * 1024 * 1024) {
             throw new AppException(ErrorCode.INVALID_FILE_TYPE);
@@ -168,12 +168,12 @@ public class UserServiceImpl implements UserService {
         if (cvFile.isEmpty()) {
             throw new AppException(ErrorCode.INVALID_FILE_TYPE);
         }
-        
+
         String originalFilename = cvFile.getOriginalFilename();
         if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".pdf")) {
             throw new AppException(ErrorCode.INVALID_FILE_TYPE);
         }
-        
+
         // Check file size (max 10MB for CV)
         if (cvFile.getSize() > 10 * 1024 * 1024) {
             throw new AppException(ErrorCode.INVALID_FILE_TYPE);
@@ -188,6 +188,23 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         return userMapper.toUserResponse(user);
+    }
+    @Override
+    public List<UserResponse> getUserNoGroup() {
+        List<User> users = userRepository.findUsersWithoutGroup();
+        return users.stream()
+                .map(user -> UserResponse.builder()
+                        .id(user.getId())
+                        .fullName(user.getFullName())
+                        .email(user.getEmail())
+                        .cvUrl(user.getCvUrl())
+                        .studentCode(user.getStudentCode())
+                        .major(user.getMajor() != null ? user.getMajor() : null)
+                        .role(user.getRole())
+                        .avatarUrl(user.getAvatarUrl())
+                        .isActive(user.getIsActive())
+                        .build())
+                .toList();
     }
 
     @Override

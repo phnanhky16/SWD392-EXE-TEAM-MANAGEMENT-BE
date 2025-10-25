@@ -25,4 +25,5 @@ public interface UserService {
     UserResponse uploadCV(Long userId, MultipartFile cvFile) throws IOException;
     UserResponse uploadMyAvatar(MultipartFile avatar) throws IOException;
     UserResponse uploadMyCV(MultipartFile cvFile) throws IOException;
+    List<UserResponse> getUserNoGroup();
 }

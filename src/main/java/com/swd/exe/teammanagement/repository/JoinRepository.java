@@ -8,6 +8,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface JoinRepository extends JpaRepository<Join, Long> {
     void deleteJoinsByToGroup(Group toGroup);
@@ -19,4 +20,6 @@ public interface JoinRepository extends JpaRepository<Join, Long> {
     List<Join> findByFromUserAndStatus(User fromUser, JoinStatus status);
 
     boolean existsByFromUserAndToGroup(User fromUser, Group toGroup);
+
+    Optional<Join> findJoinByFromUserAndToGroup(User fromUser, Group toGroup);
 }
