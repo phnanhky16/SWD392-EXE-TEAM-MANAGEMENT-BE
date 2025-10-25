@@ -167,5 +167,21 @@ public class UserServiceImpl implements UserService {
 
         return userMapper.toUserResponse(user);
     }
-
+    @Override
+    public List<UserResponse> getUserNoGroup() {
+        List<User> users = userRepository.findUsersWithoutGroup();
+        return users.stream()
+                .map(user -> UserResponse.builder()
+                        .id(user.getId())
+                        .fullName(user.getFullName())
+                        .email(user.getEmail())
+                        .cvUrl(user.getCvUrl())
+                        .studentCode(user.getStudentCode())
+                        .major(user.getMajor() != null ? user.getMajor() : null)
+                        .role(user.getRole())
+                        .avatarUrl(user.getAvatarUrl())
+                        .isActive(user.getIsActive())
+                        .build())
+                .toList();
+    }
 }

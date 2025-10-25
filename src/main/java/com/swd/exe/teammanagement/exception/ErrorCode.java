@@ -63,6 +63,7 @@ public enum ErrorCode {
     SEMESTER_NOT_ACTIVE("Semester is not active", HttpStatus.BAD_REQUEST),
     POST_OF_ANOTHER_GROUP("Post belongs to another group", HttpStatus.BAD_REQUEST),
     POST_ALREADY_ACTIVE("You already have an active post. Please deactivate it before creating a new one.",HttpStatus.BAD_REQUEST),
+    UPDATE_MAJOR("you are forced to update major",HttpStatus.BAD_REQUEST),
 
     ;
 

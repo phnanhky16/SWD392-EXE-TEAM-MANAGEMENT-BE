@@ -1,9 +1,8 @@
 package com.swd.exe.teammanagement.service.impl;
 
 import com.swd.exe.teammanagement.dto.request.PostRequest;
-import com.swd.exe.teammanagement.dto.response.GroupResponse;
+import com.swd.exe.teammanagement.dto.request.PostUpdateRequest;
 import com.swd.exe.teammanagement.dto.response.PostResponse;
-import com.swd.exe.teammanagement.dto.response.UserResponse;
 import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.GroupMember;
 import com.swd.exe.teammanagement.entity.Post;
@@ -32,7 +31,6 @@ public class PostServiceImpl implements PostService {
     PostRepository postRepository;
     PostMapper postMapper;
     UserRepository userRepository;
-    CommentRepository commentRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final UserMapper userMapper;
     private final GroupMapper groupMapper;
@@ -133,15 +131,32 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostResponse updatePost(Long id, PostRequest request) {
+    public PostResponse updatePost(Long id, PostUpdateRequest request) {
         User user = getCurrentUser();
         Post post = postRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.POST_UNEXISTED));
+        if(groupMemberRepository.existsByUserAndMembershipRole(user, MembershipRole.LEADER)) {
+            post.setContent(request.getContent());
+            return PostResponse.builder()
+                    .id(post.getId())
+                    .content(post.getContent())
+                    .createdAt(post.getCreatedAt())
+                    .groupResponse(groupMapper.toGroupResponse(post.getGroup()))
+                    .userResponse(userMapper.toUserResponse(post.getUser()))
+                    .type(post.getType())
+                    .build();
+        }
         if (!post.getUser().getId().equals(user.getId())) {
             throw new AppException(ErrorCode.DOES_NOT_DELETE_OTHER_USER_POST);
         }
-        post.setCreatedAt(LocalDateTime.now());
-        postMapper.toUpdatePost(post, request);
-        return postMapper.toPostResponse(postRepository.save(post));
+        post.setContent(request.getContent());
+        return PostResponse.builder()
+                .id(post.getId())
+                .content(post.getContent())
+                .createdAt(post.getCreatedAt())
+                .groupResponse(groupMapper.toGroupResponse(post.getGroup()))
+                .userResponse(userMapper.toUserResponse(post.getUser()))
+                .type(post.getType())
+                .build();
     }
 
     private User getCurrentUser() {

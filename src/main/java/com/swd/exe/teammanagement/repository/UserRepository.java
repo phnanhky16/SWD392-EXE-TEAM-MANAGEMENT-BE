@@ -27,4 +27,6 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     Page<User> findAll(Specification<User> spec, Pageable pageable);
 
     List<User> findByRole(UserRole role);
+    @Query("SELECT u FROM User u WHERE u.id NOT IN (SELECT gm.user.id FROM GroupMember gm)")
+    List<User> findUsersWithoutGroup();
 }
