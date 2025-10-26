@@ -78,7 +78,7 @@ public class GroupServiceImpl implements GroupService {
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_UNEXISTED));
 
         GroupMember leaderMember = groupMemberRepository
-                .findByGroupAndMembershipRole(group, MembershipRole.LEADER)
+                .findByGroupAndMembershipRoleAndActiveTrue(group, MembershipRole.LEADER)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_LEADER_NOT_FOUND));
 
         return mapToUserResponse(leaderMember.getUser());
@@ -109,8 +109,8 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public List<GroupResponse> getCurrentGroupList() {
-        Semester semester = semesterRepository.findByActive(true);
-        List<Group> groups = groupRepository.findGroupsBySemester(semester);
+        Semester semester = semesterRepository.findByActiveTrue();
+        List<Group> groups = groupRepository.findGroupsBySemesterAndActiveTrue(semester);
         return groups.stream().map(this::mapToResponse).toList();
     }
 
@@ -122,7 +122,7 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public int getGroupMemberCount(Long groupId) {
-        return groupMemberRepository.countByGroupId(groupId);
+        return groupMemberRepository.countByGroupIdAndActiveTrue(groupId);
     }
 
     @Override
@@ -140,7 +140,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public Void removeMemberByLeader(Long userId) {
         User leader = getCurrentUser();
-        GroupMember leaderMember = groupMemberRepository.findByUser(leader)
+        GroupMember leaderMember = groupMemberRepository.findByUserAndActiveTrue(leader)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
 
         if (!leaderMember.getMembershipRole().equals(MembershipRole.LEADER)) {
@@ -150,18 +150,19 @@ public class GroupServiceImpl implements GroupService {
         User member = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
 
-        GroupMember gm = groupMemberRepository.findByUser(member)
+        GroupMember gm = groupMemberRepository.findByUserAndActiveTrue(member)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
 
-        groupMemberRepository.delete(gm);
-        joinRepository.deleteJoinByFromUser(member);
+        gm.setActive(false);
+        groupMemberRepository.save(gm);
+        joinRepository.deactivateJoinsByFromUser(member);
         return null; // keep Void for compatibility
     }
 
     @Override
     public GroupResponse updateGroupInfo(GroupCreateRequest request) {
         User user = getCurrentUser();
-        GroupMember gm = groupMemberRepository.findByUser(user)
+        GroupMember gm = groupMemberRepository.findByUserAndActiveTrue(user)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
 
         if (!gm.getMembershipRole().equals(MembershipRole.LEADER)) {
@@ -179,7 +180,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public Void changeLeader(Long newLeaderId) {
         User currentLeader = getCurrentUser();
-        GroupMember leaderMember = groupMemberRepository.findByUser(currentLeader)
+        GroupMember leaderMember = groupMemberRepository.findByUserAndActiveTrue(currentLeader)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
 
         if (!leaderMember.getMembershipRole().equals(MembershipRole.LEADER)) {
@@ -190,7 +191,7 @@ public class GroupServiceImpl implements GroupService {
         User newLeader = userRepository.findById(newLeaderId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
 
-        GroupMember newLeaderMember = groupMemberRepository.findByUser(newLeader)
+        GroupMember newLeaderMember = groupMemberRepository.findByUserAndActiveTrue(newLeader)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
 
         if (!newLeaderMember.getGroup().getId().equals(group.getId())) {
@@ -212,13 +213,13 @@ public class GroupServiceImpl implements GroupService {
     public List<GroupResponse> getGroupsBySemester(Long semesterId) {
         Semester semester = semesterRepository.findById(semesterId)
                                 .orElseThrow(() -> new AppException(ErrorCode.SEMESTER_UNEXISTED));
-        List<Group> groups = groupRepository.findGroupsBySemester(semester);
+        List<Group> groups = groupRepository.findGroupsBySemesterAndActiveTrue(semester);
         return groups.stream().map(this::mapToResponse).toList();
     }
 
     @Override
     public Void changeGroupType() {
-        GroupMember gm = groupMemberRepository.findByUser(getCurrentUser())
+        GroupMember gm = groupMemberRepository.findByUserAndActiveTrue(getCurrentUser())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
         if (gm.getMembershipRole().equals(MembershipRole.MEMBER)) {
             throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
@@ -233,7 +234,7 @@ public class GroupServiceImpl implements GroupService {
     public GroupResponse getGroupByUserId(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
-        GroupMember gm = groupMemberRepository.findByUser(user)
+        GroupMember gm = groupMemberRepository.findByUserAndActiveTrue(user)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
         return mapToResponse(gm.getGroup());
     }
@@ -241,11 +242,11 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public Void leaveGroup() {
         User user = getCurrentUser();
-        GroupMember gm = groupMemberRepository.findByUser(user)
+        GroupMember gm = groupMemberRepository.findByUserAndActiveTrue(user)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
 
         Group group = gm.getGroup();
-        List<GroupMember> members = groupMemberRepository.findByGroup(group);
+        List<GroupMember> members = groupMemberRepository.findByGroupAndActiveTrue(group);
         if (members.size() == 1) {
             resetGroup(group);
         } else {
@@ -257,8 +258,8 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public List<GroupResponse> getAvailableGroups() {
         User user = getCurrentUser();
-        Semester semester = semesterRepository.findByActive(true);
-        List<Group> groups = groupRepository.findGroupsByStatusInAndSemester(
+        Semester semester = semesterRepository.findByActiveTrue();
+        List<Group> groups = groupRepository.findGroupsByStatusInAndSemesterAndActiveTrue(
                 List.of(GroupStatus.ACTIVE, GroupStatus.FORMING), semester
         );
 
@@ -266,7 +267,7 @@ public class GroupServiceImpl implements GroupService {
         Set<Major> majors = new HashSet<>();
 
         for (Group g : groups) {
-            if (groupMemberRepository.countByGroup(g) == 5) {
+            if (groupMemberRepository.countByGroupAndActiveTrue(g) == 5) {
                 for (User m : groupMemberRepository.findUsersByGroup(g)) {
                     majors.add(m.getMajor());
                 }
@@ -284,7 +285,7 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public Void doneTeam() {
-        GroupMember gm = groupMemberRepository.findByUser(getCurrentUser())
+        GroupMember gm = groupMemberRepository.findByUserAndActiveTrue(getCurrentUser())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
 
         if (!gm.getMembershipRole().equals(MembershipRole.LEADER)) {
@@ -295,13 +296,13 @@ public class GroupServiceImpl implements GroupService {
         if(majors.size() < 2){
             throw new AppException(ErrorCode.GROUP_NOT_DIVERSE);
         }
-        List<GroupMember> gms = groupMemberRepository.findByGroup(group);
+        List<GroupMember> gms = groupMemberRepository.findByGroupAndActiveTrue(group);
         if(gms.size() < 1 || gms.size() > 6){
             throw  new AppException(ErrorCode.GROUP_NOT_ENOUGH_MEMBER);
         }
         group.setStatus(GroupStatus.LOCKED);
         groupRepository.save(group);
-        postRepository.deletePostByGroup(group);
+        postRepository.deactivatePostsByGroup(group);
         return null;
     }
 
@@ -336,8 +337,9 @@ public class GroupServiceImpl implements GroupService {
         if (gm.getMembershipRole().equals(MembershipRole.LEADER)) {
             members.get(1).setMembershipRole(MembershipRole.LEADER);
         }
-        groupMemberRepository.delete(gm);
-        joinRepository.deleteJoinByFromUser(user);
+        gm.setActive(false);
+        groupMemberRepository.save(gm);
+        joinRepository.deactivateJoinsByFromUser(user);
     }
 
     private void resetGroup(Group group) {
@@ -346,11 +348,11 @@ public class GroupServiceImpl implements GroupService {
         group.setType(GroupType.PUBLIC);
         group.setStatus(GroupStatus.FORMING);
         groupRepository.save(group);
-        groupMemberRepository.deleteGroupMemberByGroup(group);
-        postRepository.deletePostByGroup(group);
+        groupMemberRepository.deactivateGroupMembersByGroup(group);
+        postRepository.deactivatePostsByGroup(group);
         ideaRepository.deleteIdeasByGroup(group);
-        voteRepository.deleteVotesByGroup(group);
-        joinRepository.deleteJoinsByToGroup(group);
+        voteRepository.deactivateVotesByGroup(group);
+        joinRepository.deactivateJoinsByToGroup(group);
     }
 
 
@@ -376,6 +378,33 @@ public class GroupServiceImpl implements GroupService {
                 .role(u.getRole())
                 .isActive(u.getIsActive())
                 .build();
+    }
+
+    @Override
+    public GroupResponse activateGroup(Long groupId) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+        group.setActive(true);
+        groupRepository.save(group);
+        return mapToResponse(group);
+    }
+
+    @Override
+    public GroupResponse deactivateGroup(Long groupId) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+        group.setActive(false);
+        groupRepository.save(group);
+        return mapToResponse(group);
+    }
+
+    @Override
+    public GroupResponse changeGroupActiveStatus(Long groupId) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+        group.setActive(!group.isActive());
+        groupRepository.save(group);
+        return mapToResponse(group);
     }
 
     private User getCurrentUser() {

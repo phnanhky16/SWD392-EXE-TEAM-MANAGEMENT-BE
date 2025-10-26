@@ -14,4 +14,7 @@ public interface VoteService {
     List<Vote> getVotesByGroup(Long groupId);
     Vote getVoteById(Long voteId);
     List<VoteChoice> getVoteChoices(Long voteId);
+    Vote activateVote(Long voteId);
+    Vote deactivateVote(Long voteId);
+    Vote changeVoteActiveStatus(Long voteId);
 }

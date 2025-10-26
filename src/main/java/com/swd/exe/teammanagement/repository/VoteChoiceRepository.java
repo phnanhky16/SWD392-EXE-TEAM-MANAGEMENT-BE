@@ -9,7 +9,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface VoteChoiceRepository extends JpaRepository<VoteChoice, Long> {
-    List<VoteChoice> findByVote(Vote vote);
+    List<VoteChoice> findByVoteAndActiveTrue(Vote vote);
 
-    Optional<Object> findByVoteAndUser(Vote vote, User user);
+    Optional<Object> findByVoteAndUserAndActiveTrue(Vote vote, User user);
+    
+    List<VoteChoice> findByActiveTrue();
+    
+    List<VoteChoice> findByActiveFalse();
 }

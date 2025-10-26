@@ -64,7 +64,10 @@ public enum ErrorCode {
     POST_OF_ANOTHER_GROUP("Post belongs to another group", HttpStatus.BAD_REQUEST),
     POST_ALREADY_ACTIVE("You already have an active post. Please deactivate it before creating a new one.",HttpStatus.BAD_REQUEST),
     UPDATE_MAJOR("you are forced to update major",HttpStatus.BAD_REQUEST),
-
+    GROUP_UNLOCKED("Group is not locked", HttpStatus.BAD_REQUEST),
+    REQUEST_UNEXISTED("Request does not exist", HttpStatus.BAD_REQUEST),
+    REQUEST_ALREADY_RESPONDED("Request has already been responded to", HttpStatus.BAD_REQUEST),
+    USER_NOT_TEACHER("User is not a teacher", HttpStatus.BAD_REQUEST)
     ;
 
     private final String message;

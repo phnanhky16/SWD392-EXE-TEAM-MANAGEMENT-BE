@@ -22,4 +22,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     
     @Query("SELECT COUNT(m) FROM Message m WHERE m.group = :group AND m.active = true")
     Long countActiveMessagesByGroup(@Param("group") Group group);
+    
+    List<Message> findByActiveTrue();
+    
+    List<Message> findByActiveFalse();
 }

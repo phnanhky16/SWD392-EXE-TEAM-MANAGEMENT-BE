@@ -16,4 +16,7 @@ public interface PostService {
      Void deletePost(Long id);
      List<PostResponse> getPostsByType(PostType type);
      PostResponse updatePost(Long id, PostUpdateRequest request);
+     PostResponse activatePost(Long id);
+     PostResponse deactivatePost(Long id);
+     PostResponse changePostActiveStatus(Long id);
 }

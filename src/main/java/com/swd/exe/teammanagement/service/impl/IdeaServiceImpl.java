@@ -63,7 +63,7 @@ public class IdeaServiceImpl implements IdeaService {
             idea.setSource(IdeaSource.LECTURER);
         } else {
             // Ý tưởng của NHÓM do leader gửi — tự suy ra group theo leader hiện tại
-            GroupMember gm = groupMemberRepository.findByUser(current)
+            GroupMember gm = groupMemberRepository.findByUserAndActiveTrue(current)
                     .orElseThrow(() -> new AppException(ErrorCode.ONLY_GROUP_LEADER));
             if (gm.getMembershipRole() != MembershipRole.LEADER)
                 throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
@@ -200,7 +200,7 @@ public class IdeaServiceImpl implements IdeaService {
     }
 
     private void ensureLeaderInGroup(Long userId, Long groupId) {
-        boolean ok = groupMemberRepository.existsByGroupIdAndUserIdAndMembershipRole(groupId, userId, MembershipRole.LEADER);
+        boolean ok = groupMemberRepository.existsByGroupIdAndUserIdAndMembershipRoleAndActiveTrue(groupId, userId, MembershipRole.LEADER);
         if (!ok) throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
     }
 

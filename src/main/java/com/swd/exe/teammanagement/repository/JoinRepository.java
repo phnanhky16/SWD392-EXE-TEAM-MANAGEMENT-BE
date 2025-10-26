@@ -12,14 +12,29 @@ import java.util.Optional;
 
 public interface JoinRepository extends JpaRepository<Join, Long> {
     void deleteJoinsByToGroup(Group toGroup);
+    
+    @org.springframework.data.jpa.repository.Query("UPDATE Join j SET j.active = false WHERE j.toGroup = :toGroup")
+    @org.springframework.data.jpa.repository.Modifying
+    @Transactional
+    void deactivateJoinsByToGroup(@org.springframework.data.repository.query.Param("toGroup") Group toGroup);
+    
     @Transactional
     void deleteJoinByFromUser(User fromUser);
 
-    List<Join> findByToGroupAndStatus(Group toGroup, JoinStatus status);
+    @org.springframework.data.jpa.repository.Query("UPDATE Join j SET j.active = false WHERE j.fromUser = :fromUser")
+    @org.springframework.data.jpa.repository.Modifying
+    @Transactional
+    void deactivateJoinsByFromUser(@org.springframework.data.repository.query.Param("fromUser") User fromUser);
 
-    List<Join> findByFromUserAndStatus(User fromUser, JoinStatus status);
+    List<Join> findByToGroupAndStatusAndActiveTrue(Group toGroup, JoinStatus status);
 
-    boolean existsByFromUserAndToGroup(User fromUser, Group toGroup);
+    List<Join> findByFromUserAndStatusAndActiveTrue(User fromUser, JoinStatus status);
 
-    Optional<Join> findJoinByFromUserAndToGroup(User fromUser, Group toGroup);
+    boolean existsByFromUserAndToGroupAndActiveTrue(User fromUser, Group toGroup);
+
+    Optional<Join> findJoinByFromUserAndToGroupAndActiveTrue(User fromUser, Group toGroup);
+    
+    List<Join> findByActiveTrue();
+    
+    List<Join> findByActiveFalse();
 }

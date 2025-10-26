@@ -12,7 +12,16 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
     @Transactional
     void deleteVotesByGroup(Group group);
 
-    List<Vote> findByStatus(VoteStatus status);
+    @org.springframework.data.jpa.repository.Query("UPDATE Vote v SET v.active = false WHERE v.group = :group")
+    @org.springframework.data.jpa.repository.Modifying
+    @Transactional
+    void deactivateVotesByGroup(@org.springframework.data.repository.query.Param("group") Group group);
 
-    List<Vote> findByGroup(Group group);
+    List<Vote> findByStatusAndActiveTrue(VoteStatus status);
+
+    List<Vote> findByGroupAndActiveTrue(Group group);
+    
+    List<Vote> findByActiveTrue();
+    
+    List<Vote> findByActiveFalse();
 }

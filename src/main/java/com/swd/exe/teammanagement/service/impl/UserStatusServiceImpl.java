@@ -43,7 +43,7 @@ public class UserStatusServiceImpl implements UserStatusService {
         // Notify all groups that this user is online
         User user = userRepository.findById(userId).orElse(null);
         if (user != null) {
-            List<Group> userGroups = groupMemberRepository.findByUser(user).stream()
+            List<Group> userGroups = groupMemberRepository.findByUserAndActiveTrue(user).stream()
                     .map(member -> member.getGroup())
                     .collect(Collectors.toList());
             for (Group group : userGroups) {
@@ -69,7 +69,7 @@ public class UserStatusServiceImpl implements UserStatusService {
         // Notify all groups that this user is offline
         User user = userRepository.findById(userId).orElse(null);
         if (user != null) {
-            List<Group> userGroups = groupMemberRepository.findByUser(user).stream()
+            List<Group> userGroups = groupMemberRepository.findByUserAndActiveTrue(user).stream()
                     .map(member -> member.getGroup())
                     .collect(Collectors.toList());
             for (Group group : userGroups) {
@@ -92,7 +92,7 @@ public class UserStatusServiceImpl implements UserStatusService {
         
         User user = userRepository.findById(userId).orElse(null);
         if (user != null) {
-            List<Group> userGroups = groupMemberRepository.findByUser(user).stream()
+            List<Group> userGroups = groupMemberRepository.findByUserAndActiveTrue(user).stream()
                     .map(member -> member.getGroup())
                     .collect(Collectors.toList());
             for (Group group : userGroups) {
@@ -134,7 +134,7 @@ public class UserStatusServiceImpl implements UserStatusService {
         Group group = groupRepository.findById(groupId).orElse(null);
         if (group == null) return List.of();
 
-        return groupMemberRepository.findByGroup(group).stream()
+        return groupMemberRepository.findByGroupAndActiveTrue(group).stream()
                 .map(member -> getUserStatus(member.getUser().getId()))
                 .filter(status -> status != null && "ONLINE".equals(status.getStatus()))
                 .collect(Collectors.toList());
