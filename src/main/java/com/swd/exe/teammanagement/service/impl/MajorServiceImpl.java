@@ -25,7 +25,7 @@ public class MajorServiceImpl implements MajorService {
     @Override
     @Transactional
     public MajorResponse createMajor(MajorRequest request) {
-        if(majorRepository.existsByName(request.getName())) {
+        if(majorRepository.existsByNameAndActiveTrue(request.getName())) {
             throw new AppException(ErrorCode.MAJOR_EXISTED);
         }
         Major major = Major.builder()
@@ -50,11 +50,7 @@ public class MajorServiceImpl implements MajorService {
 
     @Override
     public Void deleteMajor(Long id) {
-        Major major = majorRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.MAJOR_UNEXISTED));
-        major.setActive(!major.isActive());
-        majorRepository.save(major);
-        return null;
+        return deactivateMajor(id) != null ? null : null;
     }
 
     @Override
@@ -66,5 +62,32 @@ public class MajorServiceImpl implements MajorService {
     @Override
     public List<MajorResponse> getAllMajors() {
         return majorMapper.toMajorResponseList(majorRepository.findAll());
+    }
+
+    @Override
+    public MajorResponse activateMajor(Long id) {
+        Major major = majorRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.MAJOR_UNEXISTED));
+        major.setActive(true);
+        majorRepository.save(major);
+        return majorMapper.toMajorResponse(major);
+    }
+
+    @Override
+    public MajorResponse deactivateMajor(Long id) {
+        Major major = majorRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.MAJOR_UNEXISTED));
+        major.setActive(false);
+        majorRepository.save(major);
+        return majorMapper.toMajorResponse(major);
+    }
+
+    @Override
+    public MajorResponse changeMajorActiveStatus(Long id) {
+        Major major = majorRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.MAJOR_UNEXISTED));
+        major.setActive(!major.isActive());
+        majorRepository.save(major);
+        return majorMapper.toMajorResponse(major);
     }
 }

@@ -7,13 +7,18 @@ import com.swd.exe.teammanagement.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface GroupTeacherRepository extends JpaRepository<GroupTeacher, Long> {
-    long countByTeacherAndGroup_Semester(User teacher, Semester groupSemester);
+    long countByTeacherAndGroup_SemesterAndActiveTrue(User teacher, Semester groupSemester);
 
-    Optional<GroupTeacher> findByGroup(Group group);
+    Optional<GroupTeacher> findByGroupAndActiveTrue(Group group);
 
-    boolean existsByGroup(Group group);
+    boolean existsByGroupAndActiveTrue(Group group);
+    
+    List<GroupTeacher> findByActiveTrue();
+    
+    List<GroupTeacher> findByActiveFalse();
 }

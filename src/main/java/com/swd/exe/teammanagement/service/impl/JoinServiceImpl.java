@@ -38,7 +38,7 @@ public class JoinServiceImpl implements JoinService {
     @Override
     public Void joinGroup(Long groupId) {
         User user = getCurrentUser();
-        if (groupMemberRepository.existsByUser(user)) {
+        if (groupMemberRepository.existsByUserAndActiveTrue(user)) {
             throw new AppException(ErrorCode.USER_ALREADY_IN_GROUP);
         }
         Group group = groupRepository.findById(groupId)
@@ -63,7 +63,7 @@ public class JoinServiceImpl implements JoinService {
                             .active(true)
                     .status(JoinStatus.ACCEPTED)
                     .build());
-            postRepository.deletePostByUser(user);
+            postRepository.deactivatePostsByUser(user);
             groupRepository.save(group);
             sendNotification(user, "🎉 Bạn đã tạo nhóm thành công!", NotificationType.SYSTEM);
 //            messagingTemplate.convertAndSend("/topic/groups",
@@ -83,7 +83,7 @@ public class JoinServiceImpl implements JoinService {
                     .status(JoinStatus.ACCEPTED)
                             .active(true)
                     .build());
-            postRepository.deletePostByUser(user);
+            postRepository.deactivatePostsByUser(user);
             List<User> members = groupMemberRepository.findUsersByGroup(group);
             for (User member : members) {
                 if (!member.getId().equals(user.getId())) {
@@ -101,7 +101,7 @@ public class JoinServiceImpl implements JoinService {
 
         }
         joinRequest(groupId, user.getId());
-        postRepository.deletePostByUser(user);
+        postRepository.deactivatePostsByUser(user);
         return null;
     }
 
@@ -111,7 +111,7 @@ public class JoinServiceImpl implements JoinService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
-        if (joinRepository.existsByFromUserAndToGroup(user, group)) {
+        if (joinRepository.existsByFromUserAndToGroupAndActiveTrue(user, group)) {
             throw new AppException(ErrorCode.DUPLICATE_JOIN_REQUEST);
         }
         joinRepository.save(Join.builder()
@@ -139,13 +139,13 @@ public class JoinServiceImpl implements JoinService {
     public List<Join> getPendingJoinRequests(Long groupId) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
-        return joinRepository.findByToGroupAndStatus(group, JoinStatus.PENDING);
+        return joinRepository.findByToGroupAndStatusAndActiveTrue(group, JoinStatus.PENDING);
     }
 
     @Override
     public List<Join> getMyJoinRequests() {
         User user = getCurrentUser();
-        return joinRepository.findByFromUserAndStatus(user, JoinStatus.PENDING);
+        return joinRepository.findByFromUserAndStatusAndActiveTrue(user, JoinStatus.PENDING);
     }
 
     @Override
@@ -161,6 +161,30 @@ public class JoinServiceImpl implements JoinService {
         }
         joinRepository.delete(join);
         return null;
+    }
+
+    @Override
+    public Join activateJoin(Long joinId) {
+        Join join = joinRepository.findById(joinId)
+                .orElseThrow(() -> new AppException(ErrorCode.JOIN_REQUEST_NOT_FOUND));
+        join.setActive(true);
+        return joinRepository.save(join);
+    }
+
+    @Override
+    public Join deactivateJoin(Long joinId) {
+        Join join = joinRepository.findById(joinId)
+                .orElseThrow(() -> new AppException(ErrorCode.JOIN_REQUEST_NOT_FOUND));
+        join.setActive(false);
+        return joinRepository.save(join);
+    }
+
+    @Override
+    public Join changeJoinActiveStatus(Long joinId) {
+        Join join = joinRepository.findById(joinId)
+                .orElseThrow(() -> new AppException(ErrorCode.JOIN_REQUEST_NOT_FOUND));
+        join.setActive(!join.isActive());
+        return joinRepository.save(join);
     }
 
     private User getCurrentUser() {

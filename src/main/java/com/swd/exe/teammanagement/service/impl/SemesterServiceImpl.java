@@ -26,7 +26,7 @@ public class SemesterServiceImpl implements SemesterService {
     @Override
     @Transactional
     public SemesterResponse createSemester(SemesterRequest request) {
-        if(semesterRepository.existsByName(request.getName())) {
+        if(semesterRepository.existsByNameAndActiveTrue(request.getName())) {
             throw new AppException(ErrorCode.SEMESTER_EXISTED);
         }
         Semester semester = Semester.builder()

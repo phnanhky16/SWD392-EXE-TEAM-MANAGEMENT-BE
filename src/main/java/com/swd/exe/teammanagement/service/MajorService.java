@@ -11,5 +11,8 @@ public interface MajorService {
     Void deleteMajor(Long id);
     MajorResponse getMajorById(Long id);
     List<MajorResponse> getAllMajors();
+    MajorResponse activateMajor(Long id);
+    MajorResponse deactivateMajor(Long id);
+    MajorResponse changeMajorActiveStatus(Long id);
 
 }

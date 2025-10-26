@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> {
-    boolean existsByGroupIdAndUserIdAndMembershipRole(Long groupId, Long userId, MembershipRole role);
-    Optional<GroupMember> findByUser(User user);
-    boolean existsByUser(User user);
-    int countByGroup(Group group);
+    boolean existsByGroupIdAndUserIdAndMembershipRoleAndActiveTrue(Long groupId, Long userId, MembershipRole role);
+    Optional<GroupMember> findByUserAndActiveTrue(User user);
+    boolean existsByUserAndActiveTrue(User user);
+    int countByGroupAndActiveTrue(Group group);
 
     @Query("SELECT gm.user FROM GroupMember gm WHERE gm.group = :group AND gm.active = true")
     List<User> findUsersByGroup(@Param("group") Group group);
@@ -25,23 +25,34 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
 
     void deleteGroupMemberByUser(User user);
 
-    @Query("SELECT gm.user FROM GroupMember gm WHERE gm.group.id = :groupId")
+    @Query("SELECT gm.user FROM GroupMember gm WHERE gm.group.id = :groupId AND gm.active = true")
     List<User> findUsersByGroupId(@Param("groupId") Long groupId);
 
-    int countByGroupId(Long groupId);
+    int countByGroupIdAndActiveTrue(Long groupId);
 
-    @Query("SELECT gm.user.major FROM GroupMember gm WHERE gm.group.id = :groupId")
+    @Query("SELECT gm.user.major FROM GroupMember gm WHERE gm.group.id = :groupId AND gm.active = true")
     List<Major> findMajorsByGroupId(@Param("groupId") Long groupId);
 
-    List<GroupMember> findByGroup(Group group);
+    List<GroupMember> findByGroupAndActiveTrue(Group group);
 
-    Optional<GroupMember> findByGroupAndMembershipRole(Group group, MembershipRole membershipRole);
+    Optional<GroupMember> findByGroupAndMembershipRoleAndActiveTrue(Group group, MembershipRole membershipRole);
 
-    boolean existsByUserAndMembershipRole(User user, MembershipRole membershipRole);
+    boolean existsByUserAndMembershipRoleAndActiveTrue(User user, MembershipRole membershipRole);
 
-    GroupMember findByUserAndMembershipRole(User user, MembershipRole membershipRole);
+    GroupMember findByUserAndMembershipRoleAndActiveTrue(User user, MembershipRole membershipRole);
 
     void deleteGroupMemberByGroup(Group group);
 
+    @Query("UPDATE GroupMember gm SET gm.active = false WHERE gm.group = :group")
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    void deactivateGroupMembersByGroup(@Param("group") Group group);
+
     boolean existsByGroupAndUserAndActiveTrue(Group group, User user);
+    
+    List<GroupMember> findByActiveTrue();
+    
+    List<GroupMember> findByActiveFalse();
+
+    Optional<GroupMember> findByUser(User user);
 }

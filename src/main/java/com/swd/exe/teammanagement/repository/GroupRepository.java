@@ -24,9 +24,13 @@ public interface GroupRepository extends JpaRepository<Group, Long>, JpaSpecific
     List<Group> findGroupsByCreatedAtBetween(LocalDateTime createdAtAfter, LocalDateTime createdAtBefore);
     List<Group> findGroupsByStatusInAndCreatedAtBetween(Collection<GroupStatus> statuses, LocalDateTime createdAtAfter, LocalDateTime createdAtBefore);
 
-    List<Group> findGroupsBySemester(Semester semester);
+    List<Group> findGroupsBySemesterAndActiveTrue(Semester semester);
 
-    List<Group> findGroupsByStatusInAndSemester(Collection<GroupStatus> statuses, Semester semester);
+    List<Group> findGroupsByStatusInAndSemesterAndActiveTrue(Collection<GroupStatus> statuses, Semester semester);
 
-    long countBySemester(Semester semester);
+    long countBySemesterAndActiveTrue(Semester semester);
+    
+    List<Group> findByActiveTrue();
+    
+    List<Group> findByActiveFalse();
 }

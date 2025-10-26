@@ -95,7 +95,7 @@ public class VoteServiceImpl implements VoteService {
     // 📊 Xử lý kết quả vote
     private void processVoteResult(Vote vote) {
         Group group = vote.getGroup();
-        List<VoteChoice> voteChoices = voteChoiceRepository.findByVote(vote);
+        List<VoteChoice> voteChoices = voteChoiceRepository.findByVoteAndActiveTrue(vote);
 
         int yes = (int) voteChoices.stream().filter(v -> v.getChoiceValue() == ChoiceValue.YES).count();
         int no = (int) voteChoices.stream().filter(v -> v.getChoiceValue() == ChoiceValue.NO).count();
@@ -112,7 +112,7 @@ public class VoteServiceImpl implements VoteService {
                     .membershipRole(MembershipRole.MEMBER)
                             .active(true)
                     .build());
-            Join join = joinRepository.findJoinByFromUserAndToGroup(vote.getTargetUser(), group)
+            Join join = joinRepository.findJoinByFromUserAndToGroupAndActiveTrue(vote.getTargetUser(), group)
                     .orElseThrow(() -> new AppException(ErrorCode.JOIN_REQUEST_NOT_FOUND));
             join.setStatus(JoinStatus.ACCEPTED);
             joinRepository.save(join);
@@ -136,7 +136,7 @@ public class VoteServiceImpl implements VoteService {
 //                    "✅ " + vote.getTargetUser().getFullName() + " đã được chấp nhận vào nhóm.");
 
         } else { // ❌ Bị từ chối
-            Join join = joinRepository.findJoinByFromUserAndToGroup(vote.getTargetUser(), group)
+            Join join = joinRepository.findJoinByFromUserAndToGroupAndActiveTrue(vote.getTargetUser(), group)
                     .orElseThrow(() -> new AppException(ErrorCode.JOIN_REQUEST_NOT_FOUND));
             join.setStatus(JoinStatus.REJECTED);
             joinRepository.save(join);
@@ -153,13 +153,13 @@ public class VoteServiceImpl implements VoteService {
     // 🕒 Tự động đóng vote mỗi phút
     @Scheduled(fixedRate = 60000)
     public void autoCloseVotes() {
-        List<Vote> openVotes = voteRepository.findByStatus(VoteStatus.OPEN);
+        List<Vote> openVotes = voteRepository.findByStatusAndActiveTrue(VoteStatus.OPEN);
         LocalDateTime now = LocalDateTime.now();
 
         for (Vote vote : openVotes) {
             Group group = vote.getGroup();
             List<User> members = groupMemberRepository.findUsersByGroup(group);
-            List<VoteChoice> voteChoices = voteChoiceRepository.findByVote(vote);
+            List<VoteChoice> voteChoices = voteChoiceRepository.findByVoteAndActiveTrue(vote);
 
             int totalMembers = members.size();
             int totalVotes = voteChoices.size();
@@ -183,14 +183,14 @@ public class VoteServiceImpl implements VoteService {
 
     @Override
     public List<Vote> getOpenVotes() {
-        return voteRepository.findByStatus(VoteStatus.OPEN);
+        return voteRepository.findByStatusAndActiveTrue(VoteStatus.OPEN);
     }
 
     @Override
     public List<Vote> getVotesByGroup(Long groupId) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
-        return voteRepository.findByGroup(group);
+        return voteRepository.findByGroupAndActiveTrue(group);
     }
 
     @Override
@@ -203,7 +203,31 @@ public class VoteServiceImpl implements VoteService {
     public List<VoteChoice> getVoteChoices(Long voteId) {
         Vote vote = voteRepository.findById(voteId)
                 .orElseThrow(() -> new AppException(ErrorCode.VOTE_NOT_FOUND));
-        return voteChoiceRepository.findByVote(vote);
+        return voteChoiceRepository.findByVoteAndActiveTrue(vote);
+    }
+
+    @Override
+    public Vote activateVote(Long voteId) {
+        Vote vote = voteRepository.findById(voteId)
+                .orElseThrow(() -> new AppException(ErrorCode.VOTE_NOT_FOUND));
+        vote.setActive(true);
+        return voteRepository.save(vote);
+    }
+
+    @Override
+    public Vote deactivateVote(Long voteId) {
+        Vote vote = voteRepository.findById(voteId)
+                .orElseThrow(() -> new AppException(ErrorCode.VOTE_NOT_FOUND));
+        vote.setActive(false);
+        return voteRepository.save(vote);
+    }
+
+    @Override
+    public Vote changeVoteActiveStatus(Long voteId) {
+        Vote vote = voteRepository.findById(voteId)
+                .orElseThrow(() -> new AppException(ErrorCode.VOTE_NOT_FOUND));
+        vote.setActive(!vote.isActive());
+        return voteRepository.save(vote);
     }
 
     // 📩 helper

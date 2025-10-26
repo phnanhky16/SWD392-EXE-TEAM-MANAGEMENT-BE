@@ -10,4 +10,7 @@ public interface JoinService {
     List<Join> getPendingJoinRequests(Long groupId);
     List<Join> getMyJoinRequests();
     Void cancelJoinRequest(Long joinId);
+    Join activateJoin(Long joinId);
+    Join deactivateJoin(Long joinId);
+    Join changeJoinActiveStatus(Long joinId);
 }

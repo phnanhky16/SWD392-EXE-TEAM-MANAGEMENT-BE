@@ -40,4 +40,7 @@ public interface GroupService {
     GroupResponse updateGroupInfo(GroupCreateRequest request);
     Void changeLeader(Long newLeaderId);
     List<GroupResponse> getGroupsBySemester(Long semesterId);
+    GroupResponse activateGroup(Long groupId);
+    GroupResponse deactivateGroup(Long groupId);
+    GroupResponse changeGroupActiveStatus(Long groupId);
 }
