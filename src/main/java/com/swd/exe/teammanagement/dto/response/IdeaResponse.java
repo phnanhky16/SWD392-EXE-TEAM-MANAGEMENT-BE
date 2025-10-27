@@ -16,6 +16,7 @@ public class IdeaResponse {
     String title;
     String description;
     UserSummaryResponse author;
+    UserSummaryResponse reviewer;
     GroupSummaryResponse group;
     IdeaStatus status;
     LocalDateTime createdAt;
