@@ -30,14 +30,10 @@ public class MajorServiceImpl implements MajorService {
         }
         Major major = Major.builder()
                 .name(request.getName())
-                .build();
-        majorRepository.save(major);
-        System.out.println(">>> Saved major with ID: " + major.getId());
-        return MajorResponse.builder()
-                .id(major.getId())
-                .name(major.getName())
                 .active(true)
                 .build();
+        majorRepository.save(major);
+        return majorMapper.toMajorResponse(major);
     }
 
     @Override

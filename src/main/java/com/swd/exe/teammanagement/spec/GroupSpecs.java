@@ -23,15 +23,6 @@ public final class GroupSpecs {
 
             // title
             predicates.add(cb.like(cb.lower(root.get("title")), like));
-
-            // leader name
-            Join<Group, User> leader = root.join("leader", JoinType.LEFT);
-            predicates.add(cb.like(cb.lower(leader.get("fullName")), like));
-
-            // lecturer name
-            Join<Group, User> lecturer = root.join("checkpointLecture", JoinType.LEFT);
-            predicates.add(cb.like(cb.lower(lecturer.get("fullName")), like));
-
             return cb.or(predicates.toArray(new Predicate[0]));
         };
     }

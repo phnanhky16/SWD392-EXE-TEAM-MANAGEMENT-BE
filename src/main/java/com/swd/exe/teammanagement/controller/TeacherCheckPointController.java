@@ -2,6 +2,7 @@ package com.swd.exe.teammanagement.controller;
 
 import java.util.List;
 
+import com.swd.exe.teammanagement.dto.response.TeacherRequestResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -116,5 +117,9 @@ public class TeacherCheckPointController {
     public ApiResponse<List<GroupResponse>> getGroupsAccepted() {
         return ApiResponse.success("Get accepted groups successfully", 
                 teacherCheckPointService.getGroupsAccepted());
+    }
+    @GetMapping("/groups/{groupId}/my-request")
+    public ApiResponse<TeacherRequestResponse> getMyRequest(@PathVariable Long groupId) {
+        return ApiResponse.success("Get my group request successfully", teacherCheckPointService.getMyRequestTeacherCheckpoints(groupId));
     }
 }
