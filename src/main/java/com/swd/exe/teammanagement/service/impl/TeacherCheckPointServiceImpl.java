@@ -6,6 +6,7 @@ import java.util.List;
 import com.swd.exe.teammanagement.dto.response.GroupSummaryResponse;
 import com.swd.exe.teammanagement.dto.response.TeacherRequestResponse;
 import com.swd.exe.teammanagement.dto.response.UserSummaryResponse;
+import com.swd.exe.teammanagement.repository.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -22,11 +23,6 @@ import com.swd.exe.teammanagement.enums.user.MembershipRole;
 import com.swd.exe.teammanagement.enums.user.UserRole;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
-import com.swd.exe.teammanagement.repository.GroupMemberRepository;
-import com.swd.exe.teammanagement.repository.GroupRepository;
-import com.swd.exe.teammanagement.repository.GroupTeacherRepository;
-import com.swd.exe.teammanagement.repository.TeacherRequestRepository;
-import com.swd.exe.teammanagement.repository.UserRepository;
 import com.swd.exe.teammanagement.service.TeacherCheckPointService;
 
 import lombok.RequiredArgsConstructor;
@@ -42,6 +38,7 @@ public class TeacherCheckPointServiceImpl implements TeacherCheckPointService {
     GroupTeacherRepository groupTeacherRepository;
     GroupMemberRepository groupMemberRepository;
     TeacherRequestRepository teacherRequestRepository;
+    IdeaRepository ideaRepository;
 
     @Override
     public List<User> getAllTeachers() {
@@ -133,7 +130,7 @@ public class TeacherCheckPointServiceImpl implements TeacherCheckPointService {
                 .assignedAt(LocalDateTime.now())
                 .build();
         groupTeacherRepository.save(groupTeacher);
-        
+        ideaRepository.assignReviewerForGroupIfNull(group, teacher);
         return null;
     }
 
@@ -161,6 +158,7 @@ public class TeacherCheckPointServiceImpl implements TeacherCheckPointService {
                     .assignedAt(LocalDateTime.now())
                     .build();
             groupTeacherRepository.save(groupTeacher);
+            ideaRepository.assignReviewerForGroupIfNull(request.getGroup(), request.getTeacher());
         } else {
             request.setStatus(RequestStatus.REJECTED);
         }
