@@ -6,7 +6,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.swd.exe.teammanagement.enums.user.UserRole;
+import com.swd.exe.teammanagement.repository.*;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -29,14 +32,6 @@ import com.swd.exe.teammanagement.enums.user.MembershipRole;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
 import com.swd.exe.teammanagement.mapper.GroupMapper;
-import com.swd.exe.teammanagement.repository.GroupMemberRepository;
-import com.swd.exe.teammanagement.repository.GroupRepository;
-import com.swd.exe.teammanagement.repository.IdeaRepository;
-import com.swd.exe.teammanagement.repository.JoinRepository;
-import com.swd.exe.teammanagement.repository.PostRepository;
-import com.swd.exe.teammanagement.repository.SemesterRepository;
-import com.swd.exe.teammanagement.repository.UserRepository;
-import com.swd.exe.teammanagement.repository.VoteRepository;
 import com.swd.exe.teammanagement.service.GroupService;
 import com.swd.exe.teammanagement.spec.GroupSpecs;
 import com.swd.exe.teammanagement.util.PageUtil;
@@ -58,6 +53,7 @@ public class GroupServiceImpl implements GroupService {
     GroupMapper groupMapper;
     JoinRepository joinRepository;
     SemesterRepository semesterRepository;
+    GroupTeacherRepository groupTeacherRepository;
     @Override
     public GroupResponse getGroupById(Long groupId) {
         Group group = groupRepository.findById(groupId)
@@ -407,9 +403,28 @@ public class GroupServiceImpl implements GroupService {
         return mapToResponse(group);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<GroupResponse> getMyAssignedGroups(int page, int size, boolean includeHistory) {
+        User me = getCurrentUser();
+        if (me.getRole() != UserRole.LECTURER) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), Math.max(1, size));
+
+
+        Page<Group> groups = includeHistory
+                ? groupTeacherRepository.findAllGroupsByTeacher(me, pageable)
+                : groupTeacherRepository.findActiveGroupsByTeacher(me, pageable);
+
+        return groups.map(groupMapper::toGroupResponse);
+    }
+
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
     }
+
 }

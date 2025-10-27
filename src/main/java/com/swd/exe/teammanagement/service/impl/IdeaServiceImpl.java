@@ -228,4 +228,5 @@ public class IdeaServiceImpl implements IdeaService {
 
         return ideas.map(ideaMapper::toIdeaResponse);
     }
+
 }
