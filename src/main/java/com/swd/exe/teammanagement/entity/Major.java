@@ -19,6 +19,6 @@ public class Major {
     Long id;
     @Column(nullable = false, unique = true)
     String name;
-    boolean active;
+    boolean active = true;
 }
 
