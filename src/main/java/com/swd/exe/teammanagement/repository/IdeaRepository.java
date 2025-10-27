@@ -36,4 +36,5 @@ public interface IdeaRepository extends JpaRepository<Idea, Long> {
            """)
     int assignReviewerForGroupIfNull(@Param("group") Group group,
                                      @Param("teacher") User teacher);
+
 }

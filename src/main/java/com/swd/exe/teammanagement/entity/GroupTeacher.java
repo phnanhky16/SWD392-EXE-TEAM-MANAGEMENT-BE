@@ -28,5 +28,5 @@ public class GroupTeacher {
     User teacher;
 
     LocalDateTime assignedAt;
-    boolean active;
+    boolean active = true;
 }

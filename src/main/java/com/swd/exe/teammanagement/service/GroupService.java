@@ -8,6 +8,7 @@ import com.swd.exe.teammanagement.entity.Major;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.group.GroupStatus;
 import com.swd.exe.teammanagement.enums.group.GroupType;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Set;
@@ -43,4 +44,5 @@ public interface GroupService {
     GroupResponse activateGroup(Long groupId);
     GroupResponse deactivateGroup(Long groupId);
     GroupResponse changeGroupActiveStatus(Long groupId);
+    Page<GroupResponse> getMyAssignedGroups(int page, int size, boolean includeHistory);
 }

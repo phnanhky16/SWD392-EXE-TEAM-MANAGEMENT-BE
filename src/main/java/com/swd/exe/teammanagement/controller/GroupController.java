@@ -3,6 +3,7 @@ package com.swd.exe.teammanagement.controller;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -206,5 +207,16 @@ public class GroupController {
                                         @RequestParam(name = "semesterId") Long semesterId) {
         groupService.createGroup(size,semesterId);
         return ApiResponse.created("Created empty groups successfully", null);
+    }
+    @GetMapping("/my-assigned")
+    public ApiResponse<Page<GroupResponse>> getMyAssignedGroups(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(name = "history", defaultValue = "false") boolean includeHistory
+    ) {
+        return ApiResponse.success(
+                "Get assigned groups successfully",
+                groupService.getMyAssignedGroups(page, size, includeHistory)
+        );
     }
 }
