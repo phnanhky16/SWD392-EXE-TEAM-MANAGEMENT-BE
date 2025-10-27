@@ -29,6 +29,6 @@ public class GroupMember {
 
     @Enumerated(EnumType.STRING)
     MembershipRole membershipRole;
-    boolean active;
+    boolean active = true;
 }
 
