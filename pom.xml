@@ -87,6 +87,11 @@
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+        </dependency>
+
         <!-- Validation/Doc -->
         <dependency>
             <groupId>org.springdoc</groupId>
