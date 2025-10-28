@@ -55,12 +55,12 @@ public class JoinServiceImpl implements JoinService {
                     .group(group)
                     .user(user)
                     .membershipRole(MembershipRole.LEADER)
-                            .active(true)
+                    .active(true)
                     .build());
             joinRepository.save(Join.builder()
                     .toGroup(group)
                     .fromUser(user)
-                            .active(true)
+                    .active(true)
                     .status(JoinStatus.ACCEPTED)
                     .build());
             postRepository.deactivatePostsByUser(user);

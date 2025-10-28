@@ -3,6 +3,10 @@ package com.swd.exe.teammanagement.service.impl;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.swd.exe.teammanagement.dto.response.GroupSummaryResponse;
+import com.swd.exe.teammanagement.dto.response.TeacherRequestResponse;
+import com.swd.exe.teammanagement.dto.response.UserSummaryResponse;
+import com.swd.exe.teammanagement.repository.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -19,11 +23,6 @@ import com.swd.exe.teammanagement.enums.user.MembershipRole;
 import com.swd.exe.teammanagement.enums.user.UserRole;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
-import com.swd.exe.teammanagement.repository.GroupMemberRepository;
-import com.swd.exe.teammanagement.repository.GroupRepository;
-import com.swd.exe.teammanagement.repository.GroupTeacherRepository;
-import com.swd.exe.teammanagement.repository.TeacherRequestRepository;
-import com.swd.exe.teammanagement.repository.UserRepository;
 import com.swd.exe.teammanagement.service.TeacherCheckPointService;
 
 import lombok.RequiredArgsConstructor;
@@ -39,6 +38,7 @@ public class TeacherCheckPointServiceImpl implements TeacherCheckPointService {
     GroupTeacherRepository groupTeacherRepository;
     GroupMemberRepository groupMemberRepository;
     TeacherRequestRepository teacherRequestRepository;
+    IdeaRepository ideaRepository;
 
     @Override
     public List<User> getAllTeachers() {
@@ -130,7 +130,7 @@ public class TeacherCheckPointServiceImpl implements TeacherCheckPointService {
                 .assignedAt(LocalDateTime.now())
                 .build();
         groupTeacherRepository.save(groupTeacher);
-        
+        ideaRepository.assignReviewerForGroupIfNull(group, teacher);
         return null;
     }
 
@@ -158,6 +158,7 @@ public class TeacherCheckPointServiceImpl implements TeacherCheckPointService {
                     .assignedAt(LocalDateTime.now())
                     .build();
             groupTeacherRepository.save(groupTeacher);
+            ideaRepository.assignReviewerForGroupIfNull(request.getGroup(), request.getTeacher());
         } else {
             request.setStatus(RequestStatus.REJECTED);
         }
@@ -242,5 +243,67 @@ public class TeacherCheckPointServiceImpl implements TeacherCheckPointService {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
+    }
+    @Override
+    public TeacherRequestResponse getMyRequestTeacherCheckpoints(Long groupId) {
+        User me = getCurrentUser();
+
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+
+        // chỉ cho member active xem
+        boolean isMember = groupMemberRepository.existsByGroupAndUserAndActiveTrue(group, me);
+        if (!isMember) throw new AppException(ErrorCode.USER_NOT_IN_GROUP);
+
+        // 1) Nếu group đã có teacher đang gán → coi như ACCEPTED
+        var gtOpt = groupTeacherRepository.findByGroupAndActiveTrue(group);
+        if (gtOpt.isPresent()) {
+            var gt = gtOpt.get();
+            return TeacherRequestResponse.builder()
+                    .requestId(null) // là trạng thái gán, không phải request cụ thể
+                    .group(GroupSummaryResponse.builder()
+                            .id(group.getId())
+                            .title(group.getTitle())
+                            .build())
+                    .teacher(UserSummaryResponse.builder()
+                            .id(gt.getTeacher().getId())
+                            .fullName(gt.getTeacher().getFullName())
+                            .email(gt.getTeacher().getEmail())
+                            .build())
+                    .status(RequestStatus.ACCEPTED)
+                    .message(null)
+                    .build();
+        }
+
+        // 2) Chưa gán → lấy request MỚI NHẤT (PENDING / REJECTED / …)
+        var reqOpt = teacherRequestRepository.findTopByGroup_IdOrderByIdDesc(groupId);
+        // nếu bạn không có createdAt, đổi sang OrderByIdDesc ở repository
+        return reqOpt.map(req ->
+                TeacherRequestResponse.builder()
+                        .requestId(req.getId())
+                        .group(GroupSummaryResponse.builder()
+                                .id(group.getId())
+                                .title(group.getTitle())
+                                .build())
+                        .teacher(UserSummaryResponse.builder()
+                                .id(req.getTeacher().getId())
+                                .fullName(req.getTeacher().getFullName())
+                                .email(req.getTeacher().getEmail())
+                                .build())
+                        .status(req.getStatus())
+                        .message(null)
+                        .build()
+        ).orElseGet(() ->
+                TeacherRequestResponse.builder()
+                        .requestId(null)
+                        .group(GroupSummaryResponse.builder()
+                                .id(group.getId())
+                                .title(group.getTitle())
+                                .build())
+                        .teacher(null)
+                        .status(null)
+                        .message("Nhóm chưa chọn giáo viên chấm checkpoints")
+                        .build()
+        );
     }
 }

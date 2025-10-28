@@ -50,15 +50,9 @@ public class Idea {
     @JoinColumn(name = "group_id")
     Group group; // nullable
 
-    @Column(name = "combined_key", length = 64)
-    String combinedKey; // nullable
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reviewer_id")
     User reviewer; // nullable
-
-    @Column(name = "review_note", length = 2000)
-    String reviewNote; // nullable
 
     @Column(name = "created_at", nullable = false)
     LocalDateTime createdAt;

@@ -21,6 +21,10 @@ import com.swd.exe.teammanagement.repository.UserRepository;
 import com.swd.exe.teammanagement.service.IdeaService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,7 +72,6 @@ public class IdeaServiceImpl implements IdeaService {
             if (gm.getMembershipRole() != MembershipRole.LEADER)
                 throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
             Group group = gm.getGroup();
-            ensureGroupActiveForWrite(group);                 // chỉ check khi group != null
             ensureLeaderInGroup(current.getId(), group.getId()); // an toàn: xác thực đúng leader
 
             idea.setSource(IdeaSource.STUDENT);
@@ -103,7 +106,6 @@ public class IdeaServiceImpl implements IdeaService {
         User current = getCurrentUser();
         Idea idea = getIdeaOrThrow(id);
 
-        ensureGroupActiveForWrite(idea.getGroup());
         ensureLeaderOfIdea(current.getId(), idea);
 
         if (!EDITABLE.contains(idea.getStatus()))
@@ -119,7 +121,6 @@ public class IdeaServiceImpl implements IdeaService {
         User current = getCurrentUser();
         Idea idea = getIdeaOrThrow(id);
 
-        ensureGroupActiveForWrite(idea.getGroup());
         ensureLeaderOfIdea(current.getId(), idea);
 
         if (!EDITABLE.contains(idea.getStatus()))
@@ -137,7 +138,6 @@ public class IdeaServiceImpl implements IdeaService {
         User current = getCurrentUser();
         Idea idea = getIdeaOrThrow(id);
 
-        ensureGroupActiveForWrite(idea.getGroup());
         ensureLeaderOfIdea(current.getId(), idea);
 
         if (!SUBMITTABLE.contains(idea.getStatus()))
@@ -153,7 +153,6 @@ public class IdeaServiceImpl implements IdeaService {
         User teacher = getCurrentUser();
         Idea idea = getIdeaOrThrow(id);
 
-        ensureGroupActiveForWrite(idea.getGroup());
         ensureTeacherOrAdmin(teacher);
 
         if (idea.getStatus() != IdeaStatus.PROPOSED)
@@ -172,7 +171,6 @@ public class IdeaServiceImpl implements IdeaService {
         User teacher = getCurrentUser();
         Idea idea = getIdeaOrThrow(id);
 
-        ensureGroupActiveForWrite(idea.getGroup());
         ensureTeacherOrAdmin(teacher);
 
         if (idea.getStatus() != IdeaStatus.PROPOSED)
@@ -181,7 +179,6 @@ public class IdeaServiceImpl implements IdeaService {
         idea.setStatus(IdeaStatus.REJECTED);
         idea.setReviewer(teacher);
         idea.setCreatedAt(LocalDateTime.now());
-        idea.setReviewNote(reason);
 
         return ideaMapper.toIdeaResponse(ideaRepository.save(idea));
     }
@@ -216,13 +213,20 @@ public class IdeaServiceImpl implements IdeaService {
         }
     }
 
-    private void ensureGroupActiveForWrite(Group group) {
-        if (group.getStatus() == GroupStatus.LOCKED)
-            throw new AppException(ErrorCode.GROUP_LOCKED);
-        if (group.getStatus() != GroupStatus.ACTIVE)
-            throw new AppException(ErrorCode.GROUP_NOT_ACTIVE);
-    }
+
     private boolean isLecturerOrAdmin(User u) {
         return u.getRole() == UserRole.LECTURER || u.getRole() == UserRole.ADMIN;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<IdeaResponse> getMyIdeasAsReviewer(int page, int size) {
+        User me = getCurrentUser();
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), Math.max(1, size), Sort.by("createdAt").descending());
+
+        Page<Idea> ideas = ideaRepository.findByReviewer_IdOrderByCreatedAtDesc(me.getId(), pageable);
+
+        return ideas.map(ideaMapper::toIdeaResponse);
+    }
+
 }

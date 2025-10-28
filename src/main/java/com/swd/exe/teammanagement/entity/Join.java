@@ -28,5 +28,5 @@ public class Join {
 
     @Enumerated(EnumType.STRING)
     JoinStatus status;
-    boolean active;
+    boolean active = true;
 }

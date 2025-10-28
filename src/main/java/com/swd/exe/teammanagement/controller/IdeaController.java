@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 @RestController
@@ -79,6 +80,14 @@ public class IdeaController {
         return ApiResponse.success("Get all ideas successfully", ideaService.getAllIdeas());
     }
 
+    @GetMapping("/my")
+    public ApiResponse<Page<IdeaResponse>> getMyIdeas(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ApiResponse.success("Get my ideas successfully",
+                ideaService.getMyIdeasAsReviewer(page, size));
+    }
     // ====== các action theo vòng đời Idea ======
 
     @Operation(
