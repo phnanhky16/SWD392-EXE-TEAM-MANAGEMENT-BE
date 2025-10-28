@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS media_files (
+    id UUID PRIMARY KEY,
+    bucket_key VARCHAR(255) NOT NULL,
+    content_type VARCHAR(100) NOT NULL,
+    size BIGINT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

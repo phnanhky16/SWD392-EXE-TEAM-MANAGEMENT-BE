@@ -37,3 +37,27 @@ Clone the repository:
 ```bash
 git clone https://github.com/<your-username>/team-management.git
 cd team-management
+```
+
+---
+
+## Cloudflare R2 media storage
+
+Set the following environment variables before running the application to enable uploads to Cloudflare R2 (you can copy `.env.example` to `.env` locally and fill in the values):
+
+| Variable | Description |
+| --- | --- |
+| `R2_ACCOUNT_ID` | Cloudflare account identifier used to compose the S3 endpoint. |
+| `R2_ACCESS_KEY_ID` | Access key ID for the R2 bucket. |
+| `R2_SECRET_ACCESS_KEY` | Secret access key paired with the access key ID. |
+| `R2_BUCKET_NAME` | Target bucket where media files are stored. |
+| `R2_PUBLIC_BASE_URL` | Public base URL used to serve media assets. |
+
+### Rotating credentials
+
+1. Generate a new API token in the Cloudflare dashboard with access to the target R2 bucket.
+2. Update the secret manager entries (or `.env` when running locally) with the new `R2_ACCESS_KEY_ID` and `R2_SECRET_ACCESS_KEY` values.
+3. Redeploy or restart the backend service so that the updated credentials are picked up on startup.
+4. Remove the previous credentials from Cloudflare once traffic is verified with the new keys.
+
+The service reads the configuration via Spring Boot configuration properties (`r2.*`), so no code changes are required when rotating keys.
