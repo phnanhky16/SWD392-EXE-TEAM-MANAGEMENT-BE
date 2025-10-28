@@ -7,6 +7,9 @@ public enum NotificationType {
     IDEA,
     SYSTEM,
     JOIN_ACCEPTED,
-    JOIN_REJECTED
+    JOIN_REJECTED,
+    INVITE,
+    INVITE_ACCEPTED,
+    INVITE_DECLINED
 
 }
