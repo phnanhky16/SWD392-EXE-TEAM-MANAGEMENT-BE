@@ -177,7 +177,7 @@ public class GroupController {
             description = "Leave the current group. If leader leaves and group has other members, leadership transfers to another member."
     )
     @DeleteMapping("/leave")
-    @PostAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('STUDENT')")
     public ApiResponse<Void> leaveGroup() {
         groupService.leaveGroup();
         return ApiResponse.success("Left group successfully", null);
@@ -188,7 +188,7 @@ public class GroupController {
             description = "Remove a member from the group. Only group leader can perform this action."
     )
     @DeleteMapping("/members/{userId}")
-    @PostAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('STUDENT')")
     public ApiResponse<Void> removeMember(@PathVariable Long userId) {
         groupService.removeMemberByLeader(userId);
         return ApiResponse.success("Member removed successfully", null);
@@ -199,7 +199,7 @@ public class GroupController {
             description = "Update title and description of the group. Only group leader can perform this action."
     )
     @PutMapping("/update")
-    @PostAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('STUDENT')")
     public ApiResponse<GroupResponse> updateGroupInfo(@Valid @RequestBody GroupCreateRequest request) {
         return ApiResponse.success("Group information updated successfully", groupService.updateGroupInfo(request));
     }
@@ -209,7 +209,7 @@ public class GroupController {
             description = "Create N empty groups. Title formatted like 'Group EXE FALL 2025 #1'. Requires authentication."
     )
     @PostMapping
-    @PostAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasRole('MODERATOR')")
     public ApiResponse<Void> createGroups(@RequestParam(name = "size", defaultValue = "1") int size,
                                         @RequestParam(name = "semesterId") Long semesterId) {
         groupService.createGroup(size,semesterId);

@@ -49,7 +49,7 @@ public class MajorController {
             description = "Create a new academic major. Requires admin privileges."
     )
     @PostMapping
-    @PostAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasRole('MODERATOR')")
     public ApiResponse<MajorResponse> createMajor(@Valid @RequestBody MajorRequest request) {
         return ApiResponse.created("Create major successfully", majorService.createMajor(request));
     }
@@ -59,7 +59,7 @@ public class MajorController {
             description = "Update an existing major by id. Requires admin privileges."
     )
     @PutMapping("/{id}")
-    @PostAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasRole('MODERATOR')")
     public ApiResponse<MajorResponse> updateMajor(@PathVariable Long id, @Valid @RequestBody MajorRequest request) {
         return ApiResponse.success("Update major successfully", majorService.updateMajor(id, request));
     }
@@ -69,7 +69,7 @@ public class MajorController {
             description = "Delete a major by id. Requires admin privileges."
     )
     @DeleteMapping("/{id}")
-    @PostAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasRole('MODERATOR')")
     public ApiResponse<Void> deleteMajor(@PathVariable Long id) {
         majorService.deleteMajor(id);
         return ApiResponse.success("Delete major successfully", null);
