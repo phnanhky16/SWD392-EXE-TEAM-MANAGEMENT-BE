@@ -1,6 +1,7 @@
 package com.swd.exe.teammanagement.dto.request;
 
-import jakarta.persistence.Column;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -10,6 +11,7 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class MajorRequest {
-    @Column(nullable = false, unique = true)
+    @NotBlank(message = "INVALID_MAJOR_NAME")
+    @Size(min = 1, max = 100, message = "INVALID_MAJOR_NAME")
     String name;
 }

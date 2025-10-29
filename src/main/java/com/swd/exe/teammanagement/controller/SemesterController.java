@@ -2,6 +2,8 @@ package com.swd.exe.teammanagement.controller;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,6 +60,7 @@ public class SemesterController {
             description = "Create a new academic semester. Name should be unique (e.g., SPRING, SUMMER, FALL)"
     )
     @PostMapping
+    @PostAuthorize("hasRole('MODERATOR')")
     public ApiResponse<SemesterResponse> createSemester(@Valid @RequestBody SemesterRequest request) {
         return ApiResponse.created("Create semester successfully", semesterService.createSemester(request));
     }
@@ -67,6 +70,7 @@ public class SemesterController {
             description = "Update semester information including name and active status"
     )
     @PutMapping("/{id}")
+    @PostAuthorize("hasRole('MODERATOR')")
     public ApiResponse<SemesterResponse> updateSemester(
             @PathVariable Long id,
             @Valid @RequestBody SemesterRequest request
@@ -79,6 +83,7 @@ public class SemesterController {
             description = "Set a semester as active/inactive. Only one semester should be active at a time."
     )
     @PatchMapping("/{id}/active")
+    @PreAuthorize("hasRole('MODERATOR')")
     public ApiResponse<Void> changeActiveSemester(@PathVariable Long id) {
         semesterService.changeActiveSemester(id);
         return ApiResponse.success("Change active semester successfully", null);
