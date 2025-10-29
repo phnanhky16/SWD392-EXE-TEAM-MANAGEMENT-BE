@@ -1,17 +1,28 @@
 package com.swd.exe.teammanagement.controller;
 
+import java.util.List;
+
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.swd.exe.teammanagement.dto.ApiResponse;
 import com.swd.exe.teammanagement.dto.request.CommentRequest;
 import com.swd.exe.teammanagement.dto.response.CommentResponse;
 import com.swd.exe.teammanagement.service.CommentService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/comments")
@@ -25,6 +36,7 @@ public class CommentController {
             description = "Create a new comment on a post. Requires authentication."
     )
     @PostMapping
+    @PostAuthorize("hasRole('USER')")
    ApiResponse<CommentResponse> createComment(@RequestBody CommentRequest request){
         return ApiResponse.created("Create comment successfully", commentService.createComment(request));
     }
@@ -33,6 +45,7 @@ public class CommentController {
             description = "Update an existing comment. Only comment author or admin can update."
     )
     @PutMapping("/{id}")
+    @PostAuthorize("hasRole('USER')")
     ApiResponse<CommentResponse> updateComment(@PathVariable Long id,@RequestBody CommentRequest request){
         return ApiResponse.success("Update comment successfully", commentService.updateComment(id,request));
     }
@@ -41,6 +54,7 @@ public class CommentController {
             description = "Delete a comment. Only comment author or admin can delete."
     )
     @DeleteMapping("/{id}")
+    @PostAuthorize("hasRole('USER')")
     ApiResponse<Void> deleteComment(@PathVariable Long id){
         commentService.deleteComment(id);
         return ApiResponse.success("Delete comment successfully", null);

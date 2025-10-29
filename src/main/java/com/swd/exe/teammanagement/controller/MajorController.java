@@ -11,6 +11,8 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -47,7 +49,8 @@ public class MajorController {
             description = "Create a new academic major. Requires admin privileges."
     )
     @PostMapping
-    public ApiResponse<MajorResponse> createMajor( @RequestBody MajorRequest request) {
+    @PostAuthorize("hasRole('MODERATOR')")
+    public ApiResponse<MajorResponse> createMajor(@Valid @RequestBody MajorRequest request) {
         return ApiResponse.created("Create major successfully", majorService.createMajor(request));
     }
     
@@ -56,6 +59,7 @@ public class MajorController {
             description = "Update an existing major by id. Requires admin privileges."
     )
     @PutMapping("/{id}")
+    @PostAuthorize("hasRole('MODERATOR')")
     public ApiResponse<MajorResponse> updateMajor(@PathVariable Long id, @Valid @RequestBody MajorRequest request) {
         return ApiResponse.success("Update major successfully", majorService.updateMajor(id, request));
     }
@@ -65,6 +69,7 @@ public class MajorController {
             description = "Delete a major by id. Requires admin privileges."
     )
     @DeleteMapping("/{id}")
+    @PostAuthorize("hasRole('MODERATOR')")
     public ApiResponse<Void> deleteMajor(@PathVariable Long id) {
         majorService.deleteMajor(id);
         return ApiResponse.success("Delete major successfully", null);

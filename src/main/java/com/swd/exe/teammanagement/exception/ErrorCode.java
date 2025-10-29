@@ -73,7 +73,15 @@ public enum ErrorCode {
     GROUP_UNLOCKED("Group is not locked", HttpStatus.BAD_REQUEST),
     REQUEST_UNEXISTED("Request does not exist", HttpStatus.BAD_REQUEST),
     REQUEST_ALREADY_RESPONDED("Request has already been responded to", HttpStatus.BAD_REQUEST),
-    USER_NOT_TEACHER("User is not a teacher", HttpStatus.BAD_REQUEST)
+    USER_NOT_TEACHER("User is not a teacher", HttpStatus.BAD_REQUEST),
+    
+    // Validation errors
+    INVALID_TITLE("Title must not be blank and between 1-200 characters", HttpStatus.BAD_REQUEST),
+    INVALID_DESCRIPTION("Description must not be blank and between 1-1000 characters", HttpStatus.BAD_REQUEST),
+    INVALID_CONTENT("Content must not be blank and between 1-2000 characters", HttpStatus.BAD_REQUEST),
+    INVALID_MAJOR_NAME("Major name must not be blank and between 1-100 characters", HttpStatus.BAD_REQUEST),
+    INVALID_SEMESTER_NAME("Semester name must not be blank", HttpStatus.BAD_REQUEST),
+    INVALID_POST_TYPE("Post type must not be null", HttpStatus.BAD_REQUEST)
     ;
 
     private final String message;

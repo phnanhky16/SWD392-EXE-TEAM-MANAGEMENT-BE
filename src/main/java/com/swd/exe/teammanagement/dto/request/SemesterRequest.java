@@ -12,6 +12,6 @@ import jakarta.validation.constraints.NotBlank;
 @Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class SemesterRequest {
-    @NotBlank
+    @NotBlank(message = "INVALID_SEMESTER_NAME")
     String name;
 }

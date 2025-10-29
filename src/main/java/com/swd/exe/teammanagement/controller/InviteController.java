@@ -14,6 +14,8 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,6 +30,7 @@ public class InviteController {
 
     @Operation(summary = "Create a group invite", description = "Only group leaders can invite a user to join their group.")
     @PostMapping
+    @PostAuthorize("hasRole('USER')")
     public ApiResponse<InviteResponse> createInvite(@Valid @RequestBody InviteRequest request) {
         return ApiResponse.created("Invite created successfully", inviteService.createInvite(request));
     }
@@ -47,6 +50,7 @@ public class InviteController {
 
     @Operation(summary = "Respond to an invite", description = "Accept or decline an invite. Only the invitee can respond.")
     @PatchMapping("/{inviteId}")
+    @PostAuthorize("hasRole('USER')")
     public ApiResponse<InviteResponse> respondToInvite(
             @PathVariable Long inviteId,
             @Valid @RequestBody InviteUpdateRequest request

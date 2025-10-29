@@ -3,6 +3,8 @@ package com.swd.exe.teammanagement.controller;
 import java.util.List;
 
 import com.swd.exe.teammanagement.dto.request.PostUpdateRequest;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,6 +42,7 @@ public class PostController {
             description = "Create a recruitment post. Depending on type, user or group will be set."
     )
     @PostMapping
+    @PreAuthorize("hasRole('USER')")
     public ApiResponse<PostResponse> createPost(@Valid @RequestBody PostRequest request) {
         return ApiResponse.created("Create post successfully", postService.createPost(request));
     }
@@ -94,6 +97,7 @@ public class PostController {
             description = "Delete a recruitment post. Only the post author can delete their own post."
     )
     @DeleteMapping("/{id}")
+    @PostAuthorize("hasRole('USER')")
     public ApiResponse<Void> deletePost(@PathVariable Long id) {
         postService.deletePost(id);
         return ApiResponse.success("Delete post successfully", null);
@@ -104,6 +108,7 @@ public class PostController {
             description = "Update a recruitment post. Only the post author can update their own post."
     )
     @PutMapping("/{id}")
+    @PostAuthorize("hasRole('USER')")
     public ApiResponse<PostResponse> updatePost(@PathVariable Long id, @Valid @RequestBody PostUpdateRequest request) {
         return ApiResponse.success("Update post successfully", postService.updatePost(id, request));
     }
