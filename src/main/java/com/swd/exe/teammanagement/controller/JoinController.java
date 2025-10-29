@@ -29,7 +29,7 @@ public class JoinController {
             description = "Join a group. If group status is FORMING, user becomes leader. If ACTIVE, user becomes member. If LOCKED, creates a join request with voting."
     )
     @PostMapping("/{groupId}")
-    @PostAuthorize("hasRole('USER')")
+    @PostAuthorize("hasRole('STUDENT')")
     public ApiResponse<Void> joinGroup(@PathVariable Long groupId) {
         joinService.joinGroup(groupId);
         return ApiResponse.created("Join request processed successfully", null);
@@ -60,7 +60,7 @@ public class JoinController {
             description = "Cancel a pending join request. Only the request creator can cancel their own request."
     )
     @DeleteMapping("/{joinId}")
-    @PostAuthorize("hasRole('USER')")
+    @PostAuthorize("hasRole('STUDENT')")
     public ApiResponse<Void> cancelJoinRequest(@PathVariable Long joinId) {
         joinService.cancelJoinRequest(joinId);
         return ApiResponse.success("Join request cancelled successfully", null);

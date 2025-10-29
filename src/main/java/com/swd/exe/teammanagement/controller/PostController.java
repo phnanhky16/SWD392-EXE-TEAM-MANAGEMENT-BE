@@ -42,7 +42,7 @@ public class PostController {
             description = "Create a recruitment post. Depending on type, user or group will be set."
     )
     @PostMapping
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('STUDENT')")
     public ApiResponse<PostResponse> createPost(@Valid @RequestBody PostRequest request) {
         return ApiResponse.created("Create post successfully", postService.createPost(request));
     }
@@ -97,7 +97,7 @@ public class PostController {
             description = "Delete a recruitment post. Only the post author can delete their own post."
     )
     @DeleteMapping("/{id}")
-    @PostAuthorize("hasRole('USER')")
+    @PostAuthorize("hasRole('STUDENT')")
     public ApiResponse<Void> deletePost(@PathVariable Long id) {
         postService.deletePost(id);
         return ApiResponse.success("Delete post successfully", null);
@@ -108,7 +108,7 @@ public class PostController {
             description = "Update a recruitment post. Only the post author can update their own post."
     )
     @PutMapping("/{id}")
-    @PostAuthorize("hasRole('USER')")
+    @PostAuthorize("hasRole('STUDENT')")
     public ApiResponse<PostResponse> updatePost(@PathVariable Long id, @Valid @RequestBody PostUpdateRequest request) {
         return ApiResponse.success("Update post successfully", postService.updatePost(id, request));
     }
