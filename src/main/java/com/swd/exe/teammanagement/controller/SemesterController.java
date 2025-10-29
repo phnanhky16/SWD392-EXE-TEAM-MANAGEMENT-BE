@@ -60,7 +60,7 @@ public class SemesterController {
             description = "Create a new academic semester. Name should be unique (e.g., SPRING, SUMMER, FALL)"
     )
     @PostMapping
-    @PostAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasRole('MODERATOR')")
     public ApiResponse<SemesterResponse> createSemester(@Valid @RequestBody SemesterRequest request) {
         return ApiResponse.created("Create semester successfully", semesterService.createSemester(request));
     }
@@ -70,7 +70,7 @@ public class SemesterController {
             description = "Update semester information including name and active status"
     )
     @PutMapping("/{id}")
-    @PostAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasRole('MODERATOR')")
     public ApiResponse<SemesterResponse> updateSemester(
             @PathVariable Long id,
             @Valid @RequestBody SemesterRequest request

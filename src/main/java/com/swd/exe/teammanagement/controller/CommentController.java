@@ -36,7 +36,7 @@ public class CommentController {
             description = "Create a new comment on a post. Requires authentication."
     )
     @PostMapping
-    @PostAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('STUDENT')")
    ApiResponse<CommentResponse> createComment(@RequestBody CommentRequest request){
         return ApiResponse.created("Create comment successfully", commentService.createComment(request));
     }
@@ -45,7 +45,7 @@ public class CommentController {
             description = "Update an existing comment. Only comment author or admin can update."
     )
     @PutMapping("/{id}")
-    @PostAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('STUDENT')")
     ApiResponse<CommentResponse> updateComment(@PathVariable Long id,@RequestBody CommentRequest request){
         return ApiResponse.success("Update comment successfully", commentService.updateComment(id,request));
     }
@@ -54,7 +54,7 @@ public class CommentController {
             description = "Delete a comment. Only comment author or admin can delete."
     )
     @DeleteMapping("/{id}")
-    @PostAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('STUDENT')")
     ApiResponse<Void> deleteComment(@PathVariable Long id){
         commentService.deleteComment(id);
         return ApiResponse.success("Delete comment successfully", null);
