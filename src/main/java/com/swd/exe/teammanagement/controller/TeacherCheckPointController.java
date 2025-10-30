@@ -2,7 +2,6 @@ package com.swd.exe.teammanagement.controller;
 
 import java.util.List;
 
-import com.swd.exe.teammanagement.dto.response.TeacherRequestResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.swd.exe.teammanagement.dto.ApiResponse;
 import com.swd.exe.teammanagement.dto.response.GroupResponse;
-import com.swd.exe.teammanagement.entity.TeacherRequest;
+import com.swd.exe.teammanagement.dto.response.TeacherRequestResponse;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.service.TeacherCheckPointService;
 
@@ -84,7 +83,7 @@ public class TeacherCheckPointController {
             description = "Retrieve all pending teacher assignment requests for the current authenticated teacher"
     )
     @GetMapping("/requests/pending")
-    public ApiResponse<List<TeacherRequest>> getPendingRequestsForTeacher() {
+    public ApiResponse<List<TeacherRequestResponse>> getPendingRequestsForTeacher() {
         return ApiResponse.success("Get pending requests successfully", 
                 teacherCheckPointService.getPendingRequestsForTeacher());
     }

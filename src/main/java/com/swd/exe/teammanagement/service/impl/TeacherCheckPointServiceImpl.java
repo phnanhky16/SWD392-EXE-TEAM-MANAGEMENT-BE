@@ -166,15 +166,31 @@ public class TeacherCheckPointServiceImpl implements TeacherCheckPointService {
     }
 
     @Override
-    public List<TeacherRequest> getPendingRequestsForTeacher() {
+    public List<TeacherRequestResponse> getPendingRequestsForTeacher() {
         User currentUser = getCurrentUser();
-        return teacherRequestRepository.findByTeacherAndStatus(currentUser, RequestStatus.PENDING);
+        List<TeacherRequest> requests = teacherRequestRepository.findTeacherRequestsByTeacherAndStatus(currentUser, RequestStatus.PENDING);
+        return requests.stream()
+                .map(req -> TeacherRequestResponse.builder()
+                        .requestId(req.getId())
+                        .teacher(UserSummaryResponse.builder()
+                                .id(req.getTeacher().getId())
+                                .fullName(req.getTeacher().getFullName())
+                                .email(req.getTeacher().getEmail())
+                                .role(req.getTeacher().getRole())
+                                .build())
+                        .group(GroupSummaryResponse.builder()
+                                .id(req.getGroup().getId())
+                                .title(req.getGroup().getTitle())
+                                .build())
+                        .status(req.getStatus())
+                        .build())
+                .toList();
     }
     
     @Override
     public List<GroupResponse> getGroupsRejected() {
         User currentUser = getCurrentUser();
-        List<TeacherRequest> rejectedRequests = teacherRequestRepository.findByTeacherAndStatus(currentUser, RequestStatus.REJECTED);
+        List<TeacherRequest> rejectedRequests = teacherRequestRepository.findTeacherRequestsByTeacherAndStatus(currentUser, RequestStatus.REJECTED);
         return rejectedRequests.stream()
                 .map(TeacherRequest::getGroup)
                 .filter(g -> !groupTeacherRepository.existsByGroupAndActiveTrue(g))
@@ -224,7 +240,7 @@ public class TeacherCheckPointServiceImpl implements TeacherCheckPointService {
     @Override
     public List<GroupResponse> getGroupsAccepted() {
         User currentUser = getCurrentUser();
-        List<TeacherRequest> acceptedRequests = teacherRequestRepository.findByTeacherAndStatus(currentUser, RequestStatus.ACCEPTED);
+        List<TeacherRequest> acceptedRequests = teacherRequestRepository.findTeacherRequestsByTeacherAndStatus(currentUser, RequestStatus.ACCEPTED);
         return acceptedRequests.stream()
                 .map(TeacherRequest::getGroup)
                 .map(g -> GroupResponse.builder()
@@ -271,7 +287,6 @@ public class TeacherCheckPointServiceImpl implements TeacherCheckPointService {
                             .email(gt.getTeacher().getEmail())
                             .build())
                     .status(RequestStatus.ACCEPTED)
-                    .message(null)
                     .build();
         }
 
@@ -291,7 +306,6 @@ public class TeacherCheckPointServiceImpl implements TeacherCheckPointService {
                                 .email(req.getTeacher().getEmail())
                                 .build())
                         .status(req.getStatus())
-                        .message(null)
                         .build()
         ).orElseGet(() ->
                 TeacherRequestResponse.builder()
@@ -302,7 +316,6 @@ public class TeacherCheckPointServiceImpl implements TeacherCheckPointService {
                                 .build())
                         .teacher(null)
                         .status(null)
-                        .message("Nhóm chưa chọn giáo viên chấm checkpoints")
                         .build()
         );
     }
