@@ -17,6 +17,4 @@ public class TeacherRequestResponse {
     private GroupSummaryResponse group;
     @Enumerated(EnumType.STRING)
     private RequestStatus status;
-    // Khi chưa có request
-    private String message;
 }

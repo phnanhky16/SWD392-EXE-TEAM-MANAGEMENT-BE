@@ -7,6 +7,7 @@ import com.swd.exe.teammanagement.enums.idea_join_post_score.JoinStatus;
 import com.swd.exe.teammanagement.enums.notification.NotificationStatus;
 import com.swd.exe.teammanagement.enums.notification.NotificationType;
 import com.swd.exe.teammanagement.enums.user.MembershipRole;
+import com.swd.exe.teammanagement.enums.vote.VoteStatus;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
 import com.swd.exe.teammanagement.repository.*;
@@ -34,6 +35,8 @@ public class JoinServiceImpl implements JoinService {
     VoteService voteService;
     NotificationRepository notificationRepository;
     SimpMessagingTemplate messagingTemplate;
+    private final VoteRepository voteRepository;
+    private final VoteChoiceRepository voteChoiceRepository;
 
     @Override
     public Void joinGroup(Long groupId) {
@@ -160,6 +163,13 @@ public class JoinServiceImpl implements JoinService {
             throw new AppException(ErrorCode.JOIN_REQUEST_ALREADY_PROCESSED);
         }
         joinRepository.delete(join);
+        Group group = join.getToGroup();
+        Vote vote = voteRepository.findByGroupAndTargetUserAndStatus(group, user, VoteStatus.OPEN);
+        List<VoteChoice> voteChoices = voteChoiceRepository.findVoteChoicesByVote(vote);
+        for (VoteChoice voteChoice : voteChoices) {
+            voteChoiceRepository.delete(voteChoice);
+        }
+        voteRepository.delete(vote);
         return null;
     }
 

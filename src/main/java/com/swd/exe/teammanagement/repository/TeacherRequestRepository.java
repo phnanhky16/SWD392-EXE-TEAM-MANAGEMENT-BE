@@ -13,8 +13,9 @@ import java.util.Optional;
 public interface TeacherRequestRepository extends JpaRepository<TeacherRequest, Long> {
     List<TeacherRequest> findByTeacherIdAndStatus(Long teacherId, RequestStatus status);
 
-    List<TeacherRequest> findByTeacherAndStatus(User teacher, RequestStatus status);
+    List<TeacherRequest> findTeacherRequestByTeacherAndStatus(User teacher, RequestStatus status);
 
     Optional<TeacherRequest> findTopByGroup_IdOrderByIdDesc(Long groupId);
 
+    List<TeacherRequest> findTeacherRequestsByTeacherAndStatus(User teacher, RequestStatus status);
 }

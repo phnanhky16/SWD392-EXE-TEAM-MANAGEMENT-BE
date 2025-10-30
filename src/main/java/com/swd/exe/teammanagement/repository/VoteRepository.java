@@ -1,6 +1,7 @@
 package com.swd.exe.teammanagement.repository;
 
 import com.swd.exe.teammanagement.entity.Group;
+import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.entity.Vote;
 import com.swd.exe.teammanagement.enums.vote.VoteStatus;
 import jakarta.transaction.Transactional;
@@ -24,4 +25,5 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
     List<Vote> findByActiveTrue();
     
     List<Vote> findByActiveFalse();
+    Vote findByGroupAndTargetUserAndStatus(Group group, User targetUser, VoteStatus status);
 }
