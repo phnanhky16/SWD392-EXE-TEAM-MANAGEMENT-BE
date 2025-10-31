@@ -117,6 +117,9 @@ public class JoinServiceImpl implements JoinService {
         if (joinRepository.existsByFromUserAndToGroupAndActiveTrue(user, group)) {
             throw new AppException(ErrorCode.DUPLICATE_JOIN_REQUEST);
         }
+        if(joinRepository.countJoinsByFromUser(user) > 3){
+            throw new  AppException(ErrorCode.U_JUST_JOIN_AT_LEAST_3_GROUPS);
+        }
         joinRepository.save(Join.builder()
                 .toGroup(group)
                 .fromUser(user)

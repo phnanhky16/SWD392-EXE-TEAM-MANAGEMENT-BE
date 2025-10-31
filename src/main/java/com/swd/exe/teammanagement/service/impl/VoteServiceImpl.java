@@ -95,6 +95,7 @@ public class VoteServiceImpl implements VoteService {
     // 📊 Xử lý kết quả vote
     private void processVoteResult(Vote vote) {
         Group group = vote.getGroup();
+        List<User> members = groupMemberRepository.findUsersByGroup(group);
         List<VoteChoice> voteChoices = voteChoiceRepository.findByVoteAndActiveTrue(vote);
 
         int yes = (int) voteChoices.stream().filter(v -> v.getChoiceValue() == ChoiceValue.YES).count();
@@ -110,26 +111,39 @@ public class VoteServiceImpl implements VoteService {
                     .group(group)
                     .user(vote.getTargetUser())
                     .membershipRole(MembershipRole.MEMBER)
-                            .active(true)
+                    .active(true)
                     .build());
             Join join = joinRepository.findJoinByFromUserAndToGroupAndActiveTrue(vote.getTargetUser(), group)
                     .orElseThrow(() -> new AppException(ErrorCode.JOIN_REQUEST_NOT_FOUND));
             join.setStatus(JoinStatus.ACCEPTED);
             joinRepository.save(join);
+            List<Vote> otherVotes = voteRepository.findByTargetUserAndStatus(vote.getTargetUser(), VoteStatus.OPEN);
+            for (Vote otherVote : otherVotes) {
+                otherVote.setStatus(VoteStatus.CLOSED);
+                voteRepository.save(otherVote);
+                List<VoteChoice> vcs = voteChoiceRepository.findByVoteAndActiveTrue(otherVote);
+                vcs.forEach(vc -> vc.setActive(false));
+                voteChoiceRepository.saveAll(vcs);
+                joinRepository.findJoinByFromUserAndToGroupAndActiveTrue(vote.getTargetUser(), otherVote.getGroup())
+                        .ifPresent(otherJoin -> {
+                            otherJoin.setStatus(JoinStatus.REJECTED);
+                            joinRepository.save(otherJoin);
+                        });
+            }
 
-//            // 🔔 Gửi notification cho người được chấp nhận
-//            sendNotification(vote.getTargetUser(),
-//                    "🎉 Bạn đã được chấp nhận vào nhóm " + group.getTitle(),
-//                    NotificationType.JOIN_ACCEPTED);
+            // 🔔 Gửi notification cho người được chấp nhận
+            sendNotification(vote.getTargetUser(),
+                    "🎉 Bạn đã được chấp nhận vào nhóm " + group.getTitle(),
+                    NotificationType.JOIN_ACCEPTED);
 
-//            // 🔔 Gửi notification cho các thành viên group
-//            for (User member : members) {
-//                if (!member.getId().equals(vote.getTargetUser().getId())) {
-//                    sendNotification(member,
-//                            "✅ " + vote.getTargetUser().getFullName() + " đã được chấp nhận vào nhóm " + group.getTitle(),
-//                            NotificationType.JOIN_ACCEPTED);
-//                }
-//            }
+            // 🔔 Gửi notification cho các thành viên group
+            for (User member : members) {
+                if (!member.getId().equals(vote.getTargetUser().getId())) {
+                    sendNotification(member,
+                            "✅ " + vote.getTargetUser().getFullName() + " đã được chấp nhận vào nhóm " + group.getTitle(),
+                            NotificationType.JOIN_ACCEPTED);
+                }
+            }
 //
 //            // 🛰️ Gửi WebSocket thông báo tới group
 //            messagingTemplate.convertAndSend("/topic/group/" + group.getId(),
@@ -141,9 +155,9 @@ public class VoteServiceImpl implements VoteService {
             join.setStatus(JoinStatus.REJECTED);
             joinRepository.save(join);
 
-//            sendNotification(vote.getTargetUser(),
-//                    "❌ Yêu cầu tham gia nhóm " + group.getTitle() + " đã bị từ chối.",
-//                    NotificationType.JOIN_REJECTED);
+            sendNotification(vote.getTargetUser(),
+                    "❌ Yêu cầu tham gia nhóm " + group.getTitle() + " đã bị từ chối.",
+                    NotificationType.JOIN_REJECTED);
 //
 //            messagingTemplate.convertAndSend("/topic/group/" + group.getId(),
 //                    "❌ " + vote.getTargetUser().getFullName() + " bị từ chối tham gia nhóm.");
