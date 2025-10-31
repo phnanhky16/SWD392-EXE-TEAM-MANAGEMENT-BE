@@ -94,4 +94,17 @@ public class JoinController {
     public ApiResponse<Join> changeJoinActiveStatus(@PathVariable Long joinId) {
         return ApiResponse.success("Join status toggled successfully", joinService.changeJoinActiveStatus(joinId));
     }
+    @Operation(
+            summary = "Moderator assign student to group",
+            description = "Moderator can directly add a student to a group without voting."
+    )
+    @PutMapping("/assign/{groupId}/{studentId}")
+    @PreAuthorize("hasRole('MODERATOR')")
+    public ApiResponse<Void> assignStudentToGroup(
+            @PathVariable Long groupId,
+            @PathVariable Long studentId
+    ) {
+        joinService.assignStudentToGroup(groupId, studentId);
+        return ApiResponse.success("Student assigned to group successfully", null);
+    }
 }

@@ -13,4 +13,5 @@ public interface JoinService {
     Join activateJoin(Long joinId);
     Join deactivateJoin(Long joinId);
     Join changeJoinActiveStatus(Long joinId);
+    void assignStudentToGroup(Long groupId, Long studentId);
 }
