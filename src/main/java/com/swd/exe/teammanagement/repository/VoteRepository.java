@@ -26,4 +26,6 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
     
     List<Vote> findByActiveFalse();
     Vote findByGroupAndTargetUserAndStatus(Group group, User targetUser, VoteStatus status);
+
+    List<Vote> findByTargetUserAndStatus(User targetUser, VoteStatus status);
 }

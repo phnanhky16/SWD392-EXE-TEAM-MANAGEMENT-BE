@@ -68,7 +68,7 @@ public class PostServiceImpl implements PostService {
             post.setActive(true);
             postRepository.save(post);
         }
-        return PostResponse.builder().id(post.getId()).content(post.getContent()).createdAt(post.getCreatedAt()).type(post.getType()).userResponse(userMapper.toUserResponse(post.getUser())).groupResponse(groupMapper.toGroupResponse(post.getGroup())).build();
+        return PostResponse.builder().id(post.getId()).content(post.getContent()).createdAt(post.getCreatedAt()).type(post.getType()).userResponse(userMapper.toUserResponse(post.getUser())).groupResponse(groupMapper.toGroupResponse(post.getGroup())).active(post.isActive()).build();
     }
 
     @Override
@@ -82,6 +82,7 @@ public class PostServiceImpl implements PostService {
                 .groupResponse(groupMapper.toGroupResponse(post.getGroup()))
                 .userResponse(userMapper.toUserResponse(post.getUser()))
                 .type(post.getType())
+                .active(post.isActive())
                 .build();
     }
 
@@ -96,6 +97,7 @@ public class PostServiceImpl implements PostService {
                         .groupResponse(groupMapper.toGroupResponse(post.getGroup()))
                         .userResponse(userMapper.toUserResponse(post.getUser()))
                         .type(post.getType())
+                        .active(post.isActive())
                         .build())
                 .toList();
     }
@@ -143,6 +145,7 @@ public class PostServiceImpl implements PostService {
                     .groupResponse(groupMapper.toGroupResponse(post.getGroup()))
                     .userResponse(userMapper.toUserResponse(post.getUser()))
                     .type(post.getType())
+                    .active(post.isActive())
                     .build();
         }
         if (!post.getUser().getId().equals(user.getId())) {
@@ -156,6 +159,7 @@ public class PostServiceImpl implements PostService {
                 .groupResponse(groupMapper.toGroupResponse(post.getGroup()))
                 .userResponse(userMapper.toUserResponse(post.getUser()))
                 .type(post.getType())
+                .active(post.isActive())
                 .build();
     }
 

@@ -42,7 +42,7 @@ public class PostController {
             description = "Create a recruitment post. Depending on type, user or group will be set."
     )
     @PostMapping
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('STUDENT') or hasRole('ADMIN') or hasRole('MODERATER')")
     public ApiResponse<PostResponse> createPost(@Valid @RequestBody PostRequest request) {
         return ApiResponse.created("Create post successfully", postService.createPost(request));
     }
@@ -97,7 +97,7 @@ public class PostController {
             description = "Delete a recruitment post. Only the post author can delete their own post."
     )
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('STUDENT') or hasRole('ADMIN') or hasRole('MODERATER')")
     public ApiResponse<Void> deletePost(@PathVariable Long id) {
         postService.deletePost(id);
         return ApiResponse.success("Delete post successfully", null);
@@ -108,8 +108,37 @@ public class PostController {
             description = "Update a recruitment post. Only the post author can update their own post."
     )
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('STUDENT') or hasRole('ADMIN') or hasRole('MODERATER')")
     public ApiResponse<PostResponse> updatePost(@PathVariable Long id, @Valid @RequestBody PostUpdateRequest request) {
         return ApiResponse.success("Update post successfully", postService.updatePost(id, request));
+    }
+    @Operation(
+            summary = "Activate post",
+            description = "Activate a specific post (set active = true). Only the post author or an admin can perform this action."
+    )
+    @PutMapping("/{id}/activate")
+    @PreAuthorize("hasRole('STUDENT') or hasRole('ADMIN') or hasRole('MODERATER')")
+    public ApiResponse<PostResponse> activatePost(@PathVariable Long id) {
+        return ApiResponse.success("Activate post successfully", postService.activatePost(id));
+    }
+
+    @Operation(
+            summary = "Deactivate post",
+            description = "Deactivate a specific post (set active = false). Only the post author or an admin can perform this action."
+    )
+    @PutMapping("/{id}/deactivate")
+    @PreAuthorize("hasRole('STUDENT') or hasRole('ADMIN') or hasRole('MODERATER')")
+    public ApiResponse<PostResponse> deactivatePost(@PathVariable Long id) {
+        return ApiResponse.success("Deactivate post successfully", postService.deactivatePost(id));
+    }
+
+    @Operation(
+            summary = "Toggle post active status",
+            description = "Change post active status between active/inactive. Only the post author or an admin can perform this action."
+    )
+    @PutMapping("/{id}/toggle-active")
+    @PreAuthorize("hasRole('STUDENT') or hasRole('ADMIN') or hasRole('MODERATER')")
+    public ApiResponse<PostResponse> togglePostActive(@PathVariable Long id) {
+        return ApiResponse.success("Change post active status successfully", postService.changePostActiveStatus(id));
     }
 }

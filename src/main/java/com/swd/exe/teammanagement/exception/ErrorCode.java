@@ -81,7 +81,9 @@ public enum ErrorCode {
     INVALID_CONTENT("Content must not be blank and between 1-2000 characters", HttpStatus.BAD_REQUEST),
     INVALID_MAJOR_NAME("Major name must not be blank and between 1-100 characters", HttpStatus.BAD_REQUEST),
     INVALID_SEMESTER_NAME("Semester name must not be blank", HttpStatus.BAD_REQUEST),
-    INVALID_POST_TYPE("Post type must not be null", HttpStatus.BAD_REQUEST)
+    INVALID_POST_TYPE("Post type must not be null", HttpStatus.BAD_REQUEST),
+    GROUP_LOCKED_CANNOT_LEAVE("Group is locked, you cannot out", HttpStatus.BAD_REQUEST),
+    U_JUST_JOIN_AT_LEAST_3_GROUPS("you can just 3 group, can not over 3 group", HttpStatus.BAD_REQUEST),
     ;
 
     private final String message;

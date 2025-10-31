@@ -60,9 +60,51 @@ public class JoinController {
             description = "Cancel a pending join request. Only the request creator can cancel their own request."
     )
     @DeleteMapping("/{joinId}")
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('MODERATOR')or hasRole('ADMIN')")
     public ApiResponse<Void> cancelJoinRequest(@PathVariable Long joinId) {
         joinService.cancelJoinRequest(joinId);
         return ApiResponse.success("Join request cancelled successfully", null);
+    }
+    @Operation(
+            summary = "Activate a join",
+            description = "Set the join request as active. Requires moderator privileges."
+    )
+    @PutMapping("/{joinId}/activate")
+    @PreAuthorize("hasRole('MODERATOR')or hasRole('ADMIN')")
+    public ApiResponse<Join> activateJoin(@PathVariable Long joinId) {
+        return ApiResponse.success("Join activated successfully", joinService.activateJoin(joinId));
+    }
+
+    @Operation(
+            summary = "Deactivate a join",
+            description = "Set the join request as inactive. Requires moderator privileges."
+    )
+    @PutMapping("/{joinId}/deactivate")
+    @PreAuthorize("hasRole('MODERATOR')or hasRole('ADMIN')")
+    public ApiResponse<Join> deactivateJoin(@PathVariable Long joinId) {
+        return ApiResponse.success("Join deactivated successfully", joinService.deactivateJoin(joinId));
+    }
+
+    @Operation(
+            summary = "Toggle join active status",
+            description = "Switch join status between active/inactive. Requires moderator privileges."
+    )
+    @PutMapping("/{joinId}/toggle-status")
+    @PreAuthorize("hasRole('MODERATOR')or hasRole('ADMIN')")
+    public ApiResponse<Join> changeJoinActiveStatus(@PathVariable Long joinId) {
+        return ApiResponse.success("Join status toggled successfully", joinService.changeJoinActiveStatus(joinId));
+    }
+    @Operation(
+            summary = "Moderator assign student to group",
+            description = "Moderator can directly add a student to a group without voting."
+    )
+    @PutMapping("/assign/{groupId}/{studentId}")
+    @PreAuthorize("hasRole('MODERATOR')")
+    public ApiResponse<Void> assignStudentToGroup(
+            @PathVariable Long groupId,
+            @PathVariable Long studentId
+    ) {
+        joinService.assignStudentToGroup(groupId, studentId);
+        return ApiResponse.success("Student assigned to group successfully", null);
     }
 }

@@ -37,4 +37,8 @@ public interface JoinRepository extends JpaRepository<Join, Long> {
     List<Join> findByActiveTrue();
     
     List<Join> findByActiveFalse();
+
+    boolean countJoinByFromUser(User fromUser);
+
+    double countJoinsByFromUser(User fromUser);
 }

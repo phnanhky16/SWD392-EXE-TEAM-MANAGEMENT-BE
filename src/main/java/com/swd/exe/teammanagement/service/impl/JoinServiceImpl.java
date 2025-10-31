@@ -117,6 +117,9 @@ public class JoinServiceImpl implements JoinService {
         if (joinRepository.existsByFromUserAndToGroupAndActiveTrue(user, group)) {
             throw new AppException(ErrorCode.DUPLICATE_JOIN_REQUEST);
         }
+        if(joinRepository.countJoinsByFromUser(user) > 3){
+            throw new  AppException(ErrorCode.U_JUST_JOIN_AT_LEAST_3_GROUPS);
+        }
         joinRepository.save(Join.builder()
                 .toGroup(group)
                 .fromUser(user)
@@ -196,6 +199,41 @@ public class JoinServiceImpl implements JoinService {
         join.setActive(!join.isActive());
         return joinRepository.save(join);
     }
+@Override
+public void assignStudentToGroup(Long groupId, Long studentId) {
+    Group group = groupRepository.findById(groupId)
+            .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+
+    User student = userRepository.findById(studentId)
+            .orElseThrow(() -> new AppException(ErrorCode.USER_UNEXISTED));
+
+    // Kiểm tra xem học sinh đã trong nhóm chưa
+    boolean exists = groupMemberRepository.existsByGroupAndUser(group, student);
+    if (exists) {
+        throw new AppException(ErrorCode.USER_ALREADY_IN_GROUP);
+    }
+
+    // Thêm học sinh vào group
+    GroupMember member = GroupMember.builder()
+            .group(group)
+            .user(student)
+            .membershipRole(MembershipRole.MEMBER)
+            .active(true)
+            .build();
+    groupMemberRepository.save(member);
+
+    // Nếu cần, tạo Join record với trạng thái ACCEPTED
+    Join join = Join.builder()
+            .fromUser(student)
+            .toGroup(group)
+            .status(JoinStatus.ACCEPTED)
+            .active(true)
+            .build();
+    joinRepository.save(join);
+
+    // (Optional) Gửi notification tới học sinh
+    sendNotification(student, "🎉 Bạn đã được moderator thêm vào nhóm " + group.getTitle(), NotificationType.JOIN_ACCEPTED);
+}
 
     private User getCurrentUser() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

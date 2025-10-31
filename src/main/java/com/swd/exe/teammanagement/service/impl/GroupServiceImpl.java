@@ -242,6 +242,9 @@ public class GroupServiceImpl implements GroupService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
 
         Group group = gm.getGroup();
+        if(group.getStatus().equals(GroupStatus.LOCKED)){
+            throw new AppException(ErrorCode.GROUP_LOCKED_CANNOT_LEAVE);
+        }
         List<GroupMember> members = groupMemberRepository.findByGroupAndActiveTrue(group);
         if (members.size() == 1) {
             resetGroup(group);
