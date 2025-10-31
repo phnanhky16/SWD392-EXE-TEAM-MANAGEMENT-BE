@@ -99,4 +99,33 @@ public class VoteController {
         voteService.voteDone(voteId);
         return ApiResponse.success("Vote finalized successfully", null);
     }
+    @Operation(
+            summary = "Activate a vote",
+            description = "Set a vote to active = true. Only admins or group leaders can perform this action."
+    )
+    @PutMapping("/{voteId}/activate")
+    public ApiResponse<Vote> activateVote(@PathVariable Long voteId) {
+        return ApiResponse.success("Vote activated successfully",
+                voteService.activateVote(voteId));
+    }
+
+    @Operation(
+            summary = "Deactivate a vote",
+            description = "Set a vote to active = false. Only admins or group leaders can perform this action."
+    )
+    @PutMapping("/{voteId}/deactivate")
+    public ApiResponse<Vote> deactivateVote(@PathVariable Long voteId) {
+        return ApiResponse.success("Vote deactivated successfully",
+                voteService.deactivateVote(voteId));
+    }
+
+    @Operation(
+            summary = "Toggle vote active status",
+            description = "Change vote's active status between active/inactive."
+    )
+    @PutMapping("/{voteId}/toggle-active")
+    public ApiResponse<Vote> toggleVoteActive(@PathVariable Long voteId) {
+        return ApiResponse.success("Vote active status toggled successfully",
+                voteService.changeVoteActiveStatus(voteId));
+    }
 }

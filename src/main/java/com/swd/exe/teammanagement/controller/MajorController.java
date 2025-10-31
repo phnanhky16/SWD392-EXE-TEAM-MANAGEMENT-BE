@@ -49,7 +49,7 @@ public class MajorController {
             description = "Create a new academic major. Requires admin privileges."
     )
     @PostMapping
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') ")
     public ApiResponse<MajorResponse> createMajor(@Valid @RequestBody MajorRequest request) {
         return ApiResponse.created("Create major successfully", majorService.createMajor(request));
     }
@@ -59,7 +59,7 @@ public class MajorController {
             description = "Update an existing major by id. Requires admin privileges."
     )
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasRole('MODERATOR')or hasRole('ADMIN')")
     public ApiResponse<MajorResponse> updateMajor(@PathVariable Long id, @Valid @RequestBody MajorRequest request) {
         return ApiResponse.success("Update major successfully", majorService.updateMajor(id, request));
     }
@@ -69,9 +69,34 @@ public class MajorController {
             description = "Delete a major by id. Requires admin privileges."
     )
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasRole('MODERATOR')or hasRole('ADMIN')")
     public ApiResponse<Void> deleteMajor(@PathVariable Long id) {
         majorService.deleteMajor(id);
         return ApiResponse.success("Delete major successfully", null);
+    }
+    @PutMapping("/{id}/activate")
+    @PreAuthorize("hasRole('MODERATOR')or hasRole('ADMIN')")
+    public ApiResponse<MajorResponse> activateMajor(@PathVariable Long id) {
+        return ApiResponse.success("Activate major successfully", majorService.activateMajor(id));
+    }
+
+    @Operation(
+            summary = "Deactivate major",
+            description = "Deactivate a specific major (set active = false). Requires moderator privileges."
+    )
+    @PutMapping("/{id}/deactivate")
+    @PreAuthorize("hasRole('MODERATOR')or hasRole('ADMIN')")
+    public ApiResponse<MajorResponse> deactivateMajor(@PathVariable Long id) {
+        return ApiResponse.success("Deactivate major successfully", majorService.deactivateMajor(id));
+    }
+
+    @Operation(
+            summary = "Toggle major active status",
+            description = "Toggle active status of a major (active ↔ inactive). Requires moderator privileges."
+    )
+    @PutMapping("/{id}/toggle-active")
+    @PreAuthorize("hasRole('MODERATOR')or hasRole('ADMIN')")
+    public ApiResponse<MajorResponse> toggleMajorActive(@PathVariable Long id) {
+        return ApiResponse.success("Toggle major active status successfully", majorService.changeMajorActiveStatus(id));
     }
 }
