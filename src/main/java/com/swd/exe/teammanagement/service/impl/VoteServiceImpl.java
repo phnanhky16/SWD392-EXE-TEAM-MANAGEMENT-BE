@@ -68,6 +68,9 @@ public class VoteServiceImpl implements VoteService {
                 .orElseThrow(() -> new AppException(ErrorCode.VOTE_NOT_FOUND));
 
         User user = getCurrentUser();
+        if(voteChoiceRepository.existsByVoteAndUserAndActive(vote, user, true)){
+            throw new AppException(ErrorCode.YOU_CAN_VOTE_ONCE);
+        }
         VoteChoice voteChoice = VoteChoice.builder()
                 .choiceValue(choiceValue)
                 .vote(vote)

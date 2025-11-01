@@ -18,4 +18,6 @@ public interface VoteChoiceRepository extends JpaRepository<VoteChoice, Long> {
     List<VoteChoice> findByActiveFalse();
 
     List<VoteChoice> findVoteChoicesByVote(Vote vote);
+
+    boolean existsByVoteAndUserAndActive(Vote vote, User user, boolean active);
 }

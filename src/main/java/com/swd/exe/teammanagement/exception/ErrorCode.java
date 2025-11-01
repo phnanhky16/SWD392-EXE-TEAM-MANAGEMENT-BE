@@ -84,6 +84,8 @@ public enum ErrorCode {
     INVALID_POST_TYPE("Post type must not be null", HttpStatus.BAD_REQUEST),
     GROUP_LOCKED_CANNOT_LEAVE("Group is locked, you cannot out", HttpStatus.BAD_REQUEST),
     U_JUST_JOIN_AT_LEAST_3_GROUPS("you can just 3 group, can not over 3 group", HttpStatus.BAD_REQUEST),
+    YOU_CAN_VOTE_ONCE("You can vote once", HttpStatus.BAD_REQUEST),
+    LECTURER_CAN_POST_SHARING("lecturer can post sharing", HttpStatus.BAD_REQUEST),
     ;
 
     private final String message;

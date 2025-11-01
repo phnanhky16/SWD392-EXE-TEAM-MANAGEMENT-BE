@@ -9,6 +9,7 @@ import com.swd.exe.teammanagement.entity.Post;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.idea_join_post_score.PostType;
 import com.swd.exe.teammanagement.enums.user.MembershipRole;
+import com.swd.exe.teammanagement.enums.user.UserRole;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
 import com.swd.exe.teammanagement.mapper.GroupMapper;
@@ -52,7 +53,8 @@ public class PostServiceImpl implements PostService {
             post.setUser(user);
             post.setActive(true);
             postRepository.save(post);
-        }else{
+        }
+        if(request.getPostType().equals(PostType.FIND_MEMBER)){
             GroupMember gm = groupMemberRepository.findByUserAndActiveTrue(user).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
             if (gm.getMembershipRole() != MembershipRole.LEADER) {
                 throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
@@ -65,6 +67,17 @@ public class PostServiceImpl implements PostService {
             post.setCreatedAt(LocalDateTime.now());
             post.setType(PostType.FIND_MEMBER);
             post.setGroup(group);
+            post.setActive(true);
+            postRepository.save(post);
+        }
+        if(request.getPostType().equals(PostType.SHARING)){
+            if(!user.getRole().equals(UserRole.LECTURER)){
+                throw new AppException(ErrorCode.LECTURER_CAN_POST_SHARING);
+            }
+            post.setContent(request.getContent());
+            post.setCreatedAt(LocalDateTime.now());
+            post.setType(PostType.SHARING);
+            post.setUser(user);
             post.setActive(true);
             postRepository.save(post);
         }
