@@ -51,4 +51,12 @@ public class JwtService {
                 .getBody();
     }
     public boolean isTokenValid(String token) { return parse(token).getExpiration().after(new Date()); }
+    public Long extractUserId(String token) {
+        String sub = parse(token).getSubject(); // "2"
+        try {
+            return Long.parseLong(sub);
+        } catch (NumberFormatException e) {
+            throw new JwtException("Subject is not a numeric user id: " + sub);
+        }
+    }
 }
