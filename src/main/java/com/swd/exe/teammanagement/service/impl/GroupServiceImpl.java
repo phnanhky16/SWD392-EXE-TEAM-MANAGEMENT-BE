@@ -128,7 +128,7 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public GroupResponse getMyGroup() {
-        GroupMember gm = groupMemberRepository.findByUser(getCurrentUser())
+        GroupMember gm = groupMemberRepository.findByUserAndActiveTrue(getCurrentUser())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
         return mapToResponse(gm.getGroup());
     }
