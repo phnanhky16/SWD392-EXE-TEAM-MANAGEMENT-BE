@@ -142,18 +142,6 @@
             <version>3.0.0</version>
         </dependency>
 
-        <!-- Apache POI for Excel processing -->
-        <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi</artifactId>
-            <version>5.2.5</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi-ooxml</artifactId>
-            <version>5.2.5</version>
-        </dependency>
-
         <!-- DB driver -->
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -166,11 +154,6 @@
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>${mapstruct.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi-ooxml</artifactId>
-            <version>5.2.5</version>
         </dependency>
 
         <!-- Test -->
