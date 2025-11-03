@@ -3,7 +3,6 @@ package com.swd.exe.teammanagement.controller;
 import java.util.List;
 
 import com.swd.exe.teammanagement.dto.request.PostUpdateRequest;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -98,9 +97,8 @@ public class PostController {
     )
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('STUDENT') or hasRole('ADMIN') or hasRole('MODERATER')")
-    public ApiResponse<Void> deletePost(@PathVariable Long id) {
-        postService.deletePost(id);
-        return ApiResponse.success("Delete post successfully", null);
+    public ApiResponse<String> deletePost(@PathVariable Long id) {
+        return ApiResponse.success("Delete post successfully", postService.deletePost(id));
     }
     
     @Operation(

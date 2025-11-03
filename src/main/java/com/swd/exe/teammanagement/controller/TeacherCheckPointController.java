@@ -47,9 +47,8 @@ public class TeacherCheckPointController {
             description = "Group leader sends a request to assign a teacher/lecturer to their group. Group must be LOCKED status and not have a teacher yet."
     )
     @PostMapping("/teachers/{teacherId}")
-    public ApiResponse<Void> assignTeacherToGroup(@PathVariable Long teacherId) {
-        teacherCheckPointService.assignTeacherToGroup(teacherId);
-        return ApiResponse.created("Teacher request sent successfully", null);
+    public ApiResponse<String> assignTeacherToGroup(@PathVariable Long teacherId) {
+        return ApiResponse.created("Teacher request sent successfully", teacherCheckPointService.assignTeacherToGroup(teacherId));
     }
 
     @Operation(
@@ -57,12 +56,11 @@ public class TeacherCheckPointController {
             description = "Moderator directly assigns a teacher to a group without request-approval flow. System ensures even distribution of groups among teachers in the same semester. Only MODERATOR role can use this endpoint."
     )
     @PostMapping("/moderator/groups/{groupId}/teachers/{teacherId}")
-    public ApiResponse<Void> moderatorAssignTeacherToGroup(
+    public ApiResponse<String> moderatorAssignTeacherToGroup(
             @PathVariable Long groupId,
             @PathVariable Long teacherId
     ) {
-        teacherCheckPointService.moderatorAssignTeacherToGroup(groupId, teacherId);
-        return ApiResponse.created("Teacher assigned to group successfully", null);
+        return ApiResponse.created("Teacher assigned to group successfully", teacherCheckPointService.moderatorAssignTeacherToGroup(groupId, teacherId));
     }
 
     @Operation(

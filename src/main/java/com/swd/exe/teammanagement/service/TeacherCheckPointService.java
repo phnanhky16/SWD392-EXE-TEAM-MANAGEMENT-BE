@@ -8,8 +8,8 @@ import com.swd.exe.teammanagement.entity.User;
 
 public interface TeacherCheckPointService {
     List<User> getAllTeachers();
-    Void assignTeacherToGroup(Long teacherId);
-    Void moderatorAssignTeacherToGroup(Long groupId, Long teacherId);
+    String assignTeacherToGroup(Long teacherId);
+    String moderatorAssignTeacherToGroup(Long groupId, Long teacherId);
     void teacherResponseToGroup(Long requestId, boolean isAccepted);
     List<TeacherRequestResponse> getPendingRequestsForTeacher();
     List<GroupResponse> getGroupsRejected();

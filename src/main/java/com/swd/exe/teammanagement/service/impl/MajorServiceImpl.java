@@ -1,5 +1,9 @@
 package com.swd.exe.teammanagement.service.impl;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.swd.exe.teammanagement.dto.request.MajorRequest;
 import com.swd.exe.teammanagement.dto.response.MajorResponse;
 import com.swd.exe.teammanagement.entity.Major;
@@ -8,12 +12,10 @@ import com.swd.exe.teammanagement.exception.ErrorCode;
 import com.swd.exe.teammanagement.mapper.MajorMapper;
 import com.swd.exe.teammanagement.repository.MajorRepository;
 import com.swd.exe.teammanagement.service.MajorService;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -45,8 +47,9 @@ public class MajorServiceImpl implements MajorService {
     }
 
     @Override
-    public Void deleteMajor(Long id) {
-        return deactivateMajor(id) != null ? null : null;
+    public String deleteMajor(Long id) {
+        deactivateMajor(id);
+        return "Major deleted successfully";
     }
 
     @Override

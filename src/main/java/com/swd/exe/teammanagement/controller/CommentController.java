@@ -2,7 +2,6 @@ package com.swd.exe.teammanagement.controller;
 
 import java.util.List;
 
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,9 +54,8 @@ public class CommentController {
     )
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('STUDENT')")
-    ApiResponse<Void> deleteComment(@PathVariable Long id){
-        commentService.deleteComment(id);
-        return ApiResponse.success("Delete comment successfully", null);
+    ApiResponse<String> deleteComment(@PathVariable Long id){
+        return ApiResponse.success("Delete comment successfully", commentService.deleteComment(id));
     }
     @Operation(
             summary = "Get comment by ID",
