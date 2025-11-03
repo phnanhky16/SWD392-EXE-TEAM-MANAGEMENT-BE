@@ -13,4 +13,6 @@ public interface SemesterRepository extends JpaRepository<Semester, Long> {
     Semester findByActiveTrue();
     
     List<Semester> findByActiveFalse();
+
+    boolean existsByActive(Boolean active);
 }

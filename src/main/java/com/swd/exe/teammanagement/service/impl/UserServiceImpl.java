@@ -1,5 +1,19 @@
 package com.swd.exe.teammanagement.service.impl;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.swd.exe.teammanagement.dto.request.UserUpdateRequest;
 import com.swd.exe.teammanagement.dto.response.PagingResponse;
 import com.swd.exe.teammanagement.dto.response.UserResponse;
@@ -16,21 +30,9 @@ import com.swd.exe.teammanagement.service.UserService;
 import com.swd.exe.teammanagement.spec.UserSpecs;
 import com.swd.exe.teammanagement.util.PageUtil;
 import com.swd.exe.teammanagement.util.SortUtil;
+
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -217,6 +219,29 @@ public class UserServiceImpl implements UserService {
     public UserResponse uploadMyCV(MultipartFile cvFile) throws IOException {
         User currentUser = getCurrentUser();
         return uploadCV(currentUser.getId(), cvFile);
+    }
+
+    @Override
+    public List<UserResponse> getUsersBySemesterAndRole(Long semesterId, UserRole role) {
+        List<User> users;
+        
+        switch (role) {
+            case STUDENT:
+                users = userRepository.findStudentsBySemesterId(semesterId);
+                break;
+            case LECTURER:
+                users = userRepository.findTeachersBySemesterId(semesterId);
+                break;
+            case MODERATOR:
+                users = userRepository.findModeratorsBySemesterId(semesterId);
+                break;
+            default:
+                throw new AppException(ErrorCode.INVALID_ROLE);
+        }
+        
+        return users.stream()
+                .map(userMapper::toUserResponse)
+                .toList();
     }
 
 }

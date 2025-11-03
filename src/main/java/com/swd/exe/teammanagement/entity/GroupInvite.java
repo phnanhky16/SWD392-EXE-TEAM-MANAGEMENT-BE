@@ -39,4 +39,8 @@ public class GroupInvite {
     LocalDateTime createdAt;
 
     LocalDateTime respondedAt;
+    
+    @Column(name = "active")
+    @Builder.Default
+    Boolean active = true;
 }

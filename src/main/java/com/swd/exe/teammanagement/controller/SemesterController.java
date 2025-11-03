@@ -117,4 +117,14 @@ public class SemesterController {
         return ApiResponse.success("Toggle semester active status successfully", semesterService.changeSemesterActiveStatus(id));
     }
 
+    @Operation(
+            summary = "Complete semester",
+            description = "Mark semester as complete. This will deactivate all related entities (Posts, Groups, GroupMembers, GroupTeachers, Ideas, Invites, Joins, Votes, VoteChoices, Notifications) and set semester as inactive and complete. This action cannot be undone."
+    )
+    @PutMapping("/{id}/complete")
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN')")
+    public ApiResponse<String> completeSemester(@PathVariable Long id) {
+        return ApiResponse.success("Complete semester successfully", semesterService.completeSemester(id));
+    }
+
 }

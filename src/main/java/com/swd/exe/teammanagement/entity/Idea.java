@@ -1,12 +1,31 @@
 package com.swd.exe.teammanagement.entity;
 
+import java.time.LocalDateTime;
+
 import com.swd.exe.teammanagement.enums.idea_join_post_score.IdeaSource;
 import com.swd.exe.teammanagement.enums.idea_join_post_score.IdeaStatus;
-import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.FieldDefaults;
 
 @Entity
 @Table(
@@ -15,8 +34,7 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_ideas_group", columnList = "group_id"),
                 @Index(name = "idx_ideas_author", columnList = "author_id"),
                 @Index(name = "idx_ideas_source", columnList = "source"),
-                @Index(name = "idx_ideas_status", columnList = "status"),
-                @Index(name = "idx_ideas_combined_key", columnList = "combined_key")
+                @Index(name = "idx_ideas_status", columnList = "status")
         }
 )
 @Getter @Setter
@@ -59,12 +77,17 @@ public class Idea {
 
     @Column(name = "updated_at", nullable = false)
     LocalDateTime updatedAt;
+    
+    @Column(name = "active")
+    @Builder.Default
+    Boolean active = true;
 
     @PrePersist
     void prePersist() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = this.createdAt;
         if (this.status == null) this.status = IdeaStatus.DRAFT;
+        if (this.active == null) this.active = true;
     }
 
     @PreUpdate
