@@ -19,4 +19,5 @@ public class InviteResponse {
     InviteStatus status;
     LocalDateTime createdAt;
     LocalDateTime respondedAt;
+    Boolean active;
 }

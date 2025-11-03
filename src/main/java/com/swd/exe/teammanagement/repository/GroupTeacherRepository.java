@@ -1,18 +1,21 @@
 package com.swd.exe.teammanagement.repository;
 
-import com.swd.exe.teammanagement.entity.Group;
-import com.swd.exe.teammanagement.entity.GroupTeacher;
-import com.swd.exe.teammanagement.entity.Semester;
-import com.swd.exe.teammanagement.entity.User;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import com.swd.exe.teammanagement.entity.Group;
+import com.swd.exe.teammanagement.entity.GroupTeacher;
+import com.swd.exe.teammanagement.entity.Semester;
+import com.swd.exe.teammanagement.entity.User;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface GroupTeacherRepository extends JpaRepository<GroupTeacher, Long> {
@@ -42,4 +45,9 @@ public interface GroupTeacherRepository extends JpaRepository<GroupTeacher, Long
            order by gt.assignedAt desc, gt.id desc
            """)
     Page<Group> findAllGroupsByTeacher(@Param("teacher") User teacher, Pageable pageable);
+    
+    @Query("UPDATE GroupTeacher gt SET gt.active = false WHERE gt.group.semester.id = :semesterId")
+    @Modifying
+    @Transactional
+    void deactivateGroupTeachersBySemester(@Param("semesterId") Long semesterId);
 }

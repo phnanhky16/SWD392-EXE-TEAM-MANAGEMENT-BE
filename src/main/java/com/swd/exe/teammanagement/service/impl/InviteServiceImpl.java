@@ -74,7 +74,7 @@ public class InviteServiceImpl implements InviteService {
             throw new AppException(ErrorCode.USER_ALREADY_IN_GROUP);
         }
 
-        if (groupInviteRepository.existsByGroupAndInviteeAndStatus(group, invitee, InviteStatus.PENDING)) {
+        if (groupInviteRepository.existsByGroupAndInviteeAndStatusAndActiveTrue(group, invitee, InviteStatus.PENDING)) {
             throw new AppException(ErrorCode.INVITE_ALREADY_EXISTS);
         }
 
@@ -83,6 +83,7 @@ public class InviteServiceImpl implements InviteService {
                 .inviter(inviter)
                 .invitee(invitee)
                 .status(InviteStatus.PENDING)
+                .active(true)
                 .createdAt(LocalDateTime.now())
                 .build();
 
@@ -103,12 +104,12 @@ public class InviteServiceImpl implements InviteService {
         Pageable sentPageable = buildPageable(sentPage, sentSize);
 
         Page<GroupInvite> receivedPageData = status == null
-                ? groupInviteRepository.findByInvitee(currentUser, receivedPageable)
-                : groupInviteRepository.findByInviteeAndStatus(currentUser, status, receivedPageable);
+                ? groupInviteRepository.findByInviteeAndActiveTrue(currentUser, receivedPageable)
+                : groupInviteRepository.findByInviteeAndStatusAndActiveTrue(currentUser, status, receivedPageable);
 
         Page<GroupInvite> sentPageData = status == null
-                ? groupInviteRepository.findByInviter(currentUser, sentPageable)
-                : groupInviteRepository.findByInviterAndStatus(currentUser, status, sentPageable);
+                ? groupInviteRepository.findByInviterAndActiveTrue(currentUser, sentPageable)
+                : groupInviteRepository.findByInviterAndStatusAndActiveTrue(currentUser, status, sentPageable);
 
         return MyInviteResponse.builder()
                 .received(PageUtil.toResponse(receivedPageData, inviteMapper::toInviteResponse))

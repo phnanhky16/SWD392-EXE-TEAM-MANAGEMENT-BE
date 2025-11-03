@@ -1,13 +1,15 @@
 package com.swd.exe.teammanagement.repository;
 
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
 import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.Post;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.idea_join_post_score.PostType;
-import jakarta.transaction.Transactional;
-import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
+import jakarta.transaction.Transactional;
 
 public interface PostRepository extends JpaRepository<Post,Long> {
     List<Post> findByTypeAndActiveTrue(PostType type);
@@ -36,4 +38,9 @@ public interface PostRepository extends JpaRepository<Post,Long> {
     List<Post> findByActiveTrue();
     
     List<Post> findByActiveFalse();
+    
+    @org.springframework.data.jpa.repository.Query("UPDATE Post p SET p.active = false WHERE p.group.semester.id = :semesterId")
+    @org.springframework.data.jpa.repository.Modifying
+    @Transactional
+    void deactivatePostsBySemester(@org.springframework.data.repository.query.Param("semesterId") Long semesterId);
 }

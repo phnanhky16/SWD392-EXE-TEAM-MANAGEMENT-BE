@@ -1,14 +1,19 @@
 package com.swd.exe.teammanagement.repository;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.Join;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.idea_join_post_score.JoinStatus;
-import jakarta.transaction.Transactional;
-import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
-import java.util.Optional;
+import jakarta.transaction.Transactional;
 
 public interface JoinRepository extends JpaRepository<Join, Long> {
     void deleteJoinsByToGroup(Group toGroup);
@@ -41,4 +46,9 @@ public interface JoinRepository extends JpaRepository<Join, Long> {
     boolean countJoinByFromUser(User fromUser);
 
     double countJoinsByFromUser(User fromUser);
+    
+    @Modifying
+    @Transactional
+    @Query("UPDATE Join j SET j.active = false WHERE j.toGroup.semester.id = :semesterId")
+    void deactivateJoinsBySemester(@Param("semesterId") Long semesterId);
 }

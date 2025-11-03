@@ -1,11 +1,27 @@
 package com.swd.exe.teammanagement.controller;
 
+import java.io.IOException;
+import java.util.List;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.swd.exe.teammanagement.dto.ApiResponse;
 import com.swd.exe.teammanagement.dto.request.UserUpdateRequest;
 import com.swd.exe.teammanagement.dto.response.PagingResponse;
 import com.swd.exe.teammanagement.dto.response.UserResponse;
 import com.swd.exe.teammanagement.enums.user.UserRole;
 import com.swd.exe.teammanagement.service.UserService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -14,12 +30,6 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -117,5 +127,18 @@ public class UserController {
     @GetMapping("/no-group")
     public ApiResponse<List<UserResponse>> getNoGroup() {
           return ApiResponse.success("Get User List without group successfully",userService.getUserNoGroup());
+    }
+    
+    @Operation(
+            summary = "Get users by semester and role",
+            description = "Retrieve users (students, teachers, or moderators) by semester ID and role. Roles: STUDENT, LECTURER, MODERATOR"
+    )
+    @GetMapping("/semester/{semesterId}")
+    public ApiResponse<List<UserResponse>> getUsersBySemesterAndRole(
+            @PathVariable Long semesterId,
+            @Parameter(description = "User role: STUDENT, LECTURER, or MODERATOR", required = true)
+            @RequestParam UserRole role) {
+        return ApiResponse.success("Get users by semester and role successfully", 
+                                   userService.getUsersBySemesterAndRole(semesterId, role));
     }
 }

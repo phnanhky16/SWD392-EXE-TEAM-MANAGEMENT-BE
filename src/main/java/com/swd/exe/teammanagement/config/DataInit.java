@@ -22,7 +22,44 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class DataInit implements CommandLineRunner {
+    
+    private final UserRepository userRepository;
+    
     @Override
     public void run(String... args) {
+        initDefaultAdmin();
+    }
+
+    private void initDefaultAdmin() {
+        String adminEmail = "quanlydaotaofpt@gmail.com";
+        
+        try {
+            // Check if admin already exists
+            if (userRepository.existsByEmail(adminEmail)) {
+                log.info("Default admin already exists: {}", adminEmail);
+                
+                // Ensure admin is active and has correct role
+                userRepository.findByEmail(adminEmail).ifPresent(admin -> {
+                    if (admin.getRole() != UserRole.ADMIN || !Boolean.TRUE.equals(admin.getIsActive())) {
+                        admin.setRole(UserRole.ADMIN);
+                        admin.setIsActive(true);
+                        userRepository.save(admin);
+                        log.info("Updated existing user to admin: {}", adminEmail);
+                    }
+                });
+            } else {
+                // Create new admin
+                User admin = new User();
+                admin.setEmail(adminEmail);
+                admin.setFullName("Quản Lý Đào Tạo FPT");
+                admin.setRole(UserRole.ADMIN);
+                admin.setIsActive(true);
+                
+                userRepository.save(admin);
+                log.info("Created default admin account: {}", adminEmail);
+            }
+        } catch (Exception e) {
+            log.error("Error initializing default admin", e);
+        }
     }
 }

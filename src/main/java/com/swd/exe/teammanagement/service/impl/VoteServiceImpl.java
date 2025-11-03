@@ -124,9 +124,6 @@ public class VoteServiceImpl implements VoteService {
             for (Vote otherVote : otherVotes) {
                 otherVote.setStatus(VoteStatus.CLOSED);
                 voteRepository.save(otherVote);
-                List<VoteChoice> vcs = voteChoiceRepository.findByVoteAndActiveTrue(otherVote);
-                vcs.forEach(vc -> vc.setActive(false));
-                voteChoiceRepository.saveAll(vcs);
                 joinRepository.findJoinByFromUserAndToGroupAndActiveTrue(vote.getTargetUser(), otherVote.getGroup())
                         .ifPresent(otherJoin -> {
                             otherJoin.setStatus(JoinStatus.REJECTED);
