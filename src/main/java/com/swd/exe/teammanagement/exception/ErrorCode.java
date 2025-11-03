@@ -102,6 +102,12 @@ public enum ErrorCode {
     // User role errors
     INVALID_ROLE("Invalid role for this operation", HttpStatus.BAD_REQUEST),
     SEMESTER_JUST_ONE_ACTIVE("just one semester active", HttpStatus.BAD_REQUEST),
+    
+    // Excel import validation errors
+    FILE_REQUIRED("File is required", HttpStatus.BAD_REQUEST),
+    FILE_READ_ERROR("Error reading file", HttpStatus.INTERNAL_SERVER_ERROR),
+    NO_VALID_DATA("No valid data found in file", HttpStatus.BAD_REQUEST),
+    SEMESTER_NOT_FOUND("Semester not found", HttpStatus.NOT_FOUND),
     ;
 
     private final String message;
