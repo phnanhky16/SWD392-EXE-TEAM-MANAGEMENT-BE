@@ -86,14 +86,22 @@ public enum ErrorCode {
     U_JUST_JOIN_AT_LEAST_3_GROUPS("you can just 3 group, can not over 3 group", HttpStatus.BAD_REQUEST),
     YOU_CAN_VOTE_ONCE("You can vote once", HttpStatus.BAD_REQUEST),
     LECTURER_CAN_POST_SHARING("lecturer can post sharing", HttpStatus.BAD_REQUEST),
-    
+
+    // Excel import errors
+    FILE_EMPTY("File is empty", HttpStatus.BAD_REQUEST),
+    INVALID_FILE_FORMAT("Invalid file format. Only .xlsx and .xls files are allowed", HttpStatus.BAD_REQUEST),
+    FILE_PROCESSING_ERROR("Error processing file", HttpStatus.INTERNAL_SERVER_ERROR),
+    EMAIL_NOT_WHITELISTED("Email is not in the whitelist for this semester", HttpStatus.FORBIDDEN),
+
+    // Semester completion errors
+    SEMESTER_ALREADY_COMPLETED("Semester has already been completed and cannot be modified", HttpStatus.BAD_REQUEST),
+
+    // Idea active errors
+    IDEA_NOT_ACTIVE("Idea is not active and cannot be modified", HttpStatus.BAD_REQUEST),
+
     // User role errors
     INVALID_ROLE("Invalid role for this operation", HttpStatus.BAD_REQUEST),
-    
-    // File processing errors
-    FILE_EMPTY("File is empty", HttpStatus.BAD_REQUEST),
-    INVALID_FILE_FORMAT("Invalid file format", HttpStatus.BAD_REQUEST),
-    FILE_PROCESSING_ERROR("Error processing file", HttpStatus.INTERNAL_SERVER_ERROR),
+    SEMESTER_JUST_ONE_ACTIVE("just one semester active", HttpStatus.BAD_REQUEST),
     ;
 
     private final String message;

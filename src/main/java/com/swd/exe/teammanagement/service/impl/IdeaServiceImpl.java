@@ -61,6 +61,7 @@ public class IdeaServiceImpl implements IdeaService {
         Idea idea = ideaMapper.toIdea(request);   // map title, description
         idea.setAuthor(current);                  // entity mới dùng 'author'
         idea.setStatus(IdeaStatus.DRAFT);         // default
+        idea.setActive(true);                     // active when created
 
         if (isLecturerOrAdmin(current)) {
             // Ý tưởng tham khảo của giảng viên/ADMIN
@@ -97,7 +98,7 @@ public class IdeaServiceImpl implements IdeaService {
     @Override
     @Transactional(readOnly = true)
     public List<IdeaResponse> getAllIdeasByGroup(Long groupId) {
-        return ideaMapper.toIdeaResponseList(ideaRepository.findAllByGroupIdOrderByCreatedAtDesc(groupId));
+        return ideaMapper.toIdeaResponseList(ideaRepository.findAllByGroupIdAndActiveTrueOrderByCreatedAtDesc(groupId));
     }
 
     @Override
@@ -107,6 +108,11 @@ public class IdeaServiceImpl implements IdeaService {
         Idea idea = getIdeaOrThrow(id);
 
         ensureLeaderOfIdea(current.getId(), idea);
+        
+        // Check if idea is active
+        if (!Boolean.TRUE.equals(idea.getActive())) {
+            throw new AppException(ErrorCode.IDEA_NOT_ACTIVE);
+        }
 
         if (!EDITABLE.contains(idea.getStatus()))
             throw new AppException(ErrorCode.ONLY_DRAFT_OR_REJECTED_CAN_BE_UPDATED);
@@ -122,11 +128,19 @@ public class IdeaServiceImpl implements IdeaService {
         Idea idea = getIdeaOrThrow(id);
 
         ensureLeaderOfIdea(current.getId(), idea);
+        
+        // Check if idea is active
+        if (!Boolean.TRUE.equals(idea.getActive())) {
+            throw new AppException(ErrorCode.IDEA_NOT_ACTIVE);
+        }
 
         if (!EDITABLE.contains(idea.getStatus()))
             throw new AppException(ErrorCode.ONLY_DRAFT_OR_REJECTED_CAN_BE_DELETED);
 
-        ideaRepository.delete(idea);
+        // Soft delete: set active = false instead of deleting
+        idea.setActive(false);
+        ideaRepository.save(idea);
+        
         return null;
     }
 
@@ -139,6 +153,11 @@ public class IdeaServiceImpl implements IdeaService {
         Idea idea = getIdeaOrThrow(id);
 
         ensureLeaderOfIdea(current.getId(), idea);
+        
+        // Check if idea is active
+        if (!Boolean.TRUE.equals(idea.getActive())) {
+            throw new AppException(ErrorCode.IDEA_NOT_ACTIVE);
+        }
 
         if (!SUBMITTABLE.contains(idea.getStatus()))
             throw new AppException(ErrorCode.ONLY_DRAFT_OR_REJECTED_CAN_BE_SUBMITTED);
@@ -154,6 +173,11 @@ public class IdeaServiceImpl implements IdeaService {
         Idea idea = getIdeaOrThrow(id);
 
         ensureTeacherOrAdmin(teacher);
+        
+        // Check if idea is active
+        if (!Boolean.TRUE.equals(idea.getActive())) {
+            throw new AppException(ErrorCode.IDEA_NOT_ACTIVE);
+        }
 
         if (idea.getStatus() != IdeaStatus.PROPOSED)
             throw new AppException(ErrorCode.ONLY_PROPOSED_CAN_BE_APPROVED);
@@ -172,6 +196,11 @@ public class IdeaServiceImpl implements IdeaService {
         Idea idea = getIdeaOrThrow(id);
 
         ensureTeacherOrAdmin(teacher);
+        
+        // Check if idea is active
+        if (!Boolean.TRUE.equals(idea.getActive())) {
+            throw new AppException(ErrorCode.IDEA_NOT_ACTIVE);
+        }
 
         if (idea.getStatus() != IdeaStatus.PROPOSED)
             throw new AppException(ErrorCode.ONLY_PROPOSED_CAN_BE_REJECTED);

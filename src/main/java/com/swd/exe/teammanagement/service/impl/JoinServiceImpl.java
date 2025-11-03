@@ -1,6 +1,19 @@
 package com.swd.exe.teammanagement.service.impl;
 
-import com.swd.exe.teammanagement.entity.*;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+import com.swd.exe.teammanagement.entity.Group;
+import com.swd.exe.teammanagement.entity.GroupMember;
+import com.swd.exe.teammanagement.entity.Join;
+import com.swd.exe.teammanagement.entity.Notification;
+import com.swd.exe.teammanagement.entity.User;
+import com.swd.exe.teammanagement.entity.Vote;
+import com.swd.exe.teammanagement.entity.VoteChoice;
 import com.swd.exe.teammanagement.enums.group.GroupStatus;
 import com.swd.exe.teammanagement.enums.group.GroupType;
 import com.swd.exe.teammanagement.enums.idea_join_post_score.JoinStatus;
@@ -10,17 +23,19 @@ import com.swd.exe.teammanagement.enums.user.MembershipRole;
 import com.swd.exe.teammanagement.enums.vote.VoteStatus;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
-import com.swd.exe.teammanagement.repository.*;
+import com.swd.exe.teammanagement.repository.GroupMemberRepository;
+import com.swd.exe.teammanagement.repository.GroupRepository;
+import com.swd.exe.teammanagement.repository.JoinRepository;
+import com.swd.exe.teammanagement.repository.NotificationRepository;
+import com.swd.exe.teammanagement.repository.PostRepository;
+import com.swd.exe.teammanagement.repository.UserRepository;
+import com.swd.exe.teammanagement.repository.VoteChoiceRepository;
+import com.swd.exe.teammanagement.repository.VoteRepository;
 import com.swd.exe.teammanagement.service.JoinService;
 import com.swd.exe.teammanagement.service.VoteService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -78,7 +93,7 @@ public class JoinServiceImpl implements JoinService {
                     .group(group)
                     .user(user)
                     .membershipRole(MembershipRole.MEMBER)
-                            .active(true)
+                    .active(true)
                     .build());
             joinRepository.save(Join.builder()
                     .toGroup(group)
@@ -165,14 +180,17 @@ public class JoinServiceImpl implements JoinService {
         if (join.getStatus() != JoinStatus.PENDING) {
             throw new AppException(ErrorCode.JOIN_REQUEST_ALREADY_PROCESSED);
         }
-        joinRepository.delete(join);
+        join.setActive(false);
+        joinRepository.save(join);
         Group group = join.getToGroup();
         Vote vote = voteRepository.findByGroupAndTargetUserAndStatus(group, user, VoteStatus.OPEN);
         List<VoteChoice> voteChoices = voteChoiceRepository.findVoteChoicesByVote(vote);
         for (VoteChoice voteChoice : voteChoices) {
-            voteChoiceRepository.delete(voteChoice);
+            voteChoice.setActive(false);
+            voteChoiceRepository.save(voteChoice);
         }
-        voteRepository.delete(vote);
+        vote.setActive(false);
+        voteRepository.save(vote);
         return "Join request cancelled successfully";
     }
 
@@ -213,6 +231,26 @@ public void assignStudentToGroup(Long groupId, Long studentId) {
         throw new AppException(ErrorCode.USER_ALREADY_IN_GROUP);
     }
 
+    // Deactivate tất cả Join requests đang pending của student này
+    List<Join> pendingJoins = joinRepository.findByFromUserAndStatusAndActiveTrue(student, JoinStatus.PENDING);
+    for (Join join : pendingJoins) {
+        join.setActive(false);
+        joinRepository.save(join);
+        
+        // Deactivate Vote và VoteChoices liên quan đến join request này
+        Vote vote = voteRepository.findByGroupAndTargetUserAndStatus(join.getToGroup(), student, VoteStatus.OPEN);
+        if (vote != null) {
+            vote.setActive(false);
+            voteRepository.save(vote);
+            
+            List<VoteChoice> voteChoices = voteChoiceRepository.findVoteChoicesByVote(vote);
+            for (VoteChoice voteChoice : voteChoices) {
+                voteChoice.setActive(false);
+                voteChoiceRepository.save(voteChoice);
+            }
+        }
+    }
+
     // Thêm học sinh vào group
     GroupMember member = GroupMember.builder()
             .group(group)
@@ -222,16 +260,19 @@ public void assignStudentToGroup(Long groupId, Long studentId) {
             .build();
     groupMemberRepository.save(member);
 
-    // Nếu cần, tạo Join record với trạng thái ACCEPTED
-    Join join = Join.builder()
+    // Tạo Join record với trạng thái ACCEPTED
+    Join acceptedJoin = Join.builder()
             .fromUser(student)
             .toGroup(group)
             .status(JoinStatus.ACCEPTED)
             .active(true)
             .build();
-    joinRepository.save(join);
-
-    // (Optional) Gửi notification tới học sinh
+    joinRepository.save(acceptedJoin);
+    
+    // Deactivate tất cả posts của student
+    postRepository.deactivatePostsByUser(student);
+    
+    // Gửi notification tới học sinh
     sendNotification(student, "🎉 Bạn đã được moderator thêm vào nhóm " + group.getTitle(), NotificationType.JOIN_ACCEPTED);
 }
 

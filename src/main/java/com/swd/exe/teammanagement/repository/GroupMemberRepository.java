@@ -1,16 +1,19 @@
 package com.swd.exe.teammanagement.repository;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.GroupMember;
 import com.swd.exe.teammanagement.entity.Major;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.user.MembershipRole;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
-import java.util.List;
-import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> {
     boolean existsByGroupIdAndUserIdAndMembershipRoleAndActiveTrue(Long groupId, Long userId, MembershipRole role);
@@ -44,8 +47,8 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
     void deleteGroupMemberByGroup(Group group);
 
     @Query("UPDATE GroupMember gm SET gm.active = false WHERE gm.group = :group")
-    @org.springframework.data.jpa.repository.Modifying
-    @org.springframework.transaction.annotation.Transactional
+    @Modifying
+    @Transactional
     void deactivateGroupMembersByGroup(@Param("group") Group group);
 
     boolean existsByGroupAndUserAndActiveTrue(Group group, User user);
@@ -57,4 +60,9 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
     Optional<GroupMember> findByUser(User user);
 
     boolean existsByGroupAndUser(Group group, User user);
+    
+    @Query("UPDATE GroupMember gm SET gm.active = false WHERE gm.group.semester.id = :semesterId")
+    @Modifying
+    @Transactional
+    void deactivateGroupMembersBySemester(@Param("semesterId") Long semesterId);
 }

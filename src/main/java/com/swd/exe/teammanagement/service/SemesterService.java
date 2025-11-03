@@ -1,6 +1,7 @@
 package com.swd.exe.teammanagement.service;
 
 import java.util.List;
+
 import com.swd.exe.teammanagement.dto.request.SemesterRequest;
 import com.swd.exe.teammanagement.dto.response.SemesterResponse;
 
@@ -13,4 +14,5 @@ public interface SemesterService {
     SemesterResponse activateSemester(Long id);
     SemesterResponse deactivateSemester(Long id);
     SemesterResponse changeSemesterActiveStatus(Long id);
+    String completeSemester(Long id);
 }
