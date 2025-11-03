@@ -3,7 +3,6 @@ package com.swd.exe.teammanagement.controller;
 import java.util.List;
 
 import com.swd.exe.teammanagement.dto.request.PostUpdateRequest;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
