@@ -138,7 +138,6 @@ public class GroupServiceImpl implements GroupService {
         User leader = getCurrentUser();
         GroupMember leaderMember = groupMemberRepository.findByUserAndActiveTrue(leader)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
-
         if (!leaderMember.getMembershipRole().equals(MembershipRole.LEADER)) {
             throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
         }
@@ -148,7 +147,9 @@ public class GroupServiceImpl implements GroupService {
 
         GroupMember gm = groupMemberRepository.findByUserAndActiveTrue(member)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
-
+        if(gm.getGroup().getStatus().equals(GroupStatus.LOCKED)){
+            throw new AppException(ErrorCode.GROUP_LOCKED_CANNOT_LEAVE);
+        }
         gm.setActive(false);
         groupMemberRepository.save(gm);
         joinRepository.deactivateJoinsByFromUser(member);
