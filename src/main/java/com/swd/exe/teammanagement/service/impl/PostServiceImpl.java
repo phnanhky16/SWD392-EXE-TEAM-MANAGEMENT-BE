@@ -116,14 +116,14 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Void deletePost(Long id) {
+    public String deletePost(Long id) {
         User user = getCurrentUser();
         Post post = postRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.POST_UNEXISTED));
         if (post.getGroup()==null) {
             if(post.getUser().equals(user)){
                 post.setActive(false);
                 postRepository.save(post);
-                return null;
+                return "Post deleted successfully";
             }
         }else{
             GroupMember gm = groupMemberRepository.findByUserAndActiveTrue(user).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
@@ -135,9 +135,9 @@ public class PostServiceImpl implements PostService {
             }
             post.setActive(false);
             postRepository.save(post);
-            return null;
+            return "Post deleted successfully";
         }
-        return null;
+        return "Post deleted successfully";
     }
 
     @Override

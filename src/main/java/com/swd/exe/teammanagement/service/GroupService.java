@@ -1,17 +1,17 @@
 package com.swd.exe.teammanagement.service;
 
+import java.util.List;
+import java.util.Set;
+
+import org.springframework.data.domain.Page;
+
 import com.swd.exe.teammanagement.dto.request.GroupCreateRequest;
 import com.swd.exe.teammanagement.dto.response.GroupResponse;
 import com.swd.exe.teammanagement.dto.response.PagingResponse;
 import com.swd.exe.teammanagement.dto.response.UserResponse;
 import com.swd.exe.teammanagement.entity.Major;
-import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.group.GroupStatus;
 import com.swd.exe.teammanagement.enums.group.GroupType;
-import org.springframework.data.domain.Page;
-
-import java.util.List;
-import java.util.Set;
 
 public interface GroupService {
     GroupResponse getGroupById(Long groupId);
