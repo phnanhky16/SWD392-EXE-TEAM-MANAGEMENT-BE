@@ -55,9 +55,8 @@ public class CommentController {
     )
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('STUDENT')")
-    ApiResponse<Void> deleteComment(@PathVariable Long id){
-        commentService.deleteComment(id);
-        return ApiResponse.success("Delete comment successfully", null);
+    ApiResponse<String> deleteComment(@PathVariable Long id){
+        return ApiResponse.success("Delete comment successfully", commentService.deleteComment(id));
     }
     @Operation(
             summary = "Get comment by ID",

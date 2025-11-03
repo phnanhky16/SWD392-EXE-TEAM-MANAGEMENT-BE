@@ -8,7 +8,7 @@ import java.util.List;
 public interface CommentService {
     CommentResponse createComment(CommentRequest request);
     CommentResponse getCommentById(Long id);
-    Void deleteComment(Long id);
+    String deleteComment(Long id);
     List<CommentResponse> getAllCommentsByPost(Long postId);
     CommentResponse updateComment(Long id, CommentRequest request);
     List<CommentResponse> getAllComments();

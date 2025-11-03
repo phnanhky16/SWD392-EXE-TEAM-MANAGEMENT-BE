@@ -46,13 +46,13 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Void deleteComment(Long id) {
+    public String deleteComment(Long id) {
         User user = getCurrentUser();
         Comment comment = commentRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.COMMENT_UNEXISTED));
         if(!comment.getUser().getId().equals(user.getId())){
             throw new AppException(ErrorCode.DOES_NOT_DELETE_OTHER_USER_POST);}
         commentRepository.delete(comment);
-        return null;
+        return "Comment deleted successfully";
     }
 
     @Override

@@ -148,7 +148,7 @@ public class GroupController {
             description = "Toggle group type between PUBLIC and PRIVATE. Only group leader can perform this action."
     )
     @PatchMapping("/change-type")
-    public ApiResponse<Void> changeGroupType() {
+    public ApiResponse<String> changeGroupType() {
         return ApiResponse.success("Change group type successfully", groupService.changeGroupType());
     }
 
@@ -157,9 +157,8 @@ public class GroupController {
             description = "Lock the team when it has exactly 6 members. Only group leader can perform this action."
     )
     @PatchMapping("/done")
-    public ApiResponse<Void> doneTeam() {
-        groupService.doneTeam();
-        return ApiResponse.success("Team finalized successfully", null);
+    public ApiResponse<String> doneTeam() {
+        return ApiResponse.success("Team finalized successfully", groupService.doneTeam());
     }
 
     @Operation(
@@ -167,9 +166,8 @@ public class GroupController {
             description = "Transfer leadership to another member in the group. Only current group leader can perform this action."
     )
     @PatchMapping("/change-leader/{newLeaderId}")
-    public ApiResponse<Void> changeLeader(@PathVariable Long newLeaderId) {
-        groupService.changeLeader(newLeaderId);
-        return ApiResponse.success("Leadership transferred successfully", null);
+    public ApiResponse<String> changeLeader(@PathVariable Long newLeaderId) {
+        return ApiResponse.success("Leadership transferred successfully", groupService.changeLeader(newLeaderId));
     }
 
     @Operation(
@@ -178,9 +176,8 @@ public class GroupController {
     )
     @DeleteMapping("/leave")
     @PreAuthorize("hasRole('STUDENT')")
-    public ApiResponse<Void> leaveGroup() {
-        groupService.leaveGroup();
-        return ApiResponse.success("Left group successfully", null);
+    public ApiResponse<String> leaveGroup() {
+        return ApiResponse.success("Left group successfully", groupService.leaveGroup());
     }
 
     @Operation(
@@ -189,9 +186,8 @@ public class GroupController {
     )
     @DeleteMapping("/members/{userId}")
     @PreAuthorize("hasRole('STUDENT')")
-    public ApiResponse<Void> removeMember(@PathVariable Long userId) {
-        groupService.removeMemberByLeader(userId);
-        return ApiResponse.success("Member removed successfully", null);
+    public ApiResponse<String> removeMember(@PathVariable Long userId) {
+        return ApiResponse.success("Member removed successfully", groupService.removeMemberByLeader(userId));
     }
 
     @Operation(
@@ -210,10 +206,9 @@ public class GroupController {
     )
     @PostMapping
     @PreAuthorize("hasRole('MODERATOR')")
-    public ApiResponse<Void> createGroups(@RequestParam(name = "size", defaultValue = "1") int size,
+    public ApiResponse<String> createGroups(@RequestParam(name = "size", defaultValue = "1") int size,
                                         @RequestParam(name = "semesterId") Long semesterId) {
-        groupService.createGroup(size,semesterId);
-        return ApiResponse.created("Created empty groups successfully", null);
+        return ApiResponse.created("Created empty groups successfully", groupService.createGroup(size,semesterId));
     }
     @GetMapping("/my-assigned")
     public ApiResponse<Page<GroupResponse>> getMyAssignedGroups(

@@ -8,8 +8,6 @@ import com.swd.exe.teammanagement.exception.ErrorCode;
 import com.swd.exe.teammanagement.mapper.SemesterMapper;
 import com.swd.exe.teammanagement.repository.SemesterRepository;
 import com.swd.exe.teammanagement.service.SemesterService;
-import com.swd.exe.teammanagement.repository.UserRepository;
-import com.swd.exe.teammanagement.mapper.UserMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -47,12 +45,12 @@ public class SemesterServiceImpl implements SemesterService {
     }
 
     @Override
-    public Void changeActiveSemester(Long id) {
+    public String changeActiveSemester(Long id) {
         Semester semester = semesterRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.SEMESTER_UNEXISTED));
         semester.setActive(!Boolean.TRUE.equals(semester.getActive()));
         semesterRepository.save(semester);
-        return null;
+        return "Semester active status changed successfully";
     }
 
     @Override
@@ -64,6 +62,33 @@ public class SemesterServiceImpl implements SemesterService {
     @Override
     public List<SemesterResponse> getAllSemesters() {
         return semesterMapper.toSemesterResponseList(semesterRepository.findAll());
+    }
+
+    @Override
+    public SemesterResponse activateSemester(Long id) {
+        Semester semester = semesterRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.SEMESTER_UNEXISTED));
+        semester.setActive(true);
+        semesterRepository.save(semester);
+        return semesterMapper.toSemesterResponse(semester);
+    }
+
+    @Override
+    public SemesterResponse deactivateSemester(Long id) {
+        Semester semester = semesterRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.SEMESTER_UNEXISTED));
+        semester.setActive(false);
+        semesterRepository.save(semester);
+        return semesterMapper.toSemesterResponse(semester);
+    }
+
+    @Override
+    public SemesterResponse changeSemesterActiveStatus(Long id) {
+        Semester semester = semesterRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.SEMESTER_UNEXISTED));
+        semester.setActive(!Boolean.TRUE.equals(semester.getActive()));
+        semesterRepository.save(semester);
+        return semesterMapper.toSemesterResponse(semester);
     }
 
 }

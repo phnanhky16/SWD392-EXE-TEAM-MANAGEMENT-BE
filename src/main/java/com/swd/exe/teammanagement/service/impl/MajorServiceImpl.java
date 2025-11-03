@@ -45,8 +45,9 @@ public class MajorServiceImpl implements MajorService {
     }
 
     @Override
-    public Void deleteMajor(Long id) {
-        return deactivateMajor(id) != null ? null : null;
+    public String deleteMajor(Long id) {
+        deactivateMajor(id);
+        return "Major deleted successfully";
     }
 
     @Override

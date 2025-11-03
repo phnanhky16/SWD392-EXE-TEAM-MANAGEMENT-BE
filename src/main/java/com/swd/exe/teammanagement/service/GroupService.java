@@ -17,12 +17,12 @@ public interface GroupService {
     GroupResponse getGroupById(Long groupId);
     List<GroupResponse> getAllGroups();
     UserResponse getGroupLeader(Long groupId);
-    Void changeGroupType();
+    String changeGroupType();
     GroupResponse getGroupByUserId(Long userId);
-    Void leaveGroup();
+    String leaveGroup();
     List<GroupResponse> getAvailableGroups();
-    Void doneTeam();
-    Void createGroup(int size,long semesterId);
+    String doneTeam();
+    String createGroup(int size,long semesterId);
     PagingResponse<GroupResponse> searchGroups(
             String q,
             GroupStatus status,
@@ -37,9 +37,9 @@ public interface GroupService {
     int getGroupMemberCount(Long groupId);
     Set<Major> getMajorDistribution(Long groupId);
     GroupResponse getMyGroup();
-    Void removeMemberByLeader(Long userId);
+    String removeMemberByLeader(Long userId);
     GroupResponse updateGroupInfo(GroupCreateRequest request);
-    Void changeLeader(Long newLeaderId);
+    String changeLeader(Long newLeaderId);
     List<GroupResponse> getGroupsBySemester(Long semesterId);
     GroupResponse activateGroup(Long groupId);
     GroupResponse deactivateGroup(Long groupId);

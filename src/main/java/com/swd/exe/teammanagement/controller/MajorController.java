@@ -70,10 +70,14 @@ public class MajorController {
     )
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('MODERATOR')or hasRole('ADMIN')")
-    public ApiResponse<Void> deleteMajor(@PathVariable Long id) {
-        majorService.deleteMajor(id);
-        return ApiResponse.success("Delete major successfully", null);
+    public ApiResponse<String> deleteMajor(@PathVariable Long id) {
+        return ApiResponse.success("Delete major successfully", majorService.deleteMajor(id));
     }
+    
+    @Operation(
+            summary = "Activate major",
+            description = "Activate a specific major (set active = true). Requires moderator privileges."
+    )
     @PutMapping("/{id}/activate")
     @PreAuthorize("hasRole('MODERATOR')or hasRole('ADMIN')")
     public ApiResponse<MajorResponse> activateMajor(@PathVariable Long id) {
