@@ -13,7 +13,7 @@ public interface PostService {
 //     PostResponse createPostToFindGroup(PostRequest request);
      PostResponse getPostById(Long id);
      List<PostResponse> getAllPosts();
-     Void deletePost(Long id);
+     String deletePost(Long id);
      List<PostResponse> getPostsByType(PostType type);
      PostResponse updatePost(Long id, PostUpdateRequest request);
      PostResponse activatePost(Long id);

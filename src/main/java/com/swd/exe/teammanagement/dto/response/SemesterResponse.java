@@ -13,4 +13,5 @@ public class SemesterResponse {
     Long id;
     String name;
     Boolean active;
+    Boolean isComplete;
 }

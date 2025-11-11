@@ -48,7 +48,7 @@ public class TeacherCheckPointServiceImpl implements TeacherCheckPointService {
 
 
     @Override
-    public Void assignTeacherToGroup(Long teacherId) {
+    public String assignTeacherToGroup(Long teacherId) {
         User currentUser = getCurrentUser();
 
         GroupMember gm = groupMemberRepository.findByUserAndActiveTrue(currentUser).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
@@ -75,11 +75,11 @@ public class TeacherCheckPointServiceImpl implements TeacherCheckPointService {
                 .teacher(teacher)
                 .group(group)
                 .build());
-        return null;
+        return "Teacher assignment request created successfully";
     }
 
     @Override
-    public Void moderatorAssignTeacherToGroup(Long groupId, Long teacherId) {
+    public String moderatorAssignTeacherToGroup(Long groupId, Long teacherId) {
         User currentUser = getCurrentUser();
         
         // Kiểm tra user là MODERATOR
@@ -131,7 +131,7 @@ public class TeacherCheckPointServiceImpl implements TeacherCheckPointService {
                 .build();
         groupTeacherRepository.save(groupTeacher);
         ideaRepository.assignReviewerForGroupIfNull(group, teacher);
-        return null;
+        return "Teacher assigned to group successfully";
     }
 
     @Override

@@ -1,10 +1,17 @@
 package com.swd.exe.teammanagement.service.impl;
 
+import java.time.LocalDateTime;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.google.firebase.auth.FirebaseAuthException;
 import com.swd.exe.teammanagement.config.JwtService;
 import com.swd.exe.teammanagement.dto.response.AuthResponse;
 import com.swd.exe.teammanagement.entity.Notification;
 import com.swd.exe.teammanagement.entity.User;
+import com.swd.exe.teammanagement.entity.WhitelistEmail;
 import com.swd.exe.teammanagement.enums.notification.NotificationStatus;
 import com.swd.exe.teammanagement.enums.notification.NotificationType;
 import com.swd.exe.teammanagement.enums.user.UserRole;
@@ -13,15 +20,12 @@ import com.swd.exe.teammanagement.exception.ErrorCode;
 import com.swd.exe.teammanagement.repository.NotificationRepository;
 import com.swd.exe.teammanagement.repository.UserRepository;
 import com.swd.exe.teammanagement.service.AuthService;
+import com.swd.exe.teammanagement.service.ExcelImportService;
 import com.swd.exe.teammanagement.service.FirebaseAuthService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -33,6 +37,7 @@ public class AuthServiceImpl implements AuthService {
     UserRepository userRepository;
     JwtService jwtService;
     NotificationRepository notificationRepository;
+    ExcelImportService excelImportService;
 
     @Transactional
     @Override
@@ -43,9 +48,43 @@ public class AuthServiceImpl implements AuthService {
 
             validateEmail(email);
 
-            // Get existing user or create new one
+            // Check if user exists and is active
             User user = userRepository.findByEmail(email)
-                    .orElseGet(() -> createNewUser(info));
+                    .map(existingUser -> {
+                        // If user is active, allow login directly without checking whitelist
+                        if (Boolean.TRUE.equals(existingUser.getIsActive())) {
+                            log.info("Active user logging in: {}", email);
+                            return existingUser;
+                        }
+                        
+                        // If user is inactive, must check whitelist to reactivate
+                        log.info("Inactive user attempting login, checking whitelist: {}", email);
+                        WhitelistEmail whitelistEmail = excelImportService.getWhitelistEmail(email);
+                        if (whitelistEmail == null) {
+                            log.warn("Inactive user not in whitelist: {}", email);
+                            throw new AppException(ErrorCode.EMAIL_NOT_WHITELISTED);
+                        }
+                        
+                        // Reactivate user and add new semester if needed
+                        if (whitelistEmail.getSemester() != null 
+                            && !existingUser.getSemesters().contains(whitelistEmail.getSemester())) {
+                            existingUser.getSemesters().add(whitelistEmail.getSemester());
+                        }
+                        existingUser.setIsActive(true);
+                        userRepository.save(existingUser);
+                        log.info("User reactivated: {}", email);
+                        return existingUser;
+                    })
+                    .orElseGet(() -> {
+                        // New user must be in whitelist
+                        log.info("New user attempting login, checking whitelist: {}", email);
+                        WhitelistEmail whitelistEmail = excelImportService.getWhitelistEmail(email);
+                        if (whitelistEmail == null) {
+                            log.warn("New user not in whitelist: {}", email);
+                            throw new AppException(ErrorCode.EMAIL_NOT_WHITELISTED);
+                        }
+                        return createNewUser(info, whitelistEmail);
+                    });
 
             // Generate token
             String jwt = generateJwtToken(info, user);
@@ -69,61 +108,34 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    private User createNewUser(FirebaseAuthService.FirebaseUserInfo firebaseInfo) {
+    private User createNewUser(FirebaseAuthService.FirebaseUserInfo firebaseInfo, WhitelistEmail whitelistEmail) {
         String email = firebaseInfo.email();
-        EmailParts emailParts = parseEmail(email);
-        UserRole role = determineRole(emailParts.domain(), email);
-        String fullName = getDisplayName(firebaseInfo.name(), emailParts.localPart());
+        
+        // Use information from WhitelistEmail (from Excel import)
+        String fullName = whitelistEmail.getFullName() != null && !whitelistEmail.getFullName().isEmpty() 
+                ? whitelistEmail.getFullName() 
+                : firebaseInfo.name();
+        
         User newUser = new User();
         newUser.setEmail(email);
         newUser.setFullName(fullName);
         newUser.setAvatarUrl(firebaseInfo.pictureUrl());
-        newUser.setRole(role);
+        newUser.setRole(whitelistEmail.getRole());
+        newUser.setStudentCode(whitelistEmail.getStudentCode());
         newUser.setIsActive(true);
 
-        // Set student code only for students from FPT or FE domain
-        if (role == UserRole.STUDENT && isEducationalDomain(emailParts.domain())) {
-            String studentCode = extractStudentCode(emailParts.localPart());
-            newUser.setStudentCode(studentCode.toUpperCase());
+        // Set student code from Excel if available
+        if (whitelistEmail.getRole() == UserRole.STUDENT && whitelistEmail.getStudentCode() != null) {
+            newUser.setStudentCode(whitelistEmail.getStudentCode().toUpperCase());
         }
-        sendNotification(newUser,"Update your major",NotificationType.SYSTEM);
+        
+        // Add user to the semester list from whitelist
+        if (whitelistEmail.getSemester() != null) {
+            newUser.getSemesters().add(whitelistEmail.getSemester());
+        }
+        
+        sendNotification(newUser, "Update your major", NotificationType.SYSTEM);
         return userRepository.save(newUser);
-
-    }
-
-    private EmailParts parseEmail(String email) {
-        int atIndex = email.indexOf('@');
-        String localPart = email.substring(0, atIndex);
-        String domain = email.substring(atIndex + 1).toLowerCase();
-        return new EmailParts(localPart, domain);
-    }
-
-    private UserRole determineRole(String domain, String email) {
-        if ("quanlydaotaofpt@gmail.com".equalsIgnoreCase(email)) {
-            return UserRole.ADMIN;
-        }
-
-        if ("fe.edu.vn".equals(domain)) {
-            return UserRole.LECTURER;
-        }
-
-        return UserRole.STUDENT;
-    }
-
-    private boolean isEducationalDomain(String domain) {
-        return "fpt.edu.vn".equals(domain) || "fe.edu.vn".equals(domain);
-    }
-
-    private String getDisplayName(String firebaseName, String localPart) {
-        return (firebaseName != null && !firebaseName.isBlank())
-                ? firebaseName
-                : localPart;
-    }
-
-    private String extractStudentCode(String localPart) {
-        return localPart.length() <= 8
-                ? localPart
-                : localPart.substring(localPart.length() - 8);
     }
 
     private String generateJwtToken(FirebaseAuthService.FirebaseUserInfo firebaseInfo, User user) {
@@ -140,10 +152,6 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
-    /**
-     * Record to hold email components
-     */
-    private record EmailParts(String localPart, String domain) {}
     private void sendNotification(User user, String content, NotificationType type) {
         notificationRepository.save(Notification.builder()
                 .receiver(user)

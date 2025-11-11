@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,9 +29,8 @@ public class JoinController {
     )
     @PostMapping("/{groupId}")
     @PreAuthorize("hasRole('STUDENT')")
-    public ApiResponse<Void> joinGroup(@PathVariable Long groupId) {
-        joinService.joinGroup(groupId);
-        return ApiResponse.created("Join request processed successfully", null);
+    public ApiResponse<String> joinGroup(@PathVariable Long groupId) {
+        return ApiResponse.created("Join request processed successfully", joinService.joinGroup(groupId));
     }
 
     @Operation(
@@ -61,9 +59,8 @@ public class JoinController {
     )
     @DeleteMapping("/{joinId}")
     @PreAuthorize("hasRole('MODERATOR')or hasRole('ADMIN')")
-    public ApiResponse<Void> cancelJoinRequest(@PathVariable Long joinId) {
-        joinService.cancelJoinRequest(joinId);
-        return ApiResponse.success("Join request cancelled successfully", null);
+    public ApiResponse<String> cancelJoinRequest(@PathVariable Long joinId) {
+        return ApiResponse.success("Join request cancelled successfully", joinService.cancelJoinRequest(joinId));
     }
     @Operation(
             summary = "Activate a join",

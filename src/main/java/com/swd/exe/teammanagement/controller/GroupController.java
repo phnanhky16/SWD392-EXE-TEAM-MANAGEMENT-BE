@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.domain.Page;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -69,6 +68,24 @@ public class GroupController {
     ) {
         var data = groupService.searchGroups(q, status, type, page, size, sort, dir);
         return ApiResponse.success("List groups successfully", data);
+    }
+
+    @Operation(
+            summary = "Get all groups (simple list)",
+            description = "Retrieve all groups without pagination"
+    )
+    @GetMapping("/all")
+    public ApiResponse<List<GroupResponse>> getAllGroups() {
+        return ApiResponse.success("Get all groups successfully", groupService.getAllGroups());
+    }
+
+    @Operation(
+            summary = "Get current group list",
+            description = "Get list of groups in the current active semester"
+    )
+    @GetMapping("/current")
+    public ApiResponse<List<GroupResponse>> getCurrentGroupList() {
+        return ApiResponse.success("Get current group list successfully", groupService.getCurrentGroupList());
     }
 
     @Operation(
@@ -148,7 +165,7 @@ public class GroupController {
             description = "Toggle group type between PUBLIC and PRIVATE. Only group leader can perform this action."
     )
     @PatchMapping("/change-type")
-    public ApiResponse<Void> changeGroupType() {
+    public ApiResponse<String> changeGroupType() {
         return ApiResponse.success("Change group type successfully", groupService.changeGroupType());
     }
 
@@ -157,9 +174,8 @@ public class GroupController {
             description = "Lock the team when it has exactly 6 members. Only group leader can perform this action."
     )
     @PatchMapping("/done")
-    public ApiResponse<Void> doneTeam() {
-        groupService.doneTeam();
-        return ApiResponse.success("Team finalized successfully", null);
+    public ApiResponse<String> doneTeam() {
+        return ApiResponse.success("Team finalized successfully", groupService.doneTeam());
     }
 
     @Operation(
@@ -167,9 +183,8 @@ public class GroupController {
             description = "Transfer leadership to another member in the group. Only current group leader can perform this action."
     )
     @PatchMapping("/change-leader/{newLeaderId}")
-    public ApiResponse<Void> changeLeader(@PathVariable Long newLeaderId) {
-        groupService.changeLeader(newLeaderId);
-        return ApiResponse.success("Leadership transferred successfully", null);
+    public ApiResponse<String> changeLeader(@PathVariable Long newLeaderId) {
+        return ApiResponse.success("Leadership transferred successfully", groupService.changeLeader(newLeaderId));
     }
 
     @Operation(
@@ -178,9 +193,8 @@ public class GroupController {
     )
     @DeleteMapping("/leave")
     @PreAuthorize("hasRole('STUDENT')")
-    public ApiResponse<Void> leaveGroup() {
-        groupService.leaveGroup();
-        return ApiResponse.success("Left group successfully", null);
+    public ApiResponse<String> leaveGroup() {
+        return ApiResponse.success("Left group successfully", groupService.leaveGroup());
     }
 
     @Operation(
@@ -189,9 +203,8 @@ public class GroupController {
     )
     @DeleteMapping("/members/{userId}")
     @PreAuthorize("hasRole('STUDENT')")
-    public ApiResponse<Void> removeMember(@PathVariable Long userId) {
-        groupService.removeMemberByLeader(userId);
-        return ApiResponse.success("Member removed successfully", null);
+    public ApiResponse<String> removeMember(@PathVariable Long userId) {
+        return ApiResponse.success("Member removed successfully", groupService.removeMemberByLeader(userId));
     }
 
     @Operation(
@@ -210,10 +223,9 @@ public class GroupController {
     )
     @PostMapping
     @PreAuthorize("hasRole('MODERATOR')")
-    public ApiResponse<Void> createGroups(@RequestParam(name = "size", defaultValue = "1") int size,
+    public ApiResponse<String> createGroups(@RequestParam(name = "size", defaultValue = "1") int size,
                                         @RequestParam(name = "semesterId") Long semesterId) {
-        groupService.createGroup(size,semesterId);
-        return ApiResponse.created("Created empty groups successfully", null);
+        return ApiResponse.created("Created empty groups successfully", groupService.createGroup(size,semesterId));
     }
     @GetMapping("/my-assigned")
     public ApiResponse<Page<GroupResponse>> getMyAssignedGroups(
@@ -225,5 +237,35 @@ public class GroupController {
                 "Get assigned groups successfully",
                 groupService.getMyAssignedGroups(page, size, includeHistory)
         );
+    }
+
+    @Operation(
+            summary = "Activate group",
+            description = "Activate a specific group (set active = true). Requires moderator privileges."
+    )
+    @PutMapping("/{groupId}/activate")
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN')")
+    public ApiResponse<GroupResponse> activateGroup(@PathVariable Long groupId) {
+        return ApiResponse.success("Activate group successfully", groupService.activateGroup(groupId));
+    }
+
+    @Operation(
+            summary = "Deactivate group",
+            description = "Deactivate a specific group (set active = false). Requires moderator privileges."
+    )
+    @PutMapping("/{groupId}/deactivate")
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN')")
+    public ApiResponse<GroupResponse> deactivateGroup(@PathVariable Long groupId) {
+        return ApiResponse.success("Deactivate group successfully", groupService.deactivateGroup(groupId));
+    }
+
+    @Operation(
+            summary = "Toggle group active status",
+            description = "Toggle active status of a group (active ↔ inactive). Requires moderator privileges."
+    )
+    @PutMapping("/{groupId}/toggle-active")
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN')")
+    public ApiResponse<GroupResponse> toggleGroupActive(@PathVariable Long groupId) {
+        return ApiResponse.success("Toggle group active status successfully", groupService.changeGroupActiveStatus(groupId));
     }
 }

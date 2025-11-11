@@ -6,8 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.swd.exe.teammanagement.enums.user.UserRole;
-import com.swd.exe.teammanagement.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,9 +27,19 @@ import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.group.GroupStatus;
 import com.swd.exe.teammanagement.enums.group.GroupType;
 import com.swd.exe.teammanagement.enums.user.MembershipRole;
+import com.swd.exe.teammanagement.enums.user.UserRole;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
 import com.swd.exe.teammanagement.mapper.GroupMapper;
+import com.swd.exe.teammanagement.repository.GroupMemberRepository;
+import com.swd.exe.teammanagement.repository.GroupRepository;
+import com.swd.exe.teammanagement.repository.GroupTeacherRepository;
+import com.swd.exe.teammanagement.repository.IdeaRepository;
+import com.swd.exe.teammanagement.repository.JoinRepository;
+import com.swd.exe.teammanagement.repository.PostRepository;
+import com.swd.exe.teammanagement.repository.SemesterRepository;
+import com.swd.exe.teammanagement.repository.UserRepository;
+import com.swd.exe.teammanagement.repository.VoteRepository;
 import com.swd.exe.teammanagement.service.GroupService;
 import com.swd.exe.teammanagement.spec.GroupSpecs;
 import com.swd.exe.teammanagement.util.PageUtil;
@@ -134,7 +142,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public Void removeMemberByLeader(Long userId) {
+    public String removeMemberByLeader(Long userId) {
         User leader = getCurrentUser();
         GroupMember leaderMember = groupMemberRepository.findByUserAndActiveTrue(leader)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
@@ -153,7 +161,7 @@ public class GroupServiceImpl implements GroupService {
         gm.setActive(false);
         groupMemberRepository.save(gm);
         joinRepository.deactivateJoinsByFromUser(member);
-        return null; // keep Void for compatibility
+        return "Member removed successfully";
     }
 
     @Override
@@ -175,7 +183,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public Void changeLeader(Long newLeaderId) {
+    public String changeLeader(Long newLeaderId) {
         User currentLeader = getCurrentUser();
         GroupMember leaderMember = groupMemberRepository.findByUserAndActiveTrue(currentLeader)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
@@ -203,7 +211,7 @@ public class GroupServiceImpl implements GroupService {
         newLeaderMember.setMembershipRole(MembershipRole.LEADER);
 
         groupMemberRepository.saveAll(List.of(leaderMember, newLeaderMember));
-        return null;
+        return "Leader changed successfully";
     }
 
     @Override
@@ -215,7 +223,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public Void changeGroupType() {
+    public String changeGroupType() {
         GroupMember gm = groupMemberRepository.findByUserAndActiveTrue(getCurrentUser())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
         if (gm.getMembershipRole().equals(MembershipRole.MEMBER)) {
@@ -224,7 +232,7 @@ public class GroupServiceImpl implements GroupService {
         Group group = gm.getGroup();
         group.setType(group.getType() == GroupType.PUBLIC ? GroupType.PRIVATE : GroupType.PUBLIC);
         groupRepository.save(group);
-        return null;
+        return "Group type changed successfully";
     }
 
     @Override
@@ -237,7 +245,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public Void leaveGroup() {
+    public String leaveGroup() {
         User user = getCurrentUser();
         GroupMember gm = groupMemberRepository.findByUserAndActiveTrue(user)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
@@ -252,7 +260,7 @@ public class GroupServiceImpl implements GroupService {
         } else {
             handleLeaveWhenNotAlone(gm, members, user);
         }
-        return null;
+        return "Left group successfully";
     }
 
     @Override
@@ -284,7 +292,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public Void doneTeam() {
+    public String doneTeam() {
         GroupMember gm = groupMemberRepository.findByUserAndActiveTrue(getCurrentUser())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
 
@@ -303,11 +311,11 @@ public class GroupServiceImpl implements GroupService {
         group.setStatus(GroupStatus.LOCKED);
         groupRepository.save(group);
         postRepository.deactivatePostsByGroup(group);
-        return null;
+        return "Team marked as done successfully";
     }
 
     @Override
-    public Void createGroup(int size,long semesterId) {
+    public String createGroup(int size,long semesterId) {
         if (size <= 0) size = 1;
         Semester semester = semesterRepository.findById(semesterId)
                 .orElseThrow(() -> new AppException(ErrorCode.SEMESTER_UNEXISTED));
@@ -328,7 +336,7 @@ public class GroupServiceImpl implements GroupService {
                     .build();
             groupRepository.save(group);
         }
-        return null;
+        return size + " group(s) created successfully";
     }
 
     // ===== PRIVATE HELPERS =====

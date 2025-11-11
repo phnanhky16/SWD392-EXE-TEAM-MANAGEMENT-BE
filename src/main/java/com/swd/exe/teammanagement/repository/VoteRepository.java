@@ -1,13 +1,18 @@
 package com.swd.exe.teammanagement.repository;
 
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.entity.Vote;
 import com.swd.exe.teammanagement.enums.vote.VoteStatus;
-import jakarta.transaction.Transactional;
-import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
+import jakarta.transaction.Transactional;
 
 public interface VoteRepository extends JpaRepository<Vote, Long> {
     @Transactional
@@ -28,4 +33,9 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
     Vote findByGroupAndTargetUserAndStatus(Group group, User targetUser, VoteStatus status);
 
     List<Vote> findByTargetUserAndStatus(User targetUser, VoteStatus status);
+    
+    @Modifying
+    @Transactional
+    @Query("UPDATE Vote v SET v.active = false WHERE v.group.semester.id = :semesterId")
+    void deactivateVotesBySemester(@Param("semesterId") Long semesterId);
 }
