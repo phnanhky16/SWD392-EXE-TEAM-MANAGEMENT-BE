@@ -9,9 +9,6 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 
-public class ChatMessageRequest {
-    String content;
-    Long groupId;
-    String messageType;
-    String replyToMessageId;
+public class AiChatRequest {
+    String message;
 }

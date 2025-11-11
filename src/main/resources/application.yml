@@ -41,4 +41,6 @@ r2:
   bucket-name: ${R2_BUCKET_NAME}
   public-base-url: ${R2_PUBLIC_BASE_URL}
 
+gemini:
+  api-key: ${GEMINI_API_KEY}
 

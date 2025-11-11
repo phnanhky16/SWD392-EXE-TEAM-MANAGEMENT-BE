@@ -29,8 +29,21 @@ public interface GroupRepository extends JpaRepository<Group, Long>, JpaSpecific
     List<Group> findGroupsByStatusInAndSemesterAndActiveTrue(Collection<GroupStatus> statuses, Semester semester);
 
     long countBySemesterAndActiveTrue(Semester semester);
-    
+
     List<Group> findByActiveTrue();
-    
+
     List<Group> findByActiveFalse();
+
+    @Query(value = """
+        SELECT g.*
+        FROM groups g
+        WHERE g.active = true
+          AND (
+            unaccent(lower(g.title)) LIKE unaccent(lower(CONCAT('%', :keyword, '%')))
+            OR unaccent(lower(COALESCE(g.description, ''))) LIKE unaccent(lower(CONCAT('%', :keyword, '%')))
+          )
+        """,
+            nativeQuery = true)
+    List<Group> searchActiveGroupsByKeywordFuzzy(@Param("keyword") String keyword);
+
 }
