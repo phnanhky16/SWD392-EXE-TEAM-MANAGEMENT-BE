@@ -45,8 +45,13 @@ public class IdeaServiceImpl implements IdeaService {
     IdeaMapper ideaMapper;
 
     // Các tập trạng thái dùng lại nhiều nơi
-    private static final EnumSet<IdeaStatus> EDITABLE = EnumSet.of(IdeaStatus.DRAFT, IdeaStatus.REJECTED);
-    private static final EnumSet<IdeaStatus> SUBMITTABLE = EnumSet.of(IdeaStatus.DRAFT, IdeaStatus.REJECTED);
+    // Được sửa: DRAFT, REJECTED, REVERT
+    private static final EnumSet<IdeaStatus> EDITABLE =
+            EnumSet.of(IdeaStatus.DRAFT, IdeaStatus.REJECTED, IdeaStatus.REVERTED);
+
+    // Được submit: DRAFT, REJECTED, REVERT
+    private static final EnumSet<IdeaStatus> SUBMITTABLE =
+            EnumSet.of(IdeaStatus.DRAFT, IdeaStatus.REJECTED, IdeaStatus.REVERTED);
 
     // ========= CRUD =========
 
@@ -95,7 +100,9 @@ public class IdeaServiceImpl implements IdeaService {
     @Override
     @Transactional(readOnly = true)
     public List<IdeaResponse> getAllIdeasByGroup(Long groupId) {
-        return ideaMapper.toIdeaResponseList(ideaRepository.findAllByGroupIdAndActiveTrueOrderByCreatedAtDesc(groupId));
+        return ideaMapper.toIdeaResponseList(
+                ideaRepository.findAllByGroupIdAndActiveTrueOrderByCreatedAtDesc(groupId)
+        );
     }
 
     @Override
@@ -105,7 +112,7 @@ public class IdeaServiceImpl implements IdeaService {
         Idea idea = getIdeaOrThrow(id);
 
         ensureLeaderOfIdea(current.getId(), idea);
-        
+
         // Check if idea is active
         if (!Boolean.TRUE.equals(idea.getActive())) {
             throw new AppException(ErrorCode.IDEA_NOT_ACTIVE);
@@ -125,7 +132,7 @@ public class IdeaServiceImpl implements IdeaService {
         Idea idea = getIdeaOrThrow(id);
 
         ensureLeaderOfIdea(current.getId(), idea);
-        
+
         // Check if idea is active
         if (!Boolean.TRUE.equals(idea.getActive())) {
             throw new AppException(ErrorCode.IDEA_NOT_ACTIVE);
@@ -137,7 +144,7 @@ public class IdeaServiceImpl implements IdeaService {
         // Soft delete: set active = false instead of deleting
         idea.setActive(false);
         ideaRepository.save(idea);
-        
+
         return null;
     }
 
@@ -150,7 +157,7 @@ public class IdeaServiceImpl implements IdeaService {
         Idea idea = getIdeaOrThrow(id);
 
         ensureLeaderOfIdea(current.getId(), idea);
-        
+
         // Check if idea is active
         if (!Boolean.TRUE.equals(idea.getActive())) {
             throw new AppException(ErrorCode.IDEA_NOT_ACTIVE);
@@ -170,7 +177,7 @@ public class IdeaServiceImpl implements IdeaService {
         Idea idea = getIdeaOrThrow(id);
 
         ensureTeacherOrAdmin(teacher);
-        
+
         // Check if idea is active
         if (!Boolean.TRUE.equals(idea.getActive())) {
             throw new AppException(ErrorCode.IDEA_NOT_ACTIVE);
@@ -193,7 +200,7 @@ public class IdeaServiceImpl implements IdeaService {
         Idea idea = getIdeaOrThrow(id);
 
         ensureTeacherOrAdmin(teacher);
-        
+
         // Check if idea is active
         if (!Boolean.TRUE.equals(idea.getActive())) {
             throw new AppException(ErrorCode.IDEA_NOT_ACTIVE);
@@ -216,15 +223,14 @@ public class IdeaServiceImpl implements IdeaService {
         ensureTeacherOrAdmin(reviewer);
         Idea idea = getIdeaOrThrow(id);
 
+        // Chỉ cho phép REVERT từ trạng thái APPROVED
         if (idea.getStatus() != IdeaStatus.APPROVED) {
             throw new AppException(ErrorCode.ONLY_APPROVED_CAN_BE_DEACTIVATED);
         }
 
-        if (Boolean.FALSE.equals(idea.getActive())) {
-            return ideaMapper.toIdeaResponse(idea);
-        }
+        // Đổi trạng thái sang REVERT, không tắt active
+        idea.setStatus(IdeaStatus.REVERTED);
 
-        idea.setActive(false);
         return ideaMapper.toIdeaResponse(ideaRepository.save(idea));
     }
 
@@ -242,12 +248,14 @@ public class IdeaServiceImpl implements IdeaService {
     }
 
     private void ensureLeaderInGroup(Long userId, Long groupId) {
-        boolean ok = groupMemberRepository.existsByGroupIdAndUserIdAndMembershipRoleAndActiveTrue(groupId, userId, MembershipRole.LEADER);
+        boolean ok = groupMemberRepository.existsByGroupIdAndUserIdAndMembershipRoleAndActiveTrue(
+                groupId, userId, MembershipRole.LEADER
+        );
         if (!ok) throw new AppException(ErrorCode.ONLY_GROUP_LEADER);
     }
 
     private void ensureLeaderOfIdea(Long userId, Idea idea) {
-        if (!Objects.equals(idea.getAuthor().getId(), userId))   // nếu entity dùng 'user' → idea.getUser().getId()
+        if (!Objects.equals(idea.getAuthor().getId(), userId))
             throw new AppException(ErrorCode.ONLY_LEADER_CAN_MODIFY_IDEA);
     }
 
@@ -258,7 +266,6 @@ public class IdeaServiceImpl implements IdeaService {
         }
     }
 
-
     private boolean isLecturerOrAdmin(User u) {
         return u.getRole() == UserRole.LECTURER || u.getRole() == UserRole.ADMIN;
     }
@@ -267,7 +274,11 @@ public class IdeaServiceImpl implements IdeaService {
     @Transactional(readOnly = true)
     public Page<IdeaResponse> getMyIdeasAsReviewer(int page, int size) {
         User me = getCurrentUser();
-        Pageable pageable = PageRequest.of(Math.max(0, page - 1), Math.max(1, size), Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(
+                Math.max(0, page - 1),
+                Math.max(1, size),
+                Sort.by("createdAt").descending()
+        );
 
         Page<Idea> ideas = ideaRepository.findByReviewer_IdOrderByCreatedAtDesc(me.getId(), pageable);
 

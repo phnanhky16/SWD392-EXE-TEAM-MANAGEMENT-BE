@@ -22,4 +22,9 @@ public interface GroupInviteRepository extends JpaRepository<GroupInvite, Long> 
     @Modifying
     @Query("UPDATE GroupInvite gi SET gi.active = false WHERE gi.group.semester.id = :semesterId")
     void deactivateInvitesBySemester(@Param("semesterId") Long semesterId);
+    @Modifying
+    @Query("UPDATE GroupInvite gi " +
+            "SET gi.active = false, gi.status = com.swd.exe.teammanagement.enums.invite.InviteStatus.DECLINED " +
+            "WHERE gi.invitee = :user AND gi.active = true AND gi.status = com.swd.exe.teammanagement.enums.invite.InviteStatus.PENDING")
+    void deactivateAllPendingInvitesByInvitee(@Param("user") User user);
 }

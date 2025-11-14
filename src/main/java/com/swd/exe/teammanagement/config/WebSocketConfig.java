@@ -14,8 +14,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // Đây là endpoint mà client sẽ connect WebSocket vào
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://127.0.0.1:5500", "http://localhost:63342", "https://swd392-exe-team-management-be.onrender.com") // Cho phép Live Server
-                .setAllowedOriginPatterns("http://127.0.0.1:*", "http://localhost:63342") // Cho phép localhost với mọi port
+                .setAllowedOrigins("http://127.0.0.1:5500", "http://localhost:63342",
+                        "https://swd392-exe-team-management-be.onrender.com", "http://localhost:5173", "https://exe-groups.pages.dev") // Cho phép Live Server
+                .setAllowedOriginPatterns("http://127.0.0.1:*", "http://localhost:63342","http://localhost:5173", "https://exe-groups.pages.dev") // Cho phép localhost với mọi port
                 .withSockJS(); // Hỗ trợ fallback cho browser cũ
     }
 
