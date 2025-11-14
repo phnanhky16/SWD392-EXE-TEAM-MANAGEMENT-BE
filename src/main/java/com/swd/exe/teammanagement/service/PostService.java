@@ -9,8 +9,6 @@ import java.util.List;
 
 public interface PostService {
      PostResponse createPost(PostRequest request);
-//     PostResponse createPostToFindMember(PostRequest request);
-//     PostResponse createPostToFindGroup(PostRequest request);
      PostResponse getPostById(Long id);
      List<PostResponse> getAllPosts();
      Void deletePost(Long id);

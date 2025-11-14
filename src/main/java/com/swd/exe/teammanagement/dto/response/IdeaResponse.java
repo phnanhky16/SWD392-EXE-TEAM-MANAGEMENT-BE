@@ -21,4 +21,5 @@ public class IdeaResponse {
     IdeaStatus status;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
+    Boolean active;
 }

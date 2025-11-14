@@ -1,9 +1,7 @@
 package com.swd.exe.teammanagement.service;
 
 import com.swd.exe.teammanagement.dto.request.IdeaRequest;
-import com.swd.exe.teammanagement.dto.response.GroupResponse;
 import com.swd.exe.teammanagement.dto.response.IdeaResponse;
-import com.swd.exe.teammanagement.enums.idea_join_post_score.IdeaStatus;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -19,4 +17,5 @@ public interface IdeaService {
     IdeaResponse approveIdea(Long id);
     IdeaResponse rejectIdea(Long id, String reason);
     Page<IdeaResponse> getMyIdeasAsReviewer(int page, int size);
+    IdeaResponse deactivateIdea(Long id);
 }

@@ -34,6 +34,7 @@ public enum ErrorCode {
     ONLY_DRAFT_OR_REJECTED_CAN_BE_SUBMITTED("Only DRAFT or REJECT idea can be submitted", HttpStatus.BAD_REQUEST),
     ONLY_PROPOSED_CAN_BE_APPROVED("Only PROPOSED idea can be approved", HttpStatus.BAD_REQUEST),
     ONLY_PROPOSED_CAN_BE_REJECTED("Only PROPOSED idea can be rejected", HttpStatus.BAD_REQUEST),
+    ONLY_APPROVED_CAN_BE_DEACTIVATED("Only APPROVED idea can be deactivated", HttpStatus.BAD_REQUEST),
     CREATE_GROUP_NEED_INVITE_2_MEMBERS("Creating a group requires inviting at least 2 members", HttpStatus.BAD_REQUEST),
     INVITEE_MUST_BE_DISTINCT("The invitees must be different", HttpStatus.BAD_REQUEST),
     CANNOT_INVITE_CREATOR_AS_INVITEE("Cannot invite the creator as an invitee", HttpStatus.BAD_REQUEST),
@@ -86,6 +87,7 @@ public enum ErrorCode {
     U_JUST_JOIN_AT_LEAST_3_GROUPS("you can just 3 group, can not over 3 group", HttpStatus.BAD_REQUEST),
     YOU_CAN_VOTE_ONCE("You can vote once", HttpStatus.BAD_REQUEST),
     LECTURER_CAN_POST_SHARING("lecturer can post sharing", HttpStatus.BAD_REQUEST),
+    INVALID_ARGUMENT("Invalid argument", HttpStatus.BAD_REQUEST)
     ;
 
     private final String message;

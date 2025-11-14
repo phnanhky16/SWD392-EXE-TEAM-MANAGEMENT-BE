@@ -60,11 +60,16 @@ public class Idea {
     @Column(name = "updated_at", nullable = false)
     LocalDateTime updatedAt;
 
+    @Builder.Default
+    @Column(nullable = false)
+    Boolean active = true;
+
     @PrePersist
     void prePersist() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = this.createdAt;
         if (this.status == null) this.status = IdeaStatus.DRAFT;
+        if (this.active == null) this.active = true;
     }
 
     @PreUpdate

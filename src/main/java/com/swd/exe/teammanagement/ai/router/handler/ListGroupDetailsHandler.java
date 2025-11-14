@@ -10,6 +10,7 @@ import com.swd.exe.teammanagement.entity.GroupMember;
 import com.swd.exe.teammanagement.entity.Major;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.enums.group.GroupStatus;
+import com.swd.exe.teammanagement.enums.user.UserRole;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
 import com.swd.exe.teammanagement.repository.GroupMemberRepository;
@@ -18,17 +19,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static lombok.AccessLevel.PRIVATE;
 
 @Component
 @RequiredArgsConstructor
 @FieldDefaults(level = PRIVATE, makeFinal = true)
-public class CheckMyGroupStatusHandler implements AiIntentHandler {
+public class ListGroupDetailsHandler implements AiIntentHandler {
 
     GroupMemberRepository groupMemberRepository;
     GroupRepository groupRepository;
@@ -36,22 +35,19 @@ public class CheckMyGroupStatusHandler implements AiIntentHandler {
 
     @Override
     public String intentName() {
-        return "CHECK_MY_GROUP_STATUS";
+        return "LIST_GROUP_DETAILS";
     }
 
     @Override
     public IntentExecutionResult execute(User user, JsonNode args) {
 
         // 1) Xác định scope & group
-        // Nếu không truyền gì, mặc định là "MY_GROUP"
         String scope = args.path("scope").asText("MY_GROUP");
 
-        GroupMember gm = null;   // membership của user (nếu là nhóm của chính user)
         Group group;
         Long groupId;
 
         if ("BY_ID".equalsIgnoreCase(scope)) {
-            // Trường hợp hỏi nhóm theo ID cụ thể
             if (!args.hasNonNull("groupId")) {
                 throw new AppException(ErrorCode.INVALID_ARGUMENT);
             }
@@ -59,29 +55,61 @@ public class CheckMyGroupStatusHandler implements AiIntentHandler {
 
             group = groupRepository.findById(groupId)
                     .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
-
-            // user có thể không thuộc nhóm này -> membershipRole = "NONE" phía dưới
         } else {
-            // MY_GROUP: lấy group hiện tại của user
-            gm = groupMemberRepository.findByUserAndActiveTrue(user)
+            GroupMember gm = groupMemberRepository.findByUserAndActiveTrue(user)
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
 
             group = gm.getGroup();
             groupId = group.getId();
         }
 
-        // 2) Đếm thành viên, số major, tính rule
-        int memberCount = groupMemberRepository.countByGroupIdAndActiveTrue(groupId);
-        List<Major> majors = groupMemberRepository.findMajorsByGroupId(groupId);
-        int majorCount = new HashSet<>(majors).size();
+        // 2) Lấy toàn bộ thành viên active của nhóm
+        List<GroupMember> activeMembers = groupMemberRepository.findByGroupAndActiveTrue(group);
+
+        // Danh sách giảng viên
+        List<Map<String, Object>> teacherSummaries = activeMembers.stream()
+                .filter(gm -> gm.getUser().getRole() == UserRole.LECTURER)
+                .map(gm -> {
+                    User u = gm.getUser();
+                    Major m = u.getMajor();
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", u.getId());
+                    map.put("name", u.getFullName());
+                    map.put("email", u.getEmail());
+                    map.put("hasMajor", m != null);
+                    map.put("majorName", m != null ? m.getName() : null);
+                    return map;
+                })
+                .collect(Collectors.toList());
+
+        // Thông tin ngành của tất cả thành viên
+        Set<String> distinctMajorNames = activeMembers.stream()
+                .map(gm -> gm.getUser().getMajor())
+                .filter(Objects::nonNull)
+                .map(Major::getName)
+                .collect(Collectors.toSet());
+
+        int majorCount = distinctMajorNames.size();
+
+        // Thông tin từng thành viên (cho AI đọc nếu cần)
+        List<Map<String, Object>> memberSummaries = activeMembers.stream()
+                .map(gm -> {
+                    User u = gm.getUser();
+                    Major m = u.getMajor();
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", u.getId());
+                    map.put("name", u.getFullName());
+                    map.put("email", u.getEmail());
+                    map.put("userRole", u.getRole().name());
+                    map.put("membershipRole", gm.getMembershipRole().name());
+                    map.put("hasMajor", m != null);
+                    map.put("majorName", m != null ? m.getName() : null);
+                    return map;
+                })
+                .collect(Collectors.toList());
+
         GroupStatus status = group.getStatus();
-
-        boolean isDiverse = majorCount >= 2;
-        boolean memberCountValid = memberCount >= 1 && memberCount <= 6;
-
-        String membershipRole = gm != null
-                ? gm.getMembershipRole().name()
-                : "NONE";
+        int memberCount = activeMembers.size();
 
         // 3) Build context JSON cho AI
         Map<String, Object> contextData = Map.of(
@@ -91,24 +119,22 @@ public class CheckMyGroupStatusHandler implements AiIntentHandler {
                 ),
                 "memberCount", memberCount,
                 "majorCount", majorCount,
-                "membershipRole", membershipRole,
-                "ruleEvaluation", Map.of(
-                        "isDiverse", isDiverse,
-                        "memberCountValid", memberCountValid
-                )
+                "distinctMajors", distinctMajorNames,
+                "teachers", teacherSummaries,
+                "members", memberSummaries
         );
 
         String contextJson = aiContextBuilder.wrapContext(contextData);
 
         // 4) Attachments cho FE
         Map<String, Object> attachments = new HashMap<>();
-        attachments.put("myGroup", new GroupSummaryResponse(groupId, group.getTitle()));
+        attachments.put("group", new GroupSummaryResponse(groupId, group.getTitle()));
         attachments.put("memberCount", memberCount);
         attachments.put("majorCount", majorCount);
-        attachments.put("isDiverse", isDiverse);
-        attachments.put("memberCountValid", memberCountValid);
+        attachments.put("distinctMajors", distinctMajorNames);
+        attachments.put("teachers", teacherSummaries);
+        attachments.put("members", memberSummaries);
         attachments.put("status", status);
-        attachments.put("membershipRole", membershipRole);
 
         return IntentExecutionResult.builder()
                 .intent(intentName())
