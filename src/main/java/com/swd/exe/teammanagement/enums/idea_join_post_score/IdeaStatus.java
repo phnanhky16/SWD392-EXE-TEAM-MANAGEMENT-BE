@@ -4,5 +4,6 @@ public enum IdeaStatus {
     DRAFT,
     PROPOSED,
     APPROVED,
-    REJECTED
+    REJECTED,
+    REVERTED
 }
