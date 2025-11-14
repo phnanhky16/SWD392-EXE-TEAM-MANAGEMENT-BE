@@ -117,4 +117,13 @@ public class IdeaController {
                                          @RequestParam String reason) {
         return ApiResponse.success("Reject idea successfully", ideaService.rejectIdea(id, reason));
     }
+
+    @Operation(
+            summary = "Deactivate idea",
+            description = "Teacher có thể vô hiệu hoá ý tưởng đã APPROVED nếu cần thay thế"
+    )
+    @PatchMapping("/{id}/deactivate")
+    ApiResponse<IdeaResponse> deactivateIdea(@PathVariable Long id) {
+        return ApiResponse.success("Deactivate idea successfully", ideaService.deactivateIdea(id));
+    }
 }

@@ -3,8 +3,8 @@ package com.swd.exe.teammanagement.ai;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swd.exe.teammanagement.ai.client.GeminiClient;
-import com.swd.exe.teammanagement.ai.router.IntentRouter;
 import com.swd.exe.teammanagement.ai.router.IntentExecutionResult;
+import com.swd.exe.teammanagement.ai.router.IntentRouter;
 import com.swd.exe.teammanagement.dto.response.AiChatResponse;
 import com.swd.exe.teammanagement.entity.ChatSession;
 import com.swd.exe.teammanagement.entity.User;
@@ -28,7 +28,7 @@ public class AiOrchestrator {
     GeminiClient geminiClient;
     IntentRouter intentRouter;
     ChatHistoryService chatHistoryService;
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper; // dùng ObjectMapper do Spring inject
 
     /**
      * Hàm chính: nhận message của user, quyết định gọi intent handler nào
@@ -49,6 +49,9 @@ public class AiOrchestrator {
                 - Đọc câu hỏi của người dùng.
                 - Xác định intent phù hợp.
                 - Quyết định có cần gọi HÀM HỆ THỐNG (function) hay không.
+                - Không bao giờ tự ý bịa dữ liệu, tất cả dữ liệu thật sẽ do hệ thống cung cấp qua hàm.
+                - Không tiết lộ bất kỳ thông tin kỹ thuật nào về hệ thống, API, hay cách bạn hoạt động.
+                - Không bao giờ tiết lộ ID nội bộ hay thông tin nhạy cảm.
 
                 Các intent hợp lệ:
 
@@ -64,23 +67,34 @@ public class AiOrchestrator {
 
                 3. LIST_GROUP_MEMBERS
                    - Khi user muốn xem thành viên của một nhóm.
-                   - args: { "groupId": number }
+                   - Nếu user nói "nhóm của tôi", "nhóm hiện tại của em" -> args: { "scope": "MY_GROUP" }.
+                   - Nếu user nói rõ "nhóm 1", "nhóm EXE SPRING 2025 #1" -> args: { "scope": "BY_ID", "groupId": number }.
                    - Gọi function: true
 
                 4. CHECK_MY_GROUP_STATUS
                    - Khi user hỏi về tình trạng nhóm hiện tại của chính mình
                      (nhóm đã đủ người chưa, đã đa dạng chuyên ngành chưa, đang FORMING hay LOCKED,...).
-                   - args: {} (có thể bỏ trống, vì lấy theo user hiện tại)
+                   - Nếu user nói "nhóm của tôi", "nhóm hiện tại của em" -> args: { "scope": "MY_GROUP" }.
+                   - Nếu user hỏi rõ "trạng thái nhóm 1" -> args: { "scope": "BY_ID", "groupId": number }.
                    - Gọi function: true
 
-                5. FAQ_RULES
+                5. LIST_GROUP_DETAILS
+                   - Khi user muốn xem chi tiết thành viên của một nhóm, bao gồm:
+                     - Những ai là giảng viên / giáo viên.
+                     - Mỗi người thuộc ngành nào, hoặc chưa có ngành.
+                     - Trong nhóm có bao nhiêu ngành khác nhau.
+                   - Nếu user nói "nhóm của tôi", "nhóm hiện tại của em" -> args: { "scope": "MY_GROUP" }.
+                   - Nếu user nói rõ "nhóm 1", "nhóm EXE SPRING 2025 #1" -> args: { "scope": "BY_ID", "groupId": number }.
+                   - Gọi function: true
+
+                6. FAQ_RULES
                    - Câu hỏi chung về luật chơi, cách dùng hệ thống, quy định, hướng dẫn,
                      nhưng KHÔNG cần đọc dữ liệu thật từ DB.
                    - Ví dụ: "làm sao để tham gia nhóm", "nhóm tối đa bao nhiêu người", "leader có quyền gì?".
                    - Gọi function: false
                    - Trả answer trực tiếp.
 
-                6. UNKNOWN
+                7. UNKNOWN
                    - Khi bạn thực sự không hiểu câu hỏi hoặc ngoài phạm vi hệ thống.
                    - Gọi function: false
                    - Trả lời lịch sự rằng bạn không hiểu và gợi ý user hỏi lại theo cách khác.
@@ -89,7 +103,8 @@ public class AiOrchestrator {
 
                 {
                   "intent": "FIND_GROUP" | "LIST_GROUP_TEACHERS" | "LIST_GROUP_MEMBERS"
-                             | "CHECK_MY_GROUP_STATUS" | "FAQ_RULES" | "UNKNOWN",
+                             | "CHECK_MY_GROUP_STATUS" | "LIST_GROUP_DETAILS"
+                             | "FAQ_RULES" | "UNKNOWN",
                   "call_function": true hoặc false,
                   "args": null hoặc object (tùy intent),
                   "answer": null hoặc "câu trả lời trực tiếp cho người dùng nếu không gọi function"
@@ -97,7 +112,8 @@ public class AiOrchestrator {
 
                 Quy tắc:
                 - Với các intent cần dữ liệu thật (FIND_GROUP, LIST_GROUP_TEACHERS,
-                  LIST_GROUP_MEMBERS, CHECK_MY_GROUP_STATUS) -> bắt buộc "call_function": true.
+                  LIST_GROUP_MEMBERS, CHECK_MY_GROUP_STATUS, LIST_GROUP_DETAILS)
+                  -> bắt buộc "call_function": true.
                 - Với FAQ_RULES hoặc UNKNOWN -> "call_function": false và điền "answer".
                 - Hãy luôn chọn intent sát nghĩa nhất với câu hỏi của người dùng.
 
@@ -107,12 +123,22 @@ public class AiOrchestrator {
         // 2) Gọi Gemini lần 1 để nhận JSON quyết định intent
         return geminiClient.generateJson(decisionPrompt)
                 .flatMap(jsonText -> {
-                    System.out.println("=== GEMINI DECISION ===");
-                    System.out.println(jsonText);
 
                     JsonNode root;
                     try {
                         root = mapper.readTree(jsonText);
+
+                        // Nếu model trả về lỗi dạng { "error": ... } thì trả câu xin lỗi chung
+                        if (root.has("error")) {
+                            String fallback = "Xin lỗi, hệ thống trợ lý đang bận, bạn hãy thử lại sau ít phút.";
+                            chatHistoryService.saveMessage(session, ChatRole.ASSISTANT, fallback);
+                            return Mono.just(
+                                    AiChatResponse.builder()
+                                            .answer(fallback)
+                                            .attachments(Collections.emptyMap())
+                                            .build()
+                            );
+                        }
                     } catch (Exception e) {
                         // Nếu không parse được JSON, coi output là câu trả lời text luôn
                         e.printStackTrace();
@@ -127,7 +153,9 @@ public class AiOrchestrator {
 
                     String intent = root.path("intent").asText("UNKNOWN");
                     boolean callFunction = root.path("call_function").asBoolean(false);
-                    JsonNode argsNode = root.path("args").isMissingNode() ? mapper.createObjectNode() : root.path("args");
+                    JsonNode argsNode = root.path("args").isMissingNode()
+                            ? mapper.createObjectNode()
+                            : root.path("args");
 
                     // 2.a. Trường hợp KHÔNG gọi function (FAQ_RULES / UNKNOWN / ...)
                     if (!callFunction) {
@@ -174,10 +202,12 @@ public class AiOrchestrator {
                             Hãy:
                             - Dựa hoàn toàn trên THÔNG TIN THẬT ở trên, không được bịa thêm dữ liệu.
                             - Tóm tắt lại cho sinh viên những gì hệ thống tìm được.
-                            - Nếu có danh sách (nhóm / giáo viên / thành viên...), hãy liệt kê rõ ràng, dễ đọc.
+                            - Nếu có danh sách (nhóm / giáo viên / thành viên...), hãy trình bày rõ ràng, dễ đọc.
                             - Nếu phù hợp, gợi ý lựa chọn tốt nhất cho sinh viên.
-                            - Nhắc sinh viên rằng họ có thể bấm vào tên nhóm, ID nhóm hoặc xem chi tiết trên giao diện để thực hiện thao tác tiếp.
+                            - Có thể nhắc sinh viên rằng họ có thể xem chi tiết nhóm trên giao diện hệ thống.
                             - Trả lời bằng tiếng Việt, thân thiện, rõ ràng.
+                            - Không sử dụng Markdown: không dùng **, *, _ hay các ký hiệu định dạng.
+                            - Không hiển thị bất kỳ ID nội bộ nào như groupId, userId, v.v.
                             """);
 
                     // 4) Gọi Gemini lần 2 để sinh câu trả lời tự nhiên

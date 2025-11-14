@@ -3,13 +3,16 @@ package com.swd.exe.teammanagement.ai.router.handler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.swd.exe.teammanagement.ai.router.AiIntentHandler;
 import com.swd.exe.teammanagement.ai.router.IntentExecutionResult;
+import com.swd.exe.teammanagement.dto.response.GroupSummaryResponse;
 import com.swd.exe.teammanagement.dto.response.UserSummaryResponse;
 import com.swd.exe.teammanagement.entity.Group;
+import com.swd.exe.teammanagement.entity.GroupMember;
 import com.swd.exe.teammanagement.entity.GroupTeacher;
 import com.swd.exe.teammanagement.entity.User;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
 import com.swd.exe.teammanagement.repository.GroupRepository;
+import com.swd.exe.teammanagement.repository.GroupMemberRepository;
 import com.swd.exe.teammanagement.repository.GroupTeacherRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -27,6 +30,7 @@ import static lombok.AccessLevel.PRIVATE;
 public class ListGroupTeachersHandler implements AiIntentHandler {
 
     GroupRepository groupRepository;
+    GroupMemberRepository groupMemberRepository;
     GroupTeacherRepository groupTeacherRepository;
 
     @Override
@@ -37,24 +41,23 @@ public class ListGroupTeachersHandler implements AiIntentHandler {
     @Override
     public IntentExecutionResult execute(User user, JsonNode args) {
 
-        Long groupId = args.hasNonNull("groupId") ? args.get("groupId").asLong() : null;
+        String scope = args.path("scope").asText("MY_GROUP");
+        Group group;
+        if ("BY_ID".equalsIgnoreCase(scope)) {
+            if (!args.hasNonNull("groupId")) {
+                throw new AppException(ErrorCode.INVALID_ARGUMENT);
+            }
+            Long groupId = args.get("groupId").asLong();
+            group = groupRepository.findById(groupId)
+                    .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+        } else {
+            GroupMember membership = groupMemberRepository.findByUserAndActiveTrue(user)
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_GROUP));
+            group = membership.getGroup();
+        }
 
         StringBuilder ctx = new StringBuilder();
         Map<String, Object> attachments = new HashMap<>();
-
-        if (groupId == null) {
-            ctx.append("Không có groupId hợp lệ được truyền vào cho intent LIST_GROUP_TEACHERS.\n");
-            return IntentExecutionResult.builder()
-                    .intent(intentName())
-                    .contextForPrompt(ctx.toString())
-                    .attachments(attachments)
-                    .rawResults(List.of())
-                    .build();
-        }
-
-        // 1) Lấy group
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
 
         // 2) Lấy giáo viên đang phụ trách (nếu có)
         GroupTeacher gt = groupTeacherRepository.findByGroupAndActiveTrue(group)
@@ -93,8 +96,7 @@ public class ListGroupTeachersHandler implements AiIntentHandler {
                 .build();
 
         attachments.put("teachers", List.of(teacherDto));
-        attachments.put("groupId", group.getId());
-        attachments.put("groupTitle", group.getTitle());
+        attachments.put("group", new GroupSummaryResponse(group.getId(), group.getTitle()));
 
         return IntentExecutionResult.builder()
                 .intent(intentName())

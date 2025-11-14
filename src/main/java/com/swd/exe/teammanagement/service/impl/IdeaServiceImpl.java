@@ -6,7 +6,6 @@ import com.swd.exe.teammanagement.entity.Group;
 import com.swd.exe.teammanagement.entity.GroupMember;
 import com.swd.exe.teammanagement.entity.Idea;
 import com.swd.exe.teammanagement.entity.User;
-import com.swd.exe.teammanagement.enums.group.GroupStatus;
 import com.swd.exe.teammanagement.enums.idea_join_post_score.IdeaSource;
 import com.swd.exe.teammanagement.enums.idea_join_post_score.IdeaStatus;
 import com.swd.exe.teammanagement.enums.user.MembershipRole;
@@ -15,7 +14,6 @@ import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
 import com.swd.exe.teammanagement.mapper.IdeaMapper;
 import com.swd.exe.teammanagement.repository.GroupMemberRepository;
-import com.swd.exe.teammanagement.repository.GroupRepository;
 import com.swd.exe.teammanagement.repository.IdeaRepository;
 import com.swd.exe.teammanagement.repository.UserRepository;
 import com.swd.exe.teammanagement.service.IdeaService;
@@ -42,7 +40,6 @@ import static lombok.AccessLevel.PRIVATE;
 public class IdeaServiceImpl implements IdeaService {
 
     UserRepository userRepository;
-    GroupRepository groupRepository;
     IdeaRepository ideaRepository;
     GroupMemberRepository groupMemberRepository;
     IdeaMapper ideaMapper;
@@ -209,6 +206,25 @@ public class IdeaServiceImpl implements IdeaService {
         idea.setReviewer(teacher);
         idea.setCreatedAt(LocalDateTime.now());
 
+        return ideaMapper.toIdeaResponse(ideaRepository.save(idea));
+    }
+
+    @Override
+    @Transactional
+    public IdeaResponse deactivateIdea(Long id) {
+        User reviewer = getCurrentUser();
+        ensureTeacherOrAdmin(reviewer);
+        Idea idea = getIdeaOrThrow(id);
+
+        if (idea.getStatus() != IdeaStatus.APPROVED) {
+            throw new AppException(ErrorCode.ONLY_APPROVED_CAN_BE_DEACTIVATED);
+        }
+
+        if (Boolean.FALSE.equals(idea.getActive())) {
+            return ideaMapper.toIdeaResponse(idea);
+        }
+
+        idea.setActive(false);
         return ideaMapper.toIdeaResponse(ideaRepository.save(idea));
     }
 
