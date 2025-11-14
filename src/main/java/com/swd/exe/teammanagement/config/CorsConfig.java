@@ -22,7 +22,9 @@ public class CorsConfig {
                 "http://localhost:5173",
                 "https://swd392-exe-team-management-be.onrender.com",
                 "https://exe-groups.pages.dev",
+                "http://localhost:63342",
                 "http://127.0.0.1:5501"
+
                  // nếu FE deploy ở domain khác, thêm domain đó
         ));
 
