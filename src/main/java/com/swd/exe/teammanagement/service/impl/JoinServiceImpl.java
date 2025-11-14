@@ -3,6 +3,7 @@ package com.swd.exe.teammanagement.service.impl;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.swd.exe.teammanagement.repository.*;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -23,14 +24,6 @@ import com.swd.exe.teammanagement.enums.user.MembershipRole;
 import com.swd.exe.teammanagement.enums.vote.VoteStatus;
 import com.swd.exe.teammanagement.exception.AppException;
 import com.swd.exe.teammanagement.exception.ErrorCode;
-import com.swd.exe.teammanagement.repository.GroupMemberRepository;
-import com.swd.exe.teammanagement.repository.GroupRepository;
-import com.swd.exe.teammanagement.repository.JoinRepository;
-import com.swd.exe.teammanagement.repository.NotificationRepository;
-import com.swd.exe.teammanagement.repository.PostRepository;
-import com.swd.exe.teammanagement.repository.UserRepository;
-import com.swd.exe.teammanagement.repository.VoteChoiceRepository;
-import com.swd.exe.teammanagement.repository.VoteRepository;
 import com.swd.exe.teammanagement.service.JoinService;
 import com.swd.exe.teammanagement.service.VoteService;
 
@@ -52,6 +45,7 @@ public class JoinServiceImpl implements JoinService {
     SimpMessagingTemplate messagingTemplate;
     private final VoteRepository voteRepository;
     private final VoteChoiceRepository voteChoiceRepository;
+    private final GroupInviteRepository groupInviteRepository;
 
     @Override
     public String joinGroup(Long groupId) {
@@ -82,6 +76,7 @@ public class JoinServiceImpl implements JoinService {
                     .status(JoinStatus.ACCEPTED)
                     .build());
             postRepository.deactivatePostsByUser(user);
+            groupInviteRepository.deactivateAllPendingInvitesByInvitee(user);
             groupRepository.save(group);
             sendNotification(user, "🎉 Bạn đã tạo nhóm thành công!", NotificationType.SYSTEM);
 //            messagingTemplate.convertAndSend("/topic/groups",
