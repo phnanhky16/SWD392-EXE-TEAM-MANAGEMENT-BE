@@ -1,19 +1,20 @@
 package com.swd.exe.teammanagement.repository;
 
-import com.swd.exe.teammanagement.entity.Group;
-import com.swd.exe.teammanagement.entity.Semester;
-import com.swd.exe.teammanagement.entity.User;
-import com.swd.exe.teammanagement.enums.group.GroupStatus;
-import com.swd.exe.teammanagement.enums.group.GroupType;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.swd.exe.teammanagement.entity.Group;
+import com.swd.exe.teammanagement.entity.Semester;
+import com.swd.exe.teammanagement.entity.User;
+import com.swd.exe.teammanagement.enums.group.GroupStatus;
 
 public interface GroupRepository extends JpaRepository<Group, Long>, JpaSpecificationExecutor<Group> {
 
@@ -46,4 +47,10 @@ public interface GroupRepository extends JpaRepository<Group, Long>, JpaSpecific
             nativeQuery = true)
     List<Group> searchActiveGroupsByKeywordFuzzy(@Param("keyword") String keyword);
 
+    
+    @Modifying
+    @Query("UPDATE Group g SET g.active = false WHERE g.semester.id = :semesterId")
+    void deactivateGroupsBySemester(@Param("semesterId") Long semesterId);
+    
+    List<Group> findAllBySemester(Semester semester);
 }

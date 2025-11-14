@@ -75,9 +75,7 @@ public enum ErrorCode {
     REQUEST_UNEXISTED("Request does not exist", HttpStatus.BAD_REQUEST),
     REQUEST_ALREADY_RESPONDED("Request has already been responded to", HttpStatus.BAD_REQUEST),
     USER_NOT_TEACHER("User is not a teacher", HttpStatus.BAD_REQUEST),
-    
-    // Validation errors
-    INVALID_TITLE("Title must not be blank and between 1-200 characters", HttpStatus.BAD_REQUEST),
+        INVALID_TITLE("Title must not be blank and between 1-200 characters", HttpStatus.BAD_REQUEST),
     INVALID_DESCRIPTION("Description must not be blank and between 1-1000 characters", HttpStatus.BAD_REQUEST),
     INVALID_CONTENT("Content must not be blank and between 1-2000 characters", HttpStatus.BAD_REQUEST),
     INVALID_MAJOR_NAME("Major name must not be blank and between 1-100 characters", HttpStatus.BAD_REQUEST),
@@ -87,7 +85,29 @@ public enum ErrorCode {
     U_JUST_JOIN_AT_LEAST_3_GROUPS("you can just 3 group, can not over 3 group", HttpStatus.BAD_REQUEST),
     YOU_CAN_VOTE_ONCE("You can vote once", HttpStatus.BAD_REQUEST),
     LECTURER_CAN_POST_SHARING("lecturer can post sharing", HttpStatus.BAD_REQUEST),
-    INVALID_ARGUMENT("Invalid argument", HttpStatus.BAD_REQUEST)
+    INVALID_ARGUMENT("Invalid argument", HttpStatus.BAD_REQUEST),
+
+    // Excel import errors
+    FILE_EMPTY("File is empty", HttpStatus.BAD_REQUEST),
+    INVALID_FILE_FORMAT("Invalid file format. Only .xlsx and .xls files are allowed", HttpStatus.BAD_REQUEST),
+    FILE_PROCESSING_ERROR("Error processing file", HttpStatus.INTERNAL_SERVER_ERROR),
+    EMAIL_NOT_WHITELISTED("Email is not in the whitelist for this semester", HttpStatus.FORBIDDEN),
+
+    // Semester completion errors
+    SEMESTER_ALREADY_COMPLETED("Semester has already been completed and cannot be modified", HttpStatus.BAD_REQUEST),
+
+    // Idea active errors
+    IDEA_NOT_ACTIVE("Idea is not active and cannot be modified", HttpStatus.BAD_REQUEST),
+
+    // User role errors
+    INVALID_ROLE("Invalid role for this operation", HttpStatus.BAD_REQUEST),
+    SEMESTER_JUST_ONE_ACTIVE("just one semester active", HttpStatus.BAD_REQUEST),
+    
+    // Excel import validation errors
+    FILE_REQUIRED("File is required", HttpStatus.BAD_REQUEST),
+    FILE_READ_ERROR("Error reading file", HttpStatus.INTERNAL_SERVER_ERROR),
+    NO_VALID_DATA("No valid data found in file", HttpStatus.BAD_REQUEST),
+    SEMESTER_NOT_FOUND("Semester not found", HttpStatus.NOT_FOUND),
     ;
 
     private final String message;

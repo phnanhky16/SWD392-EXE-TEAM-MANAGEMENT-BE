@@ -1,13 +1,14 @@
 package com.swd.exe.teammanagement.service;
 
+import java.io.IOException;
+import java.util.List;
+
+import org.springframework.web.multipart.MultipartFile;
+
 import com.swd.exe.teammanagement.dto.request.UserUpdateRequest;
 import com.swd.exe.teammanagement.dto.response.PagingResponse;
 import com.swd.exe.teammanagement.dto.response.UserResponse;
 import com.swd.exe.teammanagement.enums.user.UserRole;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.List;
 
 public interface UserService {
     UserResponse getUserById(Long id);
@@ -26,4 +27,7 @@ public interface UserService {
     UserResponse uploadMyAvatar(MultipartFile avatar) throws IOException;
     UserResponse uploadMyCV(MultipartFile cvFile) throws IOException;
     List<UserResponse> getUserNoGroup();
+    
+    // Get users by semester and role
+    List<UserResponse> getUsersBySemesterAndRole(Long semesterId, UserRole role);
 }
