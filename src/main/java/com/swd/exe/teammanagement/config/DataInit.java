@@ -1,21 +1,18 @@
 package com.swd.exe.teammanagement.config;
 
-import com.swd.exe.teammanagement.entity.Group;
-import com.swd.exe.teammanagement.entity.GroupMember;
+import com.swd.exe.teammanagement.entity.Major;
+import com.swd.exe.teammanagement.entity.Semester;
 import com.swd.exe.teammanagement.entity.User;
-import com.swd.exe.teammanagement.enums.group.GroupStatus;
-import com.swd.exe.teammanagement.enums.group.GroupType;
-import com.swd.exe.teammanagement.enums.user.MembershipRole;
 import com.swd.exe.teammanagement.enums.user.UserRole;
-import com.swd.exe.teammanagement.repository.GroupMemberRepository;
-import com.swd.exe.teammanagement.repository.GroupRepository;
+import com.swd.exe.teammanagement.repository.MajorRepository;
+import com.swd.exe.teammanagement.repository.SemesterRepository;
 import com.swd.exe.teammanagement.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -24,10 +21,14 @@ import java.util.List;
 public class DataInit implements CommandLineRunner {
     
     private final UserRepository userRepository;
+    private final SemesterRepository semesterRepository;
+    private final MajorRepository majorRepository;
     
     @Override
     public void run(String... args) {
         initDefaultAdmin();
+        initDefaultSemester();
+        initDefaultMajors();
     }
 
     private void initDefaultAdmin() {
@@ -60,6 +61,60 @@ public class DataInit implements CommandLineRunner {
             }
         } catch (Exception e) {
             log.error("Error initializing default admin", e);
+        }
+    }
+    
+    private void initDefaultSemester() {
+        String semesterName = "SPRING2026";
+        
+        try {
+            // Check if semester already exists
+            if (semesterRepository.findByName(semesterName).isPresent()) {
+                log.info("Semester already exists: {}", semesterName);
+            } else {
+                // Create new semester
+                Semester semester = Semester.builder()
+                        .name(semesterName)
+                        .active(true)
+                        .isComplete(false)
+                        .build();
+                
+                semesterRepository.save(semester);
+                log.info("Created default semester: {}", semesterName);
+            }
+        } catch (Exception e) {
+            log.error("Error initializing default semester", e);
+        }
+    }
+    
+    private void initDefaultMajors() {
+        List<String> majorNames = Arrays.asList(
+                "Kỹ Thuật Phần Mềm",
+                "Kinh Doanh Quốc Tế", 
+                "Trí Tuệ Nhân Tạo",
+                "An Toàn Thông Tin",
+                "Marketing",
+                "Thiết Kế Đồ Hoạ"
+        );
+        
+        try {
+            for (String majorName : majorNames) {
+                // Check if major already exists
+                if (majorRepository.findByName(majorName).isPresent()) {
+                    log.info("Major already exists: {}", majorName);
+                } else {
+                    // Create new major
+                    Major major = Major.builder()
+                            .name(majorName)
+                            .active(true)
+                            .build();
+                    
+                    majorRepository.save(major);
+                    log.info("Created major: {}", majorName);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error initializing default majors", e);
         }
     }
 }

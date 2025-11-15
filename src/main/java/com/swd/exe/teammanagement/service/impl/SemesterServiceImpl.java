@@ -2,6 +2,8 @@ package com.swd.exe.teammanagement.service.impl;
 
 import java.util.List;
 
+import com.swd.exe.teammanagement.enums.user.UserRole;
+import com.swd.exe.teammanagement.service.ExcelImportService;
 import org.springframework.stereotype.Service;
 
 import com.swd.exe.teammanagement.dto.request.SemesterRequest;
@@ -43,6 +45,8 @@ public class SemesterServiceImpl implements SemesterService {
     VoteRepository voteRepository;
     VoteChoiceRepository voteChoiceRepository;
     UserRepository userRepository;
+    ExcelImportService excelImportService;
+
     @Override
     @Transactional
     public SemesterResponse createSemester(SemesterRequest request) {
@@ -167,7 +171,9 @@ public class SemesterServiceImpl implements SemesterService {
         
         // Deactivate all Users of this semester
         userRepository.deactivateUsersBySemesterId(semester.getId());
-        
+        excelImportService.clearWhitelist(id, UserRole.STUDENT);
+        excelImportService.clearWhitelist(id, UserRole.MODERATOR);
+        excelImportService.clearWhitelist(id, UserRole.LECTURER);
         // Mark semester as complete and inactive
         semester.setIsComplete(true);
         semester.setActive(false);
