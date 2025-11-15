@@ -128,6 +128,7 @@ public class TeacherCheckPointServiceImpl implements TeacherCheckPointService {
                 .group(group)
                 .teacher(teacher)
                 .assignedAt(LocalDateTime.now())
+                .active(true)
                 .build();
         groupTeacherRepository.save(groupTeacher);
         ideaRepository.assignReviewerForGroupIfNull(group, teacher);
