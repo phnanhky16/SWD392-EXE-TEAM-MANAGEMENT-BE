@@ -131,7 +131,6 @@ public class TeacherCheckPointServiceImpl implements TeacherCheckPointService {
                 .active(true)
                 .build();
         groupTeacherRepository.save(groupTeacher);
-        ideaRepository.assignReviewerForGroupIfNull(group, teacher);
         return "Teacher assigned to group successfully";
     }
 
