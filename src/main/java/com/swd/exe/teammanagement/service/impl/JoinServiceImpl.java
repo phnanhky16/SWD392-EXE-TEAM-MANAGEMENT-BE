@@ -45,7 +45,6 @@ public class JoinServiceImpl implements JoinService {
     SimpMessagingTemplate messagingTemplate;
     private final VoteRepository voteRepository;
     private final VoteChoiceRepository voteChoiceRepository;
-    private final GroupInviteRepository groupInviteRepository;
 
     @Override
     public String joinGroup(Long groupId) {
@@ -76,7 +75,6 @@ public class JoinServiceImpl implements JoinService {
                     .status(JoinStatus.ACCEPTED)
                     .build());
             postRepository.deactivatePostsByUser(user);
-            groupInviteRepository.deactivateAllPendingInvitesByInvitee(user);
             groupRepository.save(group);
             sendNotification(user, "🎉 Bạn đã tạo nhóm thành công!", NotificationType.SYSTEM);
 //            messagingTemplate.convertAndSend("/topic/groups",
